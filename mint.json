@@ -7,23 +7,23 @@
   },
   "favicon": "/favicon.svg",
   "colors": {
-    "primary": "#0D9373",
-    "light": "#07C983",
-    "dark": "#0D9373",
+    "primary": "#FFBE98",
+    "light": "#FFBE98",
+    "dark": "#FFBE98",
     "anchors": {
-      "from": "#0D9373",
-      "to": "#07C983"
+      "from": "#FFBE98",
+      "to": "#FFBE98"
     }
   },
   "topbarLinks": [
     {
       "name": "Support",
-      "url": "mailto:hi@mintlify.com"
+      "url": "mailto:gabriel@creem.io"
     }
   ],
   "topbarCtaButton": {
     "name": "Dashboard",
-    "url": "https://dashboard.mintlify.com"
+    "url": "https://creem.io/home"
   },
   "tabs": [
     {
@@ -33,30 +33,65 @@
   ],
   "anchors": [
     {
-      "name": "Documentation",
-      "icon": "book-open-cover",
-      "url": "https://mintlify.com/docs"
-    },
-    {
       "name": "Community",
-      "icon": "slack",
-      "url": "https://mintlify.com/community"
+      "icon": "discord",
+      "url": "https://discord.gg/q3GKZs92Av"
     },
     {
       "name": "Blog",
       "icon": "newspaper",
-      "url": "https://mintlify.com/blog"
+      "url": "https://creem.io/blog"
     }
   ],
   "navigation": [
     {
       "group": "Get Started",
-      "pages": ["introduction", "quickstart", "development"]
+      "pages": ["introduction", "quickstart", "api-keys"]
+    },
+    {
+      "group": "Learn",
+      "pages": [
+        {
+          "group": "Webhooks",
+          "pages": [
+            "learn/webhooks/introduction",
+            "learn/webhooks/event-types",
+            "learn/webhooks/verify-webhook-requests"
+            ]
+        },
+        {
+          "group": "Customers",
+          "pages": [
+            "learn/customers/introduction",
+            "learn/customers/customer-portal"
+            ]
+        },
+        {
+          "group": "Subscriptions",
+          "pages": [
+            "learn/webhooks/introduction",
+            "learn/webhooks/managing",
+            "learn/subscriptions/refunds-and-cancellations"
+            ]
+        },
+        {
+          "group": "Products",
+          "pages": [
+            "learn/webhooks/introduction",
+            "learn/webhooks/prices",
+            "learn/subscriptions/pricing-table"
+            ]
+        }
+      ]
     },
     {
       "group": "Essentials",
       "pages": [
         "essentials/markdown",
+        {
+          "group": "Code",
+          "pages": ["essentials/code/variables", "essentials/code/loops"]
+        },
         "essentials/code",
         "essentials/images",
         "essentials/settings",
@@ -69,18 +104,27 @@
       "pages": ["api-reference/introduction"]
     },
     {
-      "group": "Endpoint Examples",
+      "group": "Checkout",
+      "pages": ["api-reference/endpoint/create-checkout"]
+    },
+    {
+      "group": "Product",
       "pages": [
-        "api-reference/endpoint/get",
-        "api-reference/endpoint/create",
-        "api-reference/endpoint/delete"
+        "api-reference/endpoint/create-product",
+        "api-reference/endpoint/get-product"
       ]
+    },
+    {
+      "group": "Customer",
+      "pages": ["api-reference/endpoint/get-customer"]
+    },
+    {
+      "group": "Subscription",
+      "pages": ["api-reference/endpoint/get-subscription"]
     }
   ],
   "footerSocials": {
-    "x": "https://x.com/mintlify",
-    "github": "https://github.com/mintlify",
-    "linkedin": "https://www.linkedin.com/company/mintsearch"
+    "x": "https://x.com/creem_io",
+    "linkedin": "https://www.linkedin.com/company/creemio"
   }
 }
-

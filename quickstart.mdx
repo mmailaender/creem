@@ -1,86 +1,109 @@
 ---
 title: 'Quickstart'
-description: 'Start building awesome documentation in under 5 minutes'
+description: 'Learn how to receive your first payment in under 10 minutes'
 ---
 
-## Setup your development
+## Prerequisites
 
-Learn how to update your docs locally and deploy them to the public.
+To get the most out of this guide, you'll need to:
 
-### Edit and preview
+- **Create an account on Creem.io**
+- **Have your API key ready**
+
+## 1. Create a product
+
+Go over to the [products tab](https://creem.io/products) and create a product. 
+You can add a name, description, and price to your product. Optionally you can also add a picture to your product that will be shown to users.
+
 
 <AccordionGroup>
-  <Accordion icon="github" title="Clone your docs locally">
-    During the onboarding process, we created a repository on your Github with
-    your docs content. You can find this repository on our
-    [dashboard](https://dashboard.mintlify.com). To clone the repository
-    locally, follow these
-    [instructions](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository)
-    in your terminal.
+  <Accordion icon="browser" title="Product page">
+    <img
+      style={{ borderRadius: '0.5rem' }}
+      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/add-product-B0Khh16pSFp3DpwsuBrrExvlwovhMq.png"
+    />
   </Accordion>
-  <Accordion icon="rectangle-terminal" title="Preview changes">
-    Previewing helps you make sure your changes look as intended. We built a
-    command line interface to render these changes locally. 1. Install the
-    [Mintlify CLI](https://www.npmjs.com/package/mintlify) to preview the
-    documentation changes locally with this command: ``` npm i -g mintlify ```
-    2. Run the following command at the root of your documentation (where
-    `mint.json` is): ``` mintlify dev ```
+  <Accordion icon="file-spreadsheet" title="Adding product details">
+    <img
+      style={{ borderRadius: '0.5rem' }}
+      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/product-details-49DpCmOXRIuUOYulQXxmY6moAISQ9b.png"
+    />
   </Accordion>
 </AccordionGroup>
 
-### Deploy your changes
+
+
+## 2. Create a checkout session
+
+Once your product is created, you can copy the product ID by clicking on the product options and selecting "Copy ID".
+
+Now grab your api-key and create a checkout session by sending a POST request to the following endpoint:
+
+<CodeGroup>
+
+```bash getCheckout.sh
+curl -X POST https://api.creem.io/checkout-session \
+  -H "x-api-key: creem_123456789"
+  -D '{"product_id": "product_123456789"}'
+```
+
+```javascript getCheckout.js
+    const redirectUrl = await axios.post(
+      `https://api.creem.io/checkout-session`,
+        {
+          product_id: 'product_123456789',
+        },
+        {
+          headers: { "x-api-key": `creem_123456789` },
+        },
+    );
+```
+
+</CodeGroup>
+
+
+## 3. Redirect user to checkout url
+
+Once you have created a checkout session, you will receive a checkout URL in the response. 
+
+Redirect the user to this URL and that is it! You have successfully created a checkout session and received your first payment!
+
+
 
 <AccordionGroup>
 
-<Accordion icon="message-bot" title="Install our Github app">
-  Our Github app automatically deploys your changes to your docs site, so you
-  don't need to manage deployments yourself. You can find the link to install on
-  your [dashboard](https://dashboard.mintlify.com). Once the bot has been
-  successfully installed, there should be a check mark next to the commit hash
-  of the repo.
+<Accordion icon="table-tree" title="Track payments with a request ID">
+  When creating a checkout-session, you can optionally add a `request_id` parameter to track the payment.
+  This parameter will be sent back to you in the response and in the webhook events.
+  Use this parameter to track the payment or user in your system.
 </Accordion>
-<Accordion icon="rocket" title="Push your changes">
-  [Commit and push your changes to
-  Git](https://docs.github.com/en/get-started/using-git/pushing-commits-to-a-remote-repository#about-git-push)
-  for your changes to update in your docs site. If you push and don't see that
-  the Github app successfully deployed your changes, you can also manually
-  update your docs through our [dashboard](https://dashboard.mintlify.com).
+<Accordion icon="location-crosshairs" title="Set a success URL on the checkout session">
+  After successfully completing the payment, the user will be automatically redirected to the URL you have set on the product creation.
+  You can bypass this setting by setting a success URL on the checkout session request by adding the `success_url` parameter.
+  The user will always be redirected with the following query parameters:
+  - `session_id`: The ID of the checkout session
+  - `product_id`: The ID of the product
+  - `status`: The status of the payment
+  - `request_id`: The request ID of the payment that you optionally have sent
 </Accordion>
 
 </AccordionGroup>
 
-## Update your docs
+## More advanced use cases
 
-Add content directly in your files with MDX syntax and React components. You can use any of our components, or even build your own.
+Create checkout-sessions and prices dynamically, use webhooks to receive updates on your application automatically, and much more. Check out our advanced guides to get the most out of Creem.
 
 <CardGroup>
 
-<Card title="Style Your Docs" icon="paintbrush" href="/settings/global">
-  Add flair to your docs with personalized branding.
+<Card title="Return URLs" icon="globe-pointer" href="/settings/global">
+  Understand what you will receive when users complete a payment and get redirected back to your website.
 </Card>
 
 <Card
-  title="Add API Endpoints"
+  title="Webhooks and Events"
   icon="square-code"
   href="/api-playground/configuration"
 >
-  Implement your OpenAPI spec and enable API user interaction.
+  Set up webhooks to receive updates on your application automatically.
 </Card>
-
-<Card
-  title="Integrate Analytics"
-  icon="chart-mixed"
-  href="/analytics/supported-integrations"
->
-  Draw insights from user interactions with your documentation.
-</Card>
-
-<Card
-  title="Host on a Custom Domain"
-  icon="browser"
-  href="/settings/custom-domain/subdomain"
->
-  Keep your docs on your own website's subdomain.
-</Card>
-
 </CardGroup>
