@@ -74,22 +74,6 @@
             "learn/customers/introduction",
             "learn/customers/customer-portal"
           ]
-        },
-        {
-          "group": "Subscriptions",
-          "pages": [
-            "learn/subscriptions/introduction",
-            "learn/subscriptions/managing",
-            "learn/subscriptions/refunds-and-cancellations"
-          ]
-        },
-        {
-          "group": "Products",
-          "pages": [
-            "learn/products/introduction",
-            "learn/products/prices",
-            "learn/products/pricing-table"
-          ]
         }
       ]
     },
