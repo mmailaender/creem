@@ -9,3 +9,41 @@ With checkout sessions generated dynamically instead of just using a product pay
 
 This allows you to track the payment status and the user that made the payment in your system in a more organized way, and gives you the flexibility to track that payment with any ID you choose instead of relying on Creem IDs.
 
+
+## Create a checkout session
+
+You can create a checkout session with a product ID
+
+<Tip>
+  You can find a product ID by going to the products tab and clicking on the product options and selecting "Copy ID".
+</Tip>
+
+Additionally, you can pass a `request_id` to the session to track the payment in your system.
+You will also need the API key to authenticate the request.
+
+<CodeGroup>
+
+```bash getCheckout.sh
+curl -X POST https://api.creem.io/checkout-session \
+  -H "x-api-key: creem_123456789"
+  -D '{"product_id": "prod_6tW66i0oZM7w1qXReHJrwg", "request_id": "your-request-id"}'
+```
+
+```javascript getCheckout.js
+    const redirectUrl = await axios.post(
+      `https://api.creem.io/checkout-session`,
+        {
+          product_id: 'prod_6tW66i0oZM7w1qXReHJrwg',
+          request_id: 'your-request-id',
+        },
+        {
+          headers: { "x-api-key": `creem_123456789` },
+        },
+    );
+```
+
+</CodeGroup>
+
+The above request will return a checkout session object with a `checkout_url` that you can use to redirect the user to the payment page.
+
+Any payments made with this checkout session will have the `request_id` you provided on the Redirect URL, as well as the webhook event.
