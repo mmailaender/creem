@@ -24,14 +24,14 @@ You will also need the API key to authenticate the request.
 <CodeGroup>
 
 ```bash getCheckout.sh
-curl -X POST https://api.creem.io/v1/checkout \
+curl -X POST https://api.creem.io/v1/checkouts \
   -H "x-api-key: creem_123456789"
   -D '{"product_id": "prod_6tW66i0oZM7w1qXReHJrwg", "request_id": "your-request-id"}'
 ```
 
 ```javascript getCheckout.js
     const redirectUrl = await axios.post(
-      `https://api.creem.io/v1/checkout`,
+      `https://api.creem.io/v1/checkouts`,
         {
           product_id: 'prod_6tW66i0oZM7w1qXReHJrwg',
           request_id: 'your-request-id',
