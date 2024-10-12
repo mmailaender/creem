@@ -58,7 +58,7 @@ Any payments made with this checkout session will have the `request_id` you prov
 
 The `request_id` is only returned in the `checkout.completed` webhook (which is very useful for one-time payments), but it’s not sent with every new subscription transaction.
 
-To make things easier, we also allow you to pass `metadata` in a checkoutSession along with the `request_id`. This metadata will be saved in the Subscription object and returned with every subsequent webhook.
+To make things easier, we also allow you to pass `metadata` in a checkoutSession with or without the `request_id`. This metadata will be saved in the Subscription object and returned with every subsequent webhook.
 
 <CodeGroup>
 
