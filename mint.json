@@ -55,6 +55,10 @@
       ]
     },
     {
+      "group": "Get Paid",
+      "pages": ["get-paid/payouts"]
+    },
+    {
       "group": "Learn",
       "pages": [
         {
