@@ -177,6 +177,41 @@ curl -X 'POST' \
       },
     }'
 ```
+</CodeGroup>
+
+## Discount Codes
+
+You can pass a `discount_code` directly in the checkout session. 
+This discount code will be pre-filled for the user on the checkout session page. 
+
+
+<CodeGroup>
+
+
+```javascript getCheckout.js
+    const redirectUrl = await axios.post(
+      `https://api.creem.io/v1/checkouts`,
+        {
+          "product_id": "prod_your-product-id",
+          "discount_code": "BF200XX",
+        },
+        {
+          headers: { "x-api-key": `creem_123456789` },
+        },
+    );
+```
+
+```bash getCheckout.sh
+curl -X 'POST' \
+  'https://test-api.creem.io/v1/checkouts' \
+    -H 'accept: application/json' \
+    -H 'x-api-key: creem_123456789' \
+    -H 'Content-Type: application/json' \
+    -d '{
+      "product_id": "prod_your-product-id",
+      "discount_code": "BF200XX",
+    }'
+```
 
 
 </CodeGroup>
