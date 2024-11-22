@@ -59,15 +59,26 @@ Customers using the customer portal, can copy all details of a specific payment,
 ### 3. Request Customer Portal Login through the API
 
 Merchants can generate a customer portal login for their users, using the API, providing the `customer_id`.
+The API responds a URL, that the merchant can then use to redirect their customer to the customer portal.
+
+<AccordionGroup>
+  <Accordion title="Response">
+  ```json
+{
+    "customer_portal_link": "https://creem.io/my-orders/login/JDJhJDE1JGx5ZUs0ekI2Qy5yR3JwQUxkOWNGei4"
+}  ```
+    
+  </Accordion>
+</AccordionGroup>
 
 <CodeGroup>
 
 
-```javascript getCheckout.js
+```javascript getCustomerPortalUrl.js
     const redirectUrl = await axios.post(
       `https://api.creem.io/v1/customers/billing`,
         {
-          "customer_id": "cust_xxxxxxx"
+          "customer_id": "cust_xxxxxxx",
         },
         {
           headers: { "x-api-key": `creem_123456789` },
@@ -75,7 +86,7 @@ Merchants can generate a customer portal login for their users, using the API, p
     );
 ```
 
-```bash getCheckout.sh
+```bash getCustomerPortalUrl.sh
 curl -X 'POST' \
   'https://api.creem.io/v1/customers/billing' \
   -H 'accept: application/json' \
@@ -88,3 +99,5 @@ curl -X 'POST' \
 ```
 
 </CodeGroup>
+
+
