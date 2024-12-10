@@ -105,6 +105,10 @@
       "pages": ["api-reference/endpoint/get-customer"]
     },
     {
+      "group": "Discount Code",
+      "pages": ["api-reference/endpoint/create-discount-code"]
+    },
+    {
       "group": "Subscription",
       "pages": [
         "api-reference/endpoint/get-subscription",

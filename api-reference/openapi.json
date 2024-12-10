@@ -302,6 +302,44 @@
           }
         }
       }
+    },
+    "/v1/discounts": {
+      "post": {
+        "operationId": "DiscountsControllerV1_activate",
+        "summary": "Create a discount.",
+        "parameters": [
+          {
+            "name": "x-api-key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDiscountRequestEntity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully created a discount",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DiscountEntity"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "info": {
@@ -994,6 +1032,163 @@
           }
         },
         "required": ["product_id"]
+      },
+      "CreateDiscountRequestEntity": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The name of the discount.",
+            "example": "Holiday Sale"
+          },
+          "code": {
+            "type": "string",
+            "description": "Optional discount code. If left empty, a code will be generated.",
+            "example": "HOLIDAY2024"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the discount, either \"percentage\" or \"fixed\".",
+            "enum": ["percentage", "fixed"]
+          },
+          "amount": {
+            "type": "number",
+            "description": "The fixed value for the discount. Only applicable if the type is \"fixed\".",
+            "example": 20
+          },
+          "currency": {
+            "type": "string",
+            "description": "The currency of the discount. Only required if type is \"fixed\".",
+            "example": "USD"
+          },
+          "percentage": {
+            "type": "number",
+            "description": "The percentage value for the discount. Only applicable if the type is \"percentage\".",
+            "example": 15
+          },
+          "expiry_date": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The expiry date of the discount.",
+            "example": "2024-12-31T23:59:59Z"
+          },
+          "max_redemptions": {
+            "type": "number",
+            "description": "The maximum number of redemptions for the discount.",
+            "example": 100
+          },
+          "duration": {
+            "type": "string",
+            "description": "The duration type for the discount.",
+            "enum": ["forever", "once", "repeating"],
+            "example": "repeating"
+          },
+          "duration_in_months": {
+            "type": "number",
+            "description": "The number of months the discount is valid for. Only applicable if the duration is \"repeating\" and the product is a subscription.",
+            "example": 6
+          },
+          "applies_to_products": {
+            "description": "The list of product IDs to which this discount applies.",
+            "example": ["prod_123", "prod_456"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["name", "type", "amount", "duration"]
+      },
+      "DiscountEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["test", "live", "sandbox"],
+            "description": "String representing the environment."
+          },
+          "object": {
+            "type": "string",
+            "description": "A string representing the object’s type. Objects of the same type share the same value.",
+            "example": "discount"
+          },
+          "status": {
+            "type": "string",
+            "description": "The status of the discount (e.g., active, inactive).",
+            "enum": ["active", "draft", "expired", "scheduled"],
+            "example": "active"
+          },
+          "name": {
+            "type": "string",
+            "description": "The name of the discount.",
+            "example": "Holiday Sale"
+          },
+          "code": {
+            "type": "string",
+            "description": "The discount code. A unique identifier for the discount.",
+            "example": "HOLIDAY2024"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of the discount, either \"percentage\" or \"fixed\".",
+            "enum": ["percentage", "fixed"],
+            "example": "percentage"
+          },
+          "amount": {
+            "type": "number",
+            "description": "The amount of the discount. Can be a percentage or a fixed amount.",
+            "example": 20
+          },
+          "percentage": {
+            "type": "number",
+            "description": "The percentage of the discount. Only applicable if type is \"percentage\".",
+            "example": 15
+          },
+          "expiry_date": {
+            "format": "date-time",
+            "type": "string",
+            "description": "The expiry date of the discount.",
+            "example": "2024-12-31T23:59:59Z"
+          },
+          "max_redemptions": {
+            "type": "object",
+            "description": "The maximum number of redemptions allowed for the discount.",
+            "example": 100
+          },
+          "duration": {
+            "type": "string",
+            "description": "The duration type for the discount.",
+            "enum": ["forever", "once", "repeating"],
+            "example": "repeating"
+          },
+          "duration_in_months": {
+            "type": "object",
+            "description": "The number of months the discount is valid for. Only applicable if the duration is \"repeating\" and the product is a subscription.",
+            "example": 6
+          },
+          "applies_to_products": {
+            "description": "The list of product IDs to which this discount applies.",
+            "example": ["prod_123", "prod_456"],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "mode",
+          "object",
+          "status",
+          "name",
+          "code",
+          "type",
+          "amount"
+        ]
       }
     }
   }
