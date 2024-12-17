@@ -100,6 +100,14 @@
         {
           "group": "Private Notes",
           "pages": ["features/private-notes/overview"]
+        },
+        {
+          "group": "File Downloads",
+          "pages": ["features/downloads/overview"]
+        },
+        {
+          "group": "Custom Fields",
+          "pages": ["features/custom-fields/overview"]
         }
       ]
     },
