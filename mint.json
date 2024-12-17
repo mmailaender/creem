@@ -65,6 +65,15 @@
           ]
         },
         {
+          "group": "License",
+          "pages": [
+            "learn/licenses/introduction",
+            "learn/licenses/activate",
+            "learn/licenses/validate",
+            "learn/licenses/deactivate"
+          ]
+        },
+        {
           "group": "Webhooks",
           "pages": [
             "learn/webhooks/introduction",
