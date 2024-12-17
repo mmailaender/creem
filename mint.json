@@ -65,15 +65,6 @@
           ]
         },
         {
-          "group": "License",
-          "pages": [
-            "learn/licenses/introduction",
-            "learn/licenses/activate",
-            "learn/licenses/validate",
-            "learn/licenses/deactivate"
-          ]
-        },
-        {
           "group": "Webhooks",
           "pages": [
             "learn/webhooks/introduction",
@@ -93,6 +84,20 @@
     {
       "group": "Integrations",
       "pages": ["integrations/ai-negotiation"]
+    },
+    {
+      "group": "Product Features",
+      "pages": [
+        {
+          "group": "Licenses",
+          "pages": [
+            "features/licenses/introduction",
+            "features/licenses/activate",
+            "features/licenses/validate",
+            "features/licenses/deactivate"
+          ]
+        }
+      ]
     },
     {
       "group": "Finance",
