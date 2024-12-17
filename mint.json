@@ -82,12 +82,16 @@
       ]
     },
     {
+      "group": "Partners",
+      "pages": ["partners/ai-negotiation"]
+    },
+    {
       "group": "Finance",
       "pages": [
-        "payments/payments",
-        "payments/payouts",
-        "payments/merchant-of-record",
-        "payments/refunds"
+        "finance/payments",
+        "finance/payouts",
+        "finance/merchant-of-record",
+        "finance/refunds"
       ]
     },
     {
