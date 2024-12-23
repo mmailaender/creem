@@ -83,7 +83,7 @@
     },
     {
       "group": "Integrations",
-      "pages": ["integrations/ai-negotiation"]
+      "pages": ["integrations/ai-negotiation", "integrations/affiliates"]
     },
     {
       "group": "Product Features",
