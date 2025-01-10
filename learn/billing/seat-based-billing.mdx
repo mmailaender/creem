@@ -59,7 +59,7 @@ Usually, it is great practice for your system to store the subscription ID of a 
 
 1. Querying subscription details
     - With the subscription ID, call the [GET Subscription Creem API](https://docs.creem.io/api-reference/endpoint/get-subscription).
-    - Retrieve the Product ID and Item ID from the subscription item.
+    - Retrieve the Item ID from the subscription item.
 
 
 <AccordionGroup>
@@ -68,7 +68,7 @@ Usually, it is great practice for your system to store the subscription ID of a 
   Query the GET Subscription Creem API with the subscription ID
 ```javascript
 const subscriptionDetails = await axios.get(
-  `https://api.creem.io/v1/subscriptions/sub_123123`,
+  `https://api.creem.io/v1/subscriptions?subscription_id=sub_12312312312'`,
   {
     headers: { "x-api-key": `creem_123456789` },
   }
@@ -77,7 +77,7 @@ const subscriptionDetails = await axios.get(
 ```
 </Accordion>
 <Accordion icon="location-crosshairs" title="Parse the response">
- Parse, locate and store the Product Id and Item ID of the subscription item, located under the items array. 
+ Parse, locate and store the Item ID of the subscription item, located under the items array. 
 
 ```json
 {
@@ -114,7 +114,7 @@ const subscriptionDetails = await axios.get(
 
 
 2. Make the subscription change
-    - With the Product ID, Item Id and subscription ID, call the [UPDATE subscription API](https://docs.creem.io/api-reference/endpoint/get-subscription).
+    - With the Item Id and Subscription ID, call the [UPDATE subscription API](https://docs.creem.io/api-reference/endpoint/get-subscription).
     - Use the `units` field to the desired amount of seats changed.
 
 <Accordion icon="table-tree" title="Update Subscription">
