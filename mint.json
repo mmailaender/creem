@@ -94,14 +94,6 @@
       "pages": ["integrations/ai-negotiation", "integrations/affiliates"]
     },
     {
-      "group": "For Customers and Buyers",
-      "pages": [
-        "for-customers/why-creem-charged-me",
-        "for-customers/how-to-cancel-subscription",
-        "for-customers/how-to-update-payment-method"
-      ]
-    },
-    {
       "group": "Product Features",
       "pages": [
         {
@@ -134,6 +126,14 @@
         "finance/payouts",
         "finance/merchant-of-record",
         "finance/refunds"
+      ]
+    },
+    {
+      "group": "For Customers and Buyers",
+      "pages": [
+        "for-customers/why-creem-charged-me",
+        "for-customers/how-to-cancel-subscription",
+        "for-customers/how-to-update-payment-method"
       ]
     },
     {
