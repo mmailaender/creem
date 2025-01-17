@@ -129,6 +129,14 @@
       ]
     },
     {
+      "group": "For Customers and Buyers",
+      "pages": [
+        "for-customers/why-creem-charged-me",
+        "for-customers/how-to-cancel-subscription",
+        "for-customers/how-to-update-payment-method"
+      ]
+    },
+    {
       "group": "API Documentation",
       "pages": ["api-reference/introduction"]
     },
