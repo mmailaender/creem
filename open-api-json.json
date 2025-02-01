@@ -681,7 +681,7 @@
           },
           "billing_type": {
             "type": "string",
-            "description": "Indicates the billing method for the customer. It can either be a recurring billing cycle or a one-time payment.",
+            "description": "Indicates the billing method for the customer. It can either be a `recurring` billing cycle or a `onetime` payment.",
             "example": "recurring"
           },
           "billing_period": {
@@ -872,7 +872,7 @@
           },
           "billing_type": {
             "type": "string",
-            "description": "Indicates the billing method for the customer. It can either be a recurring billing cycle or a one-time payment.",
+            "description": "Indicates the billing method for the customer. It can either be a `recurring` billing cycle or a `onetime` payment.",
             "example": "recurring"
           },
           "billing_period": {
