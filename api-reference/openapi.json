@@ -3,7 +3,7 @@
   "paths": {
     "/v1/products": {
       "get": {
-        "operationId": "ProductsControllerV1_retrieve",
+        "operationId": "retrieveProduct",
         "summary": "Retrieve a product",
         "parameters": [
           {
@@ -38,7 +38,7 @@
         }
       },
       "post": {
-        "operationId": "ProductsControllerV1_create",
+        "operationId": "createProduct",
         "summary": "Creates a new product.",
         "parameters": [
           {
@@ -76,7 +76,7 @@
     },
     "/v1/products/search": {
       "get": {
-        "operationId": "ProductsControllerV1_search",
+        "operationId": "searchProducts",
         "summary": "List all products",
         "parameters": [
           {
@@ -122,7 +122,7 @@
     },
     "/v1/customers": {
       "get": {
-        "operationId": "CustomersControllerV1_retrieve",
+        "operationId": "retrieveCustomer",
         "summary": "Retrieve a customer",
         "parameters": [
           {
@@ -168,7 +168,7 @@
     },
     "/v1/customers/billing": {
       "post": {
-        "operationId": "CustomersBillingControllerV1_generate",
+        "operationId": "generateCustomerLinks",
         "summary": "Generate Customer Links",
         "parameters": [
           {
@@ -206,7 +206,7 @@
     },
     "/v1/subscriptions": {
       "get": {
-        "operationId": "SubscriptionsControllerV1_retrieve",
+        "operationId": "retrieveSubscription",
         "summary": "Retrieve a subscription",
         "parameters": [
           {
@@ -243,7 +243,7 @@
     },
     "/v1/subscriptions/{id}/cancel": {
       "post": {
-        "operationId": "SubscriptionsControllerV1_cancel",
+        "operationId": "cancelSubscription",
         "summary": "Cancel a subscription.",
         "parameters": [
           {
@@ -279,7 +279,7 @@
     },
     "/v1/subscriptions/{id}": {
       "post": {
-        "operationId": "SubscriptionsControllerV1_update",
+        "operationId": "updateSubscription",
         "summary": "Update a subscription.",
         "parameters": [
           {
@@ -325,7 +325,7 @@
     },
     "/v1/subscriptions/{id}/upgrade": {
       "post": {
-        "operationId": "SubscriptionsControllerV1_upgrade",
+        "operationId": "upgradeSubscription",
         "summary": "Upgrade a subscription to a different product",
         "parameters": [
           {
@@ -371,7 +371,7 @@
     },
     "/v1/checkouts": {
       "get": {
-        "operationId": "CheckoutsControllerV1_retrieve",
+        "operationId": "retrieveCheckout",
         "summary": "Retrieve a new checkout session.",
         "parameters": [
           {
@@ -405,7 +405,7 @@
         }
       },
       "post": {
-        "operationId": "CheckoutsControllerV1_createCheckout",
+        "operationId": "createCheckout",
         "summary": "Creates a new checkout session.",
         "parameters": [
           {
@@ -419,10 +419,11 @@
         ],
         "requestBody": {
           "required": true,
+          "description": "Create checkout request payload",
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/CreateCheckoutRequestEntity"
+                "$ref": "#/components/schemas/CreateCheckoutRequest"
               }
             }
           }
@@ -443,7 +444,7 @@
     },
     "/v1/licenses/activate": {
       "post": {
-        "operationId": "LicensesControllerV1_activate",
+        "operationId": "activateLicense",
         "summary": "Activates a license key.",
         "parameters": [
           {
@@ -481,7 +482,7 @@
     },
     "/v1/licenses/deactivate": {
       "post": {
-        "operationId": "LicensesControllerV1_deactivate",
+        "operationId": "deactivateLicense",
         "summary": "Deactivate a license key instance.",
         "parameters": [
           {
@@ -519,7 +520,7 @@
     },
     "/v1/licenses/validate": {
       "post": {
-        "operationId": "LicensesControllerV1_validate",
+        "operationId": "validateLicense",
         "summary": "Validates a license key or instance.",
         "parameters": [
           {
@@ -557,7 +558,7 @@
     },
     "/v1/discounts": {
       "get": {
-        "operationId": "DiscountsControllerV1_retrieve",
+        "operationId": "retrieveDiscount",
         "summary": "Retrieve discount",
         "parameters": [
           {
@@ -601,7 +602,7 @@
         }
       },
       "post": {
-        "operationId": "DiscountsControllerV1_create",
+        "operationId": "createDiscount",
         "summary": "Create a discount.",
         "parameters": [
           {
@@ -639,7 +640,7 @@
     },
     "/v1/discounts/{id}/delete": {
       "delete": {
-        "operationId": "DiscountsControllerV1_delete",
+        "operationId": "deleteDiscount",
         "summary": "Delete a discount.",
         "parameters": [
           {
@@ -675,7 +676,7 @@
     },
     "/v1/transactions/search": {
       "get": {
-        "operationId": "TransactionsControllerV1_search",
+        "operationId": "searchTransactions",
         "summary": "List all transactions",
         "parameters": [
           {
@@ -751,9 +752,7 @@
     "title": "Creem API",
     "description": "Creem is an all-in-one platform for managing subscriptions and recurring revenue, tailored specifically for today's SaaS companies. It enables you to boost revenue, enhance customer retention, and scale your operations seamlessly.'",
     "version": "v1",
-    "contact": {
-
-    }
+    "contact": {}
   },
   "tags": [],
   "servers": [
@@ -783,11 +782,7 @@
             "example": "Get access to discord server."
           }
         },
-        "required": [
-          "id",
-          "type",
-          "description"
-        ]
+        "required": ["id", "type", "description"]
       },
       "ProductEntity": {
         "type": "object",
@@ -798,16 +793,12 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "live",
-              "sandbox"
-            ],
+            "enum": ["test", "live", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
             "type": "string",
-            "description": "String representing the object’s type. Objects of the same type share the same value."
+            "description": "String representing the object's type. Objects of the same type share the same value."
           },
           "name": {
             "type": "string",
@@ -872,7 +863,8 @@
           "default_success_url": {
             "type": "string",
             "description": "The URL to which the user will be redirected after successfull payment.",
-            "example": "https://example.com/?status=successful"
+            "example": "https://example.com/?status=successful",
+            "nullable": true
           },
           "created_at": {
             "format": "date-time",
@@ -900,7 +892,6 @@
           "status",
           "tax_mode",
           "tax_category",
-          "product_url",
           "created_at",
           "updated_at"
         ]
@@ -924,20 +915,24 @@
             "example": 1
           },
           "next_page": {
-            "type": "object",
+            "type": "number",
             "description": "The next page number, or null if there is no next page",
-            "example": 2
+            "example": 2,
+            "nullable": true
           },
           "prev_page": {
-            "type": "object",
+            "type": "number",
             "description": "The previous page number, or null if there is no previous page",
-            "example": null
+            "example": null,
+            "nullable": true
           }
         },
         "required": [
           "total_records",
           "total_pages",
-          "current_page"
+          "current_page",
+          "next_page",
+          "prev_page"
         ]
       },
       "ProductListEntity": {
@@ -959,10 +954,7 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "pagination"
-        ]
+        "required": ["items", "pagination"]
       },
       "Text": {
         "type": "object",
@@ -983,9 +975,7 @@
           "type": {
             "type": "string",
             "description": "The type of the field.",
-            "enum": [
-              "text"
-            ],
+            "enum": ["text"],
             "example": "text"
           },
           "key": {
@@ -1011,11 +1001,7 @@
             ]
           }
         },
-        "required": [
-          "type",
-          "key",
-          "label"
-        ]
+        "required": ["type", "key", "label"]
       },
       "CreateProductRequestEntity": {
         "type": "object",
@@ -1054,13 +1040,6 @@
             "description": "Billing period, required if billing_type is recurring",
             "example": "every-month"
           },
-          "features": {
-            "description": "A list of features fpr the product.",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/FeatureEntity"
-            }
-          },
           "tax_mode": {
             "type": "string",
             "description": "Specifies the tax calculation mode for the transaction. If set to \"inclusive,\" the tax is included in the price. If set to \"exclusive,\" the tax is added on top of the price.",
@@ -1084,12 +1063,7 @@
             }
           }
         },
-        "required": [
-          "name",
-          "price",
-          "currency",
-          "billing_type"
-        ]
+        "required": ["name", "price", "currency", "billing_type"]
       },
       "CustomerEntity": {
         "type": "object",
@@ -1100,11 +1074,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "live",
-              "sandbox"
-            ],
+            "enum": ["test", "live", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1158,9 +1128,7 @@
             "description": "Unique identifier of the customer."
           }
         },
-        "required": [
-          "customer_id"
-        ]
+        "required": ["customer_id"]
       },
       "CustomerLinksEntity": {
         "type": "object",
@@ -1170,9 +1138,7 @@
             "description": "Customer portal link."
           }
         },
-        "required": [
-          "customer_portal_link"
-        ]
+        "required": ["customer_portal_link"]
       },
       "SubscriptionItemEntity": {
         "type": "object",
@@ -1183,11 +1149,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "live",
-              "sandbox"
-            ],
+            "enum": ["test", "live", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1207,10 +1169,109 @@
             "description": "The number of units for the subscription item."
           }
         },
+        "required": ["id", "mode", "object"]
+      },
+      "TransactionEntity": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the object."
+          },
+          "mode": {
+            "type": "string",
+            "enum": ["test", "live", "sandbox"],
+            "description": "String representing the environment."
+          },
+          "object": {
+            "type": "string",
+            "description": "String representing the object's type. Objects of the same type share the same value.",
+            "example": "transaction"
+          },
+          "amount": {
+            "type": "number",
+            "description": "The transaction amount in cents. 1000 = $10.00",
+            "example": 2000
+          },
+          "amount_paid": {
+            "type": "number",
+            "description": "The amount the customer paid in cents. 1000 = $10.00",
+            "example": 2000
+          },
+          "discount_amount": {
+            "type": "number",
+            "description": "The discount amount in cents. 1000 = $10.00",
+            "example": 2000
+          },
+          "currency": {
+            "type": "string",
+            "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
+            "example": "EUR"
+          },
+          "type": {
+            "type": "string",
+            "description": "The type of transaction. payment(one time payments) and invoice(subscription)"
+          },
+          "tax_country": {
+            "type": "string",
+            "description": "The ISO alpha-2 country code where tax is collected.",
+            "example": "US",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "tax_amount": {
+            "type": "number",
+            "description": "The sale tax amount in cents. 1000 = $10.00",
+            "example": 2000
+          },
+          "status": {
+            "type": "string",
+            "description": "Status of the transaction."
+          },
+          "refunded_amount": {
+            "type": "number",
+            "description": "The amount that has been refunded in cents. 1000 = $10.00",
+            "example": 2000,
+            "nullable": true
+          },
+          "order": {
+            "type": "string",
+            "description": "The order associated with the transaction."
+          },
+          "subscription": {
+            "type": "string",
+            "description": "The subscription associated with the transaction."
+          },
+          "customer": {
+            "type": "string",
+            "description": "The customer associated with the transaction.",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
+            "description": "The description of the transaction."
+          },
+          "period_start": {
+            "type": "number",
+            "description": "Start period for the invoice as timestamp"
+          },
+          "period_end": {
+            "type": "number",
+            "description": "End period for the invoice as timestamp"
+          },
+          "created_at": {
+            "type": "number",
+            "description": "Creation date of the order as timestamp"
+          }
+        },
         "required": [
           "id",
           "mode",
-          "object"
+          "object",
+          "amount",
+          "currency",
+          "type",
+          "status",
+          "created_at"
         ]
       },
       "SubscriptionEntity": {
@@ -1222,24 +1283,35 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "live",
-              "sandbox"
-            ],
+            "enum": ["test", "live", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
             "type": "string",
-            "description": "String representing the object’s type. Objects of the same type share the same value."
+            "description": "String representing the object's type. Objects of the same type share the same value.",
+            "example": "subscription"
           },
           "product": {
-            "type": "object",
-            "description": "The product associated with the subscription."
+            "description": "The product associated with the subscription.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/ProductEntity"
+              },
+              {
+                "type": "string"
+              }
+            ]
           },
           "customer": {
-            "type": "object",
-            "description": "The customer who owns the subscription."
+            "description": "The customer who owns the subscription.",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CustomerEntity"
+              },
+              {
+                "type": "string"
+              }
+            ]
           },
           "items": {
             "description": "Subscription items.",
@@ -1256,19 +1328,21 @@
           "status": {
             "type": "string",
             "description": "The current status of the subscription.",
-            "enum": [
-              "active",
-              "canceled",
-              "unpaid",
-              "paused",
-              "trialing"
-            ],
+            "enum": ["active", "canceled", "unpaid", "paused", "trialing"],
             "example": "active"
           },
           "last_transaction_id": {
             "type": "string",
             "description": "The ID of the last paid transaction.",
             "example": "tran_3e6Z6TzvHKdsjEgXnGDEp0"
+          },
+          "last_transaction": {
+            "description": "The last paid transaction.",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TransactionEntity"
+              }
+            ]
           },
           "last_transaction_date": {
             "format": "date-time",
@@ -1295,10 +1369,11 @@
             "example": "2024-09-12T12:34:56Z"
           },
           "canceled_at": {
-            "format": "date-time",
             "type": "string",
             "description": "The date and time when the subscription was canceled, if applicable.",
-            "example": "2024-09-12T12:34:56Z"
+            "example": "2024-09-12T12:34:56Z",
+            "format": "date-time",
+            "nullable": true
           },
           "created_at": {
             "format": "date-time",
@@ -1307,10 +1382,10 @@
             "example": "2024-01-01T00:00:00Z"
           },
           "updated_at": {
-            "format": "date-time",
             "type": "string",
             "description": "The date and time when the subscription was last updated.",
-            "example": "2024-09-12T12:34:56Z"
+            "example": "2024-09-12T12:34:56Z",
+            "format": "date-time"
           }
         },
         "required": [
@@ -1387,9 +1462,7 @@
             "default": "proration-charge-immediately"
           }
         },
-        "required": [
-          "product_id"
-        ]
+        "required": ["product_id"]
       },
       "OrderEntity": {
         "type": "object",
@@ -1400,29 +1473,60 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "live",
-              "sandbox"
-            ],
+            "enum": ["test", "live", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
             "type": "string",
-            "description": "String representing the object’s type. Objects of the same type share the same value."
+            "description": "String representing the object's type. Objects of the same type share the same value."
           },
           "customer": {
-            "type": "object",
-            "description": "The the customer who placed the order."
+            "type": "string",
+            "description": "The customer who placed the order."
           },
           "product": {
-            "type": "object",
-            "description": "The the product associated with the order."
+            "type": "string",
+            "description": "The product associated with the order."
+          },
+          "transaction": {
+            "type": "string",
+            "description": "The transaction ID of the order",
+            "example": "tx_1234567890"
+          },
+          "discount": {
+            "type": "string",
+            "description": "The discount ID of the order",
+            "example": "dis_1234567890"
           },
           "amount": {
             "type": "number",
             "description": "The total amount of the order in cents. 1000 = $10.00",
             "example": 2000
+          },
+          "sub_total": {
+            "type": "number",
+            "description": "The subtotal of the order in cents. 1000 = $10.00",
+            "example": 1800
+          },
+          "tax_amount": {
+            "type": "number",
+            "description": "The tax amount of the order in cents. 1000 = $10.00",
+            "example": 200
+          },
+          "discount_amount": {
+            "type": "number",
+            "description": "The discount amount of the order in cents. 1000 = $10.00",
+            "example": 100
+          },
+          "amount_due": {
+            "type": "number",
+            "description": "The amount due for the order in cents. 1000 = $10.00",
+            "example": 1900
+          },
+          "amount_paid": {
+            "type": "number",
+            "description": "The amount paid for the order in cents. 1000 = $10.00",
+            "example": 1900
           },
           "currency": {
             "type": "string",
@@ -1447,24 +1551,18 @@
           "status": {
             "type": "string",
             "description": "Current status of the order.",
-            "enum": [
-              "pending",
-              "paid"
-            ],
+            "enum": ["pending", "paid"],
             "example": "pending"
           },
           "type": {
             "type": "string",
-            "description": "The type of order. This can specify whether it’s a regular purchase, subscription, etc.",
+            "description": "The type of order. This can specify whether it's a regular purchase, subscription, etc.",
             "example": "subscription",
-            "enum": [
-              "subscription",
-              "purchase"
-            ]
+            "enum": ["subscription", "purchase"]
           },
           "affiliate": {
             "type": "string",
-            "description": "T affiliate associated with the order, if applicable."
+            "description": "The affiliate associated with the order, if applicable."
           },
           "created_at": {
             "format": "date-time",
@@ -1522,11 +1620,7 @@
             ]
           }
         },
-        "required": [
-          "type",
-          "key",
-          "label"
-        ]
+        "required": ["type", "key", "label"]
       },
       "LicenseInstanceEntity": {
         "type": "object",
@@ -1537,11 +1631,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "live",
-              "sandbox"
-            ],
+            "enum": ["test", "live", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1557,10 +1647,7 @@
           "status": {
             "type": "string",
             "description": "The status of the license instance.",
-            "enum": [
-              "active",
-              "deactivated"
-            ],
+            "enum": ["active", "deactivated"],
             "example": "active"
           },
           "created_at": {
@@ -1570,14 +1657,7 @@
             "example": "2023-09-13T00:00:00Z"
           }
         },
-        "required": [
-          "id",
-          "mode",
-          "object",
-          "name",
-          "status",
-          "created_at"
-        ]
+        "required": ["id", "mode", "object", "name", "status", "created_at"]
       },
       "LicenseEntity": {
         "type": "object",
@@ -1588,11 +1668,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "live",
-              "sandbox"
-            ],
+            "enum": ["test", "live", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1602,12 +1678,7 @@
           "status": {
             "type": "string",
             "description": "The current status of the license key.",
-            "enum": [
-              "inactive",
-              "active",
-              "expired",
-              "disabled"
-            ],
+            "enum": ["inactive", "active", "expired", "disabled"],
             "example": "active"
           },
           "key": {
@@ -1641,10 +1712,11 @@
           "instance": {
             "description": "Associated license instances.",
             "nullable": true,
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/LicenseInstanceEntity"
-            }
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LicenseInstanceEntity"
+              }
+            ]
           }
         },
         "required": [
@@ -1669,15 +1741,7 @@
             ]
           }
         },
-        "required": [
-          "license"
-        ]
-      },
-      "MetadataEntity": {
-        "type": "object",
-        "properties": {
-
-        }
+        "required": ["license"]
       },
       "CheckoutEntity": {
         "type": "object",
@@ -1688,16 +1752,12 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "live",
-              "sandbox"
-            ],
+            "enum": ["test", "live", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
             "type": "string",
-            "description": "String representing the object’s type. Objects of the same type share the same value."
+            "description": "String representing the object's type. Objects of the same type share the same value."
           },
           "status": {
             "type": "string",
@@ -1708,12 +1768,20 @@
             "description": "Identify and track each checkout request."
           },
           "product": {
-            "type": "object",
-            "description": "The product associated with the checkout session."
+            "description": "The product associated with the checkout session.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/ProductEntity"
+              }
+            ]
           },
           "units": {
             "type": "number",
-            "description": "The number of units for the of the product."
+            "description": "The number of units for the of the product.",
+            "default": 1
           },
           "order": {
             "description": "The order associated with the checkout session.",
@@ -1745,7 +1813,8 @@
           "success_url": {
             "type": "string",
             "description": "The URL to which the user will be redirected after the checkout process is completed.",
-            "example": "https://example.com/return"
+            "example": "https://example.com/return",
+            "nullable": true
           },
           "feature": {
             "description": "Features issued for the order.",
@@ -1755,11 +1824,14 @@
             }
           },
           "metadata": {
-            "description": "A key-value pair where the key is a string, and the value can be a string, number, or null.",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MetadataEntity"
-            }
+            "type": "object",
+            "description": "Metadata for the checkout in the form of key-value pairs",
+            "example": {
+              "userId": "user_123",
+              "visitCount": 42,
+              "lastVisit": "2023-04-01"
+            },
+            "additionalProperties": true
           }
         },
         "required": [
@@ -1768,8 +1840,7 @@
           "object",
           "status",
           "product",
-          "checkout_url",
-          "success_url"
+          "checkout_url"
         ]
       },
       "CustomerRequestEntity": {
@@ -1777,19 +1848,17 @@
         "properties": {
           "id": {
             "type": "string",
-            "description": "Unique identifier of the customer. You may specify only one of these parameters: id or email."
+            "description": "Unique identifier of the customer. You may specify only one of these parameters: id or email.",
+            "example": "cust_1234567890"
           },
           "email": {
             "type": "string",
             "description": "Customer email address. You may only specify one of these parameters: id, email.",
             "example": "user@example.com"
           }
-        },
-        "required": [
-          "id"
-        ]
+        }
       },
-      "CreateCheckoutRequestEntity": {
+      "CreateCheckoutRequest": {
         "type": "object",
         "properties": {
           "request_id": {
@@ -1798,15 +1867,18 @@
           },
           "product_id": {
             "type": "string",
-            "description": "The ID of the product associated with the checkout session."
+            "description": "The ID of the product associated with the checkout session.",
+            "example": "prod_1234567890"
           },
           "units": {
             "type": "number",
-            "description": "The number of units for the order."
+            "description": "The number of units for the order.",
+            "example": 1
           },
           "discount_code": {
             "type": "string",
-            "description": "Prefill the checkout session with a discount code."
+            "description": "Prefill the checkout session with a discount code.",
+            "example": "SUMMER2024"
           },
           "customer": {
             "description": "Customer data for checkout session. This will prefill the customer info on the checkout page",
@@ -1828,16 +1900,17 @@
             "description": "The URL to which the user will be redirected after the checkout process is completed."
           },
           "metadata": {
-            "description": "A key-value pair where the key is a string, and the value can be a string, number, or null. This metadata will be propagated across all related objects, such as subscriptions and customers.",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/MetadataEntity"
-            }
+            "type": "object",
+            "description": "Metadata for the checkout in the form of key-value pairs",
+            "example": {
+              "userId": "user_123",
+              "visitCount": 42,
+              "lastVisit": "2023-04-01"
+            },
+            "additionalProperties": true
           }
         },
-        "required": [
-          "product_id"
-        ]
+        "required": ["product_id"]
       },
       "ActivateLicenseRequestEntity": {
         "type": "object",
@@ -1851,10 +1924,7 @@
             "description": "A label for the new instance to identify it in Creem."
           }
         },
-        "required": [
-          "key",
-          "instance_name"
-        ]
+        "required": ["key", "instance_name"]
       },
       "DeactivateLicenseRequestEntity": {
         "type": "object",
@@ -1868,10 +1938,7 @@
             "description": "Id of the instance to deactivate."
           }
         },
-        "required": [
-          "key",
-          "instance_id"
-        ]
+        "required": ["key", "instance_id"]
       },
       "ValidateLicenseRequestEntity": {
         "type": "object",
@@ -1885,10 +1952,7 @@
             "description": "Id of the instance to validate."
           }
         },
-        "required": [
-          "key",
-          "instance_id"
-        ]
+        "required": ["key", "instance_id"]
       },
       "DiscountEntity": {
         "type": "object",
@@ -1899,11 +1963,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": [
-              "test",
-              "live",
-              "sandbox"
-            ],
+            "enum": ["test", "live", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1914,12 +1974,7 @@
           "status": {
             "type": "string",
             "description": "The status of the discount (e.g., active, inactive).",
-            "enum": [
-              "active",
-              "draft",
-              "expired",
-              "scheduled"
-            ],
+            "enum": ["active", "draft", "expired", "scheduled"],
             "example": "active"
           },
           "name": {
@@ -1935,16 +1990,18 @@
           "type": {
             "type": "string",
             "description": "The type of the discount, either \"percentage\" or \"fixed\".",
-            "enum": [
-              "percentage",
-              "fixed"
-            ],
+            "enum": ["percentage", "fixed"],
             "example": "percentage"
           },
           "amount": {
             "type": "number",
             "description": "The amount of the discount. Can be a percentage or a fixed amount.",
             "example": 20
+          },
+          "currency": {
+            "type": "string",
+            "description": "The currency of the discount. Only required if type is \"fixed\".",
+            "example": "USD"
           },
           "percentage": {
             "type": "number",
@@ -1958,47 +2015,31 @@
             "example": "2024-12-31T23:59:59Z"
           },
           "max_redemptions": {
-            "type": "object",
+            "type": "number",
             "description": "The maximum number of redemptions allowed for the discount.",
             "example": 100
           },
           "duration": {
             "type": "string",
             "description": "The duration type for the discount.",
-            "enum": [
-              "forever",
-              "once",
-              "repeating"
-            ],
+            "enum": ["forever", "once", "repeating"],
             "example": "repeating"
           },
           "duration_in_months": {
-            "type": "object",
+            "type": "number",
             "description": "The number of months the discount is valid for. Only applicable if the duration is \"repeating\" and the product is a subscription.",
             "example": 6
           },
           "applies_to_products": {
             "description": "The list of product IDs to which this discount applies.",
-            "example": [
-              "prod_123",
-              "prod_456"
-            ],
+            "example": ["prod_123", "prod_456"],
             "type": "array",
             "items": {
               "type": "string"
             }
           }
         },
-        "required": [
-          "id",
-          "mode",
-          "object",
-          "status",
-          "name",
-          "code",
-          "type",
-          "amount"
-        ]
+        "required": ["id", "mode", "object", "status", "name", "code", "type"]
       },
       "CreateDiscountRequestEntity": {
         "type": "object",
@@ -2016,10 +2057,7 @@
           "type": {
             "type": "string",
             "description": "The type of the discount, either \"percentage\" or \"fixed\".",
-            "enum": [
-              "percentage",
-              "fixed"
-            ]
+            "enum": ["percentage", "fixed"]
           },
           "amount": {
             "type": "number",
@@ -2050,11 +2088,7 @@
           "duration": {
             "type": "string",
             "description": "The duration type for the discount.",
-            "enum": [
-              "forever",
-              "once",
-              "repeating"
-            ],
+            "enum": ["forever", "once", "repeating"],
             "example": "repeating"
           },
           "duration_in_months": {
@@ -2064,125 +2098,14 @@
           },
           "applies_to_products": {
             "description": "The list of product IDs to which this discount applies.",
-            "example": [
-              "prod_123",
-              "prod_456"
-            ],
+            "example": ["prod_123", "prod_456"],
             "type": "array",
             "items": {
               "type": "string"
             }
           }
         },
-        "required": [
-          "name",
-          "type",
-          "amount",
-          "duration"
-        ]
-      },
-      "TransactionEntity": {
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "description": "Unique identifier for the object."
-          },
-          "mode": {
-            "type": "string",
-            "enum": [
-              "test",
-              "live",
-              "sandbox"
-            ],
-            "description": "String representing the environment."
-          },
-          "object": {
-            "type": "string",
-            "description": "String representing the object’s type. Objects of the same type share the same value."
-          },
-          "amount": {
-            "type": "number",
-            "description": "The transaction amount in cents. 1000 = $10.00",
-            "example": 2000
-          },
-          "amount_paid": {
-            "type": "number",
-            "description": "The amount the customer paid in cents. 1000 = $10.00",
-            "example": 2000
-          },
-          "currency": {
-            "type": "string",
-            "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
-            "example": "EUR"
-          },
-          "type": {
-            "type": "string",
-            "description": "The type of transaction. payment(one time payments) and invoice(subscription)"
-          },
-          "tax_country": {
-            "type": "string",
-            "description": "The ISO alpha-2 country code where tax is collected.",
-            "example": "US",
-            "pattern": "^[A-Z]{2}$"
-          },
-          "tax_amount": {
-            "type": "number",
-            "description": "The sale tax amount in cents. 1000 = $10.00",
-            "example": 2000
-          },
-          "status": {
-            "type": "string",
-            "description": "Status of the transaction."
-          },
-          "refunded_amount": {
-            "type": "number",
-            "description": "The amount that has been refunded in cents. 1000 = $10.00",
-            "example": 2000
-          },
-          "order": {
-            "type": "object",
-            "description": "The order associated with the transaction."
-          },
-          "subscription": {
-            "type": "object",
-            "description": "The subscription associated with the transaction."
-          },
-          "customer": {
-            "type": "object",
-            "description": "The customer associated with the transaction."
-          },
-          "description": {
-            "type": "string",
-            "description": "The description of the transaction."
-          },
-          "period_start": {
-            "type": "number",
-            "description": "Start period for the invoice as timestamp"
-          },
-          "period_end": {
-            "type": "number",
-            "description": "End period for the invoice as timestamp"
-          },
-          "created_at": {
-            "type": "number",
-            "description": "Creation date of the order as timestamp"
-          }
-        },
-        "required": [
-          "id",
-          "mode",
-          "object",
-          "amount",
-          "amount_paid",
-          "currency",
-          "type",
-          "tax_country",
-          "tax_amount",
-          "status",
-          "refunded_amount",
-          "created_at"
-        ]
+        "required": ["name", "type", "duration", "applies_to_products"]
       },
       "TransactionListEntity": {
         "type": "object",
@@ -2203,11 +2126,9 @@
             ]
           }
         },
-        "required": [
-          "items",
-          "pagination"
-        ]
+        "required": ["items", "pagination"]
       }
     }
   }
 }
+

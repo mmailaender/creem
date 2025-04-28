@@ -51,7 +51,11 @@
         "quickstart",
         "checkout-flow",
         "api-keys",
-        "test-mode"
+        "test-mode",
+        {
+          "group": "SDK And Guides",
+          "pages": ["/sdk/typescript"]
+        }
       ]
     },
     {
