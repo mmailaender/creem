@@ -793,7 +793,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["test", "live", "sandbox"],
+            "enum": ["test", "prod", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1074,7 +1074,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["test", "live", "sandbox"],
+            "enum": ["test", "prod", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1149,7 +1149,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["test", "live", "sandbox"],
+            "enum": ["test", "prod", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1180,7 +1180,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["test", "live", "sandbox"],
+            "enum": ["test", "prod", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1235,11 +1235,13 @@
           },
           "order": {
             "type": "string",
-            "description": "The order associated with the transaction."
+            "description": "The order associated with the transaction.",
+            "nullable": true
           },
           "subscription": {
             "type": "string",
-            "description": "The subscription associated with the transaction."
+            "description": "The subscription associated with the transaction.",
+            "nullable": true
           },
           "customer": {
             "type": "string",
@@ -1283,7 +1285,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["test", "live", "sandbox"],
+            "enum": ["test", "prod", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1473,7 +1475,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["test", "live", "sandbox"],
+            "enum": ["test", "prod", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1557,8 +1559,8 @@
           "type": {
             "type": "string",
             "description": "The type of order. This can specify whether it's a regular purchase, subscription, etc.",
-            "example": "subscription",
-            "enum": ["subscription", "purchase"]
+            "example": "recurring",
+            "enum": ["recurring", "onetime"]
           },
           "affiliate": {
             "type": "string",
@@ -1631,7 +1633,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["test", "live", "sandbox"],
+            "enum": ["test", "prod", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1668,7 +1670,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["test", "live", "sandbox"],
+            "enum": ["test", "prod", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1752,7 +1754,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["test", "live", "sandbox"],
+            "enum": ["test", "prod", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -1792,12 +1794,26 @@
             ]
           },
           "subscription": {
-            "type": "object",
-            "description": "The subscription associated with the checkout session."
+            "description": "The subscription associated with the checkout session.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/SubscriptionEntity"
+              }
+            ]
           },
           "customer": {
-            "type": "object",
-            "description": "The customer associated with the checkout session."
+            "description": "The customer associated with the checkout session.",
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/CustomerEntity"
+              }
+            ]
           },
           "custom_fields": {
             "description": "Additional information collected from your customer during the checkout process.",
@@ -1834,14 +1850,7 @@
             "additionalProperties": true
           }
         },
-        "required": [
-          "id",
-          "mode",
-          "object",
-          "status",
-          "product",
-          "checkout_url"
-        ]
+        "required": ["id", "mode", "object", "status", "product"]
       },
       "CustomerRequestEntity": {
         "type": "object",
@@ -1963,7 +1972,7 @@
           },
           "mode": {
             "type": "string",
-            "enum": ["test", "live", "sandbox"],
+            "enum": ["test", "prod", "sandbox"],
             "description": "String representing the environment."
           },
           "object": {
@@ -2131,4 +2140,3 @@
     }
   }
 }
-
