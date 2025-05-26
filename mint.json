@@ -54,7 +54,7 @@
         "test-mode",
         {
           "group": "SDK And Templates",
-          "pages": ["/sdk/typescript-sdk", "/sdk/nextjs-template"]
+          "pages": ["sdk/typescript-sdk", "sdk/nextjs-template"]
         }
       ]
     },
