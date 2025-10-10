@@ -1,7 +1,6 @@
 ---
-title: 'Overview'
-description: 'Automatically recover lost sales with abandoned cart email reminders.'
-
+title: "Overview"
+description: "Automatically recover lost sales with abandoned cart email reminders."
 ---
 
 # Abandoned Cart Recovery with Creem
@@ -9,10 +8,10 @@ description: 'Automatically recover lost sales with abandoned cart email reminde
 Welcome to Creem's Abandoned Cart Recovery documentation! This feature helps you automatically re-engage potential customers who start the checkout process but don't complete their purchase, significantly boosting your conversion rates and recovering lost sales.
 
 <Frame>
-    <img
-      style={{ borderRadius: '0.5rem' }}
-      src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/Abandoned-Cart-Recovery.gif"
-    />
+  <img
+    style={{ borderRadius: "0.5rem" }}
+    src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/Abandoned-Cart-Recovery.gif"
+  />
 </Frame>
 
 ## What is Abandoned Cart Recovery?
@@ -40,24 +39,31 @@ Abandoned cart recovery is an automated email marketing strategy that targets cu
 Setting up abandoned cart recovery is straightforward and requires minimal configuration:
 
 1. **Enable the Feature Per Product**
-   - Log into your Creem Dashboard
-   - Navigate to "Products" section
-   - Select the product you want to use the feature for
-   - Scroll to "Abandoned Cart Recovery" section
-   - Toggle the feature to "On"
-   - Save product updates
-   - Feature will be enabled and start monitoring product checkouts
 
-2. **Important Notes**
-   - **Ensure you have consent to use customer emails for marketing**
-   - **Recovered transactions will incur additional charges**
-   - **Customer data is handled in compliance with privacy regulations**
+<Tip>
+  Ensure that you create a checkout passing your customer email in the request:
+  [Docs](https://docs.creem.io/learn/checkout-session/introduction#customer-email)
+</Tip>
+
+- Log into your Creem Dashboard
+- Navigate to "Products" section
+- Select the product you want to use the feature for
+- Scroll to "Abandoned Cart Recovery" section
+- Toggle the feature to "On"
+- Save product updates
+- Feature will be enabled and start monitoring product checkouts
+
+<Warning>
+  **Important Note** - **Ensure you have consent to use customer emails for
+  marketing** - **Recovered transactions will incur additional charges**
+</Warning>
 
 ## Merchant Responsibilities
 
 Before enabling abandoned cart recovery, merchants must ensure proper customer consent and legal compliance:
 
 ### **Legal Compliance**
+
 - **Update Terms & Conditions** - include information about abandoned cart email processing
 - **Update Privacy Policy** - disclose how customer data is used for recovery emails
 - **GDPR Compliance** - ensure all data processing follows GDPR requirements
@@ -87,4 +93,3 @@ Once enabled, the abandoned cart recovery system works automatically:
 **Need Help?**
 
 Our support team is ready to assist you with setting up abandoned cart recovery. Contact us at [support@creem.io](mailto:support@creem.io)
-
