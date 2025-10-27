@@ -76,6 +76,61 @@ Once you have created a checkout session, you will receive a checkout URL in the
 
 Redirect the user to this URL and that is it! You have successfully created a checkout session and received your first payment!
 
+<Warning>
+  **Best Practice:** Always redirect to the checkout URL in the same window/tab instead of opening a new window. Safari and other browsers may block popups opened with `target="_blank"` or `window.open()`, preventing users from completing their purchase.
+</Warning>
+
+<CodeGroup>
+
+```javascript Recommended Approach
+// ✅ Redirect in the same window
+const response = await axios.post(
+  `https://api.creem.io/v1/checkouts`,
+  {
+    product_id: 'prod_6tW66i0oZM7w1qXReHJrwg',
+  },
+  {
+    headers: { "x-api-key": `creem_123456789` },
+  },
+);
+
+// Redirect to checkout URL in the same window
+window.location.href = response.data.checkout_url;
+```
+
+```javascript Avoid This
+// ❌ Don't use target="_blank" or window.open()
+// Safari will block this as a popup
+const response = await axios.post(
+  `https://api.creem.io/v1/checkouts`,
+  {
+    product_id: 'prod_6tW66i0oZM7w1qXReHJrwg',
+  },
+  {
+    headers: { "x-api-key": `creem_123456789` },
+  },
+);
+
+// This will be blocked by Safari
+window.open(response.data.checkout_url, '_blank');
+```
+
+```html HTML Forms
+<!-- ✅ Form submission in same window -->
+<form action="/api/create-checkout" method="POST">
+  <input type="hidden" name="product_id" value="prod_6tW66i0oZM7w1qXReHJrwg" />
+  <button type="submit">Buy Now</button>
+</form>
+
+<!-- ❌ Avoid using target="_blank" -->
+<form action="/api/create-checkout" method="POST" target="_blank">
+  <input type="hidden" name="product_id" value="prod_6tW66i0oZM7w1qXReHJrwg" />
+  <button type="submit">Buy Now</button>
+</form>
+```
+
+</CodeGroup>
+
 
 
 
