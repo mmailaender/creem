@@ -86,7 +86,11 @@
           },
           {
             "group": "Integrations",
-            "pages": ["integrations/ai-negotiation", "integrations/affiliates"]
+            "pages": [
+              "integrations/better-auth",
+              "integrations/ai-negotiation",
+              "integrations/affiliates"
+            ]
           },
           {
             "group": "Product Features",
@@ -176,7 +180,11 @@
           },
           {
             "group": "Customer",
-            "pages": ["api-reference/endpoint/get-customer", "api-reference/endpoint/list-customers", "api-reference/endpoint/create-customer-billing"]
+            "pages": [
+              "api-reference/endpoint/get-customer",
+              "api-reference/endpoint/list-customers",
+              "api-reference/endpoint/create-customer-billing"
+            ]
           },
           {
             "group": "Transactions",
