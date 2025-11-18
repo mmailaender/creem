@@ -29,6 +29,7 @@
                 "group": "SDK And Templates",
                 "pages": [
                   "sdk/nextjs-adapter",
+                  "sdk/better-auth",
                   "sdk/typescript-sdk",
                   "sdk/nextjs-template"
                 ]
@@ -90,11 +91,7 @@
           },
           {
             "group": "Integrations",
-            "pages": [
-              "integrations/better-auth",
-              "integrations/ai-negotiation",
-              "integrations/affiliates"
-            ]
+            "pages": ["integrations/ai-negotiation", "integrations/affiliates"]
           },
           {
             "group": "Product Features",

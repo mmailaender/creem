@@ -12,8 +12,8 @@ This email contains a magic link, to a completely different authentication mecha
 <Info>
   If you're building with Next.js, the{" "}
   <a href="/sdk/nextjs-adapter">@creem_io/nextjs adaptor</a> ships a `
-  <CreemPortal />` component and `Portal` route helper so users can open the
-  portal directly from your dashboard without touching the REST API.
+  <CreemPortal />` component and `Portal` route helper so users can open the portal
+  directly from your dashboard without touching the REST API.
 </Info>
 
 <AccordionGroup>
@@ -91,7 +91,7 @@ The API responds a URL, that the merchant can then use to redirect their custome
       customerId: string;
     }) {
       return (
-        <CreemPortal customerId={customerId} returnUrl="/dashboard">
+        <CreemPortal customerId={customerId}>
           Manage Subscription
         </CreemPortal>
       );
