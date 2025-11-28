@@ -3,8 +3,6 @@ title: "Refunds and Cancellations"
 description: "Handle subscription cancellations and process refunds with flexible options for immediate or end-of-period cancellation."
 ---
 
-## Overview
-
 Creem provides flexible options for managing subscription cancellations and processing refunds. You can cancel subscriptions immediately or at the end of the billing period, and process full or partial refunds through the dashboard or API.
 
 ## Canceling Subscriptions
@@ -364,7 +362,7 @@ await creem.webhooks.handleEvents(
 When a subscription payment fails:
 
 1. **Automatic retries** - Creem automatically retries failed payments
-2. **Status changes** - Subscription moves to "past_due" status
+2. **Status changes** - Subscription moves to "unpaid" status
 3. **Customer notification** - Customer receives email to update payment method
 4. **Grace period** - Subscription remains active during retry period
 5. **Final failure** - After all retries fail, subscription may be canceled
@@ -389,7 +387,7 @@ await creem.webhooks.handleEvents(
       await showPaymentWarning(customer.email);
     },
     
-    onSubscriptionUnpaid: async (data) => {
+    onSubscriptionCanceled: async (data) => {
       // After all retries failed
       await revokeAccess(data.customer.email);
       await sendSubscriptionEndedEmail(data.customer.email);

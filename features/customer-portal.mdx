@@ -11,7 +11,7 @@ This email contains a magic link, to a completely different authentication mecha
 
 <Info>
   If you're building with Next.js, the{" "}
-  <a href="/sdk/nextjs-adapter">@creem_io/nextjs adaptor</a> ships a `
+  <a href="/code/sdks/nextjs">@creem_io/nextjs adapter</a> ships a `
   <CreemPortal />` component and `Portal` route helper so users can open the portal
   directly from your dashboard without touching the REST API.
 </Info>
@@ -54,25 +54,16 @@ Customers using the customer portal, can copy all details of a specific payment,
       src="https://nucn5fajkcc6sgrd.public.blob.vercel-storage.com/customer-portal-Klxod6wVtoF6JFJdeEDPOPPxDMJ31q.png"
     />
 
-### 3. Request Customer Portal Login through the API
+### 3. Generate Customer Portal Access Programmatically
 
-Merchants can generate a customer portal login for their users, using the API, providing the `customer_id`.
-The API responds a URL, that the merchant can then use to redirect their customer to the customer portal.
+You can generate a customer portal link for your users programmatically, allowing them to manage their subscriptions directly from your application.
 
-<AccordionGroup>
-  <Accordion title="Response">
-  ```json
-{
-    "customer_portal_link": "https://creem.io/my-orders/login/xxxxxxxxxx"
-}
-  ```
-    
-  </Accordion>
-</AccordionGroup>
+<Tabs>
+  <Tab title="Next.js">
 
-<CodeGroup>
+**Step 1: Create the Portal Route**
 
-```ts Next.js
+```typescript
 // app/portal/route.ts
 import { Portal } from "@creem_io/nextjs";
 
@@ -82,7 +73,12 @@ export const GET = Portal({
 });
 ```
 
-```tsx Next.js
+**Step 2: Use the Component**
+
+```tsx
+// components/ManageSubscriptionButton.tsx
+"use client";
+
 import { CreemPortal } from "@creem_io/nextjs";
 
 export function ManageSubscriptionButton({
@@ -92,35 +88,163 @@ export function ManageSubscriptionButton({
 }) {
   return (
     <CreemPortal customerId={customerId}>
-      Manage Subscription
+      <button className="btn-primary">
+        Manage Subscription
+      </button>
     </CreemPortal>
   );
 }
 ```
 
-```javascript REST API / CLI
-import axios from "axios";
+<Card
+  title="Next.js Adapter Documentation"
+  icon="react"
+  href="/code/sdks/nextjs"
+>
+  Learn more about the Portal component and route helper.
+</Card>
 
-const response = await axios.post(
-  "https://api.creem.io/v1/customers/billing",
-  {
-    customer_id: "cust_xxxxxxx",
-  },
-  {
-    headers: { "x-api-key": "creem_123456789" },
-  }
-);
+  </Tab>
+
+  <Tab title="TypeScript SDK">
+
+```typescript
+import { createCreem } from "creem_io";
+
+const creem = createCreem({
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: process.env.NODE_ENV !== "production",
+});
+
+// Create customer portal link
+const portal = await creem.customers.createPortal({
+  customerId: "cust_abc123",
+});
+
+// Redirect user to portal
+console.log(portal.customerPortalLink);
+// Output: https://creem.io/my-orders/login/xxxxxxxxxx
 ```
 
-```bash REST API / CLI
-curl -X 'POST' \
-  'https://api.creem.io/v1/customers/billing' \
-  -H 'accept: application/json' \
-  -H 'x-api-key: creem_123456789' \
-  -H 'Content-Type: application/json' \
+You can also retrieve the customer ID by email:
+
+```typescript
+// Get customer by email first
+const customer = await creem.customers.get({
+  email: "customer@example.com",
+});
+
+// Then create portal link
+const portal = await creem.customers.createPortal({
+  customerId: customer.id,
+});
+
+// Redirect to portal
+window.location.href = portal.customerPortalLink;
+```
+
+<Card
+  title="TypeScript SDK Documentation"
+  icon="code"
+  href="/code/sdks/typescript"
+>
+  View the complete customer management API reference.
+</Card>
+
+  </Tab>
+
+  <Tab title="Better Auth">
+
+**Client-Side Usage:**
+
+```typescript
+"use client";
+
+import { authClient } from "@/lib/auth-client";
+
+export function ManageSubscriptionButton() {
+  const handlePortal = async () => {
+    const { data, error } = await authClient.creem.createPortal();
+
+    if (data?.url) {
+      window.location.href = data.url;
+    }
+
+    if (error) {
+      console.error("Failed to create portal:", error);
+    }
+  };
+
+  return (
+    <button onClick={handlePortal}>
+      Manage Subscription
+    </button>
+  );
+}
+```
+
+<Note>
+  With Better Auth, the customer is automatically identified from the authenticated session—no need to pass a customer ID.
+</Note>
+
+<Card
+  title="Better Auth Integration"
+  icon="lock"
+  href="/code/sdks/better-auth"
+>
+  Learn about automatic customer identification and session handling.
+</Card>
+
+  </Tab>
+
+  <Tab title="REST API">
+
+<Warning>
+  If you're in test mode, use `https://test-api.creem.io` instead of `https://api.creem.io`. Learn more about [Test Mode](/getting-started/test-mode).
+</Warning>
+
+```bash
+curl -X POST https://api.creem.io/v1/customers/billing \
+  -H "x-api-key: YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
   -d '{
-    "customer_id": "cust_xxxxxxx"
+    "customer_id": "cust_abc123"
   }'
 ```
 
-</CodeGroup>
+### Response
+
+```json
+{
+  "customer_portal_link": "https://creem.io/my-orders/login/xxxxxxxxxx"
+}
+```
+
+### JavaScript Example
+
+```javascript
+const response = await fetch("https://api.creem.io/v1/customers/billing", {
+  method: "POST",
+  headers: {
+    "x-api-key": "YOUR_API_KEY",
+    "Content-Type": "application/json",
+  },
+  body: JSON.stringify({
+    customer_id: "cust_abc123",
+  }),
+});
+
+const data = await response.json();
+console.log(data.customer_portal_link);
+```
+
+<Card
+  title="API Reference"
+  icon="book"
+  href="/api-reference/endpoint/create-customer-billing"
+>
+  View the complete endpoint documentation.
+</Card>
+
+  </Tab>
+</Tabs>

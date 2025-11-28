@@ -9,6 +9,14 @@ Subscriptions in Creem allow you to create recurring payment agreements with you
 
 A subscription represents a recurring payment agreement between you and your customer. Subscriptions automatically handle billing cycles, payment retries, and customer management.
 
+The diagram below shows how subscription access is managed based on different states:
+
+![Subscription Access States](/images/subscription-states.jpeg)
+
+<Tip>
+Use the `onGrantAccess` and `onRevokeAccess` callbacks to automatically handle access management. See [Managing Subscription Access](#managing-subscription-access) below.
+</Tip>
+
 ### Subscription Status
 
 A subscription can be in different states throughout its lifecycle:
