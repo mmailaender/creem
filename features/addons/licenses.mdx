@@ -139,6 +139,20 @@ The InstanceName field is an arbitrary name of your choice. Merchants usually us
 
 <CodeGroup>
 
+```ts TypeScript SDK
+import { createCreem } from "creem_io";
+
+const creem = createCreem({
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: true,
+});
+
+const license = await creem.licenses.activate({
+  key: "ABC123-XYZ456-XYZ456-XYZ456",
+  instanceName: "johns-macbook-pro",
+});
+```
+
 ```bash cURL
 curl -X POST https://test-api.creem.io/v1/licenses/activate \
   -H "accept: application/json" \
@@ -191,6 +205,7 @@ def activate_license(license_key, instance_name):
 
 <Note>
 **Pro Implementation Tips**
+- Use the TypeScript SDK for automatic type safety and better error handling
 - Generate meaningful instance names that help users identify their devices
 - Store activation tokens securely using system keychains or encrypted storage
 - Implement automatic retry logic for failed activation attempts
@@ -267,6 +282,30 @@ Here's how the validation process typically works:
 ### Implementation Examples
 
 <CodeGroup>
+
+```ts TypeScript SDK
+import { createCreem } from "creem_io";
+
+const creem = createCreem({
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: true,
+});
+
+const validatedLicense = await creem.licenses.validate({
+  key: "ABC123-XYZ456-XYZ456-XYZ456",
+  instanceId: "inst_xyz123",
+});
+
+console.log(validatedLicense.status); // "active" | "inactive" | "expired" | "disabled"
+
+if (validatedLicense.status === "active") {
+  // Grant access to premium features
+  console.log(`License expires at: ${validatedLicense.expiresAt}`);
+} else {
+  // Deny access or show upgrade prompt
+  console.log("License is not active");
+}
+```
 
 ```bash cURL
 curl -X POST https://test-api.creem.io/v1/licenses/validate \
@@ -397,6 +436,20 @@ Here's how the deactivation process typically works:
 
 <CodeGroup>
 
+```ts TypeScript SDK
+import { createCreem } from "creem_io";
+
+const creem = createCreem({
+  apiKey: process.env.CREEM_API_KEY!,
+  testMode: true,
+});
+
+const deactivatedLicense = await creem.licenses.deactivate({
+  key: "ABC123-XYZ456-XYZ456-XYZ456",
+  instanceId: "inst_xyz123",
+});
+```
+
 ```bash cURL
 curl -X POST https://test-api.creem.io/v1/licenses/deactivate \
   -H "accept: application/json" \
@@ -495,6 +548,14 @@ Creem's license key system implements several security measures:
 For detailed API documentation, visit:
 
 - [License Key API Reference](http://docs.creem.io/api-reference/endpoint/validate-license)
+
+<Card
+  title="TypeScript SDK Documentation"
+  icon="code"
+  href="/code/sdks/typescript"
+>
+  View the complete TypeScript SDK documentation with examples for licenses, subscriptions, and more.
+</Card>
 
 <Note>
 **Need Help?**
