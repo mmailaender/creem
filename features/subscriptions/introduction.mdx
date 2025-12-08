@@ -5,17 +5,30 @@ description: "Create recurring payment plans for your products and services with
 
 Subscriptions in Creem allow you to create recurring payment agreements with your customers. When a customer subscribes to your product, they agree to be billed periodically (monthly, yearly, etc.) until they cancel their subscription.
 
-## Understanding Subscriptions
+## Subscription Lifecycle
 
 A subscription represents a recurring payment agreement between you and your customer. Subscriptions automatically handle billing cycles, payment retries, and customer management.
 
-The diagram below shows how subscription access is managed based on different states:
+To help you understand the various subscription lifecycle scenarios, including relevant states and the webhook events triggered at each stage, see the diagrams below:
 
-![Subscription Access States](/images/subscription-states.jpeg)
+### Default Subscription Lifecycle
 
-<Tip>
-Use the `onGrantAccess` and `onRevokeAccess` callbacks to automatically handle access management. See [Managing Subscription Access](#managing-subscription-access) below.
-</Tip>
+This diagram shows a standard subscription flow from checkout to cancellation, including payment failures and cancellations:
+
+![Default Subscription Lifecycle](/images/lifecycle-default.jpeg)
+
+### Trial Subscription Lifecycle
+
+This diagram shows how subscriptions with free trials work, from checkout through the trial period to paid billing:
+
+![Trial Subscription Lifecycle](/images/lifecycle-trial.jpeg)
+
+### Paused Subscription Lifecycle
+
+This diagram shows how subscriptions can be paused and resumed, including updates during the active period:
+
+![Paused Subscription Lifecycle](/images/lifecycle-paused.jpeg)
+
 
 ### Subscription Status
 
