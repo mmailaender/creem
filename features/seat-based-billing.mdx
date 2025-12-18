@@ -329,3 +329,7 @@ The new amount will be charged upon subscription renewal. If you need pro-rata c
 <Warning>
 Remember to validate and track seat usage in your application to ensure customers don't exceed their purchased seat limit.
 </Warning>
+
+<Note>
+**Troubleshooting Update Errors:** If you receive a 404 error with the message "Could not find product or price" when updating subscription seats, ensure you're providing either a valid `price_id` or `product_id` in your request. The `price_id` is recommended as it provides the most specific reference for validation.
+</Note>
