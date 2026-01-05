@@ -37,6 +37,7 @@ A subscription can be in different states throughout its lifecycle:
 - **Active:** The subscription is current and payments are being processed normally.
 - **Canceled:** The subscription has been terminated and will not renew or bill again.
 - **Unpaid:** Payment for the subscription has failed or is overdue; access may be restricted until payment is made.
+- **Incomplete:** Customer must complete payment within 23 hours to activate, or payment requires action (e.g., authentication). Also applies to pending payments with processing status.
 - **Paused:** The subscription is temporarily paused (no charges are processed and billing is on hold).
 - **Trialing:** The subscription is in a trial period before the first payment is collected.
 - **Scheduled Cancel:** The subscription is scheduled to cancel at the end of the current billing period but is still active until then.
