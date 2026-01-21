@@ -5,6 +5,7 @@
       "get": {
         "operationId": "retrieveProduct",
         "summary": "Retrieve a product",
+        "description": "Retrieve product details by ID. View pricing, billing type, status, and product configuration.",
         "parameters": [
           {
             "name": "product_id",
@@ -38,7 +39,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Products"],
+        "tags": [
+          "Products"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -48,6 +51,7 @@
       "post": {
         "operationId": "createProduct",
         "summary": "Creates a new product.",
+        "description": "Create a new product for one-time payments or subscriptions. Configure pricing, billing cycles, and features.",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -81,7 +85,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Products"],
+        "tags": [
+          "Products"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -93,6 +99,7 @@
       "get": {
         "operationId": "searchProducts",
         "summary": "List all products",
+        "description": "Search and retrieve a paginated list of products. Filter by status, billing type, and other criteria.",
         "parameters": [
           {
             "name": "page_number",
@@ -134,7 +141,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Products"],
+        "tags": [
+          "Products"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -146,6 +155,7 @@
       "get": {
         "operationId": "listCustomers",
         "summary": "List all customers",
+        "description": "Retrieve a paginated list of all customers. Filter and search through your customer base.",
         "parameters": [
           {
             "name": "page_number",
@@ -187,7 +197,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Customers"],
+        "tags": [
+          "Customers"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -199,6 +211,7 @@
       "get": {
         "operationId": "retrieveCustomer",
         "summary": "Retrieve a customer",
+        "description": "Retrieve customer information by ID or email. View purchase history, subscriptions, and profile details.",
         "parameters": [
           {
             "name": "customer_id",
@@ -240,7 +253,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Customers"],
+        "tags": [
+          "Customers"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -252,6 +267,7 @@
       "post": {
         "operationId": "generateCustomerLinks",
         "summary": "Generate Customer Links",
+        "description": "Generate a customer portal link for managing billing, subscriptions, and payment methods.",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -285,7 +301,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Customers"],
+        "tags": [
+          "Customers"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -297,6 +315,7 @@
       "get": {
         "operationId": "retrieveSubscription",
         "summary": "Retrieve a subscription",
+        "description": "Retrieve subscription details by ID. View status, billing cycle, customer info, and payment history.",
         "parameters": [
           {
             "name": "subscription_id",
@@ -330,7 +349,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Subscriptions"],
+        "tags": [
+          "Subscriptions"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -342,6 +363,7 @@
       "post": {
         "operationId": "cancelSubscription",
         "summary": "Cancel a subscription.",
+        "description": "Cancel an active subscription immediately or schedule cancellation at period end.",
         "parameters": [
           {
             "name": "id",
@@ -385,7 +407,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Subscriptions"],
+        "tags": [
+          "Subscriptions"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -397,6 +421,7 @@
       "post": {
         "operationId": "updateSubscription",
         "summary": "Update a subscription.",
+        "description": "Modify subscription details like units, seats, or add-ons. Support proration and immediate billing options.",
         "parameters": [
           {
             "name": "id",
@@ -440,7 +465,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Subscriptions"],
+        "tags": [
+          "Subscriptions"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -452,6 +479,7 @@
       "post": {
         "operationId": "upgradeSubscription",
         "summary": "Upgrade a subscription to a different product",
+        "description": "Upgrade a subscription to a different product or plan. Handle proration and plan changes seamlessly.",
         "parameters": [
           {
             "name": "id",
@@ -495,7 +523,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Subscriptions"],
+        "tags": [
+          "Subscriptions"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -507,6 +537,7 @@
       "post": {
         "operationId": "pauseSubscription",
         "summary": "Pause a subscription.",
+        "description": "Temporarily pause a subscription. Stop billing while retaining the subscription for later resumption.",
         "parameters": [
           {
             "name": "id",
@@ -539,7 +570,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Subscriptions"],
+        "tags": [
+          "Subscriptions"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -551,6 +584,7 @@
       "post": {
         "operationId": "resumeSubscription",
         "summary": "Resume a paused subscription.",
+        "description": "Resume a previously paused subscription. Restart billing and restore access to the subscription.",
         "parameters": [
           {
             "name": "id",
@@ -583,7 +617,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Subscriptions"],
+        "tags": [
+          "Subscriptions"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -595,6 +631,7 @@
       "get": {
         "operationId": "retrieveCheckout",
         "summary": "Retrieve a checkout session.",
+        "description": "Retrieve details of a checkout session by ID. View status, customer info, and payment details.",
         "parameters": [
           {
             "name": "checkout_id",
@@ -628,7 +665,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Checkouts"],
+        "tags": [
+          "Checkouts"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -638,6 +677,7 @@
       "post": {
         "operationId": "createCheckout",
         "summary": "Creates a new checkout session.",
+        "description": "Create a new checkout session to accept one-time payments or start subscriptions. Returns a checkout URL to redirect customers.",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -671,7 +711,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Checkouts"],
+        "tags": [
+          "Checkouts"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -683,6 +725,7 @@
       "post": {
         "operationId": "activateLicense",
         "summary": "Activates a license key.",
+        "description": "Activate a license key for a specific device or instance. Register new activations and track usage limits.",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -716,7 +759,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Licenses"],
+        "tags": [
+          "Licenses"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -728,6 +773,7 @@
       "post": {
         "operationId": "deactivateLicense",
         "summary": "Deactivate a license key instance.",
+        "description": "Remove a device activation from a license key. Free up activation slots for new devices.",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -761,7 +807,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Licenses"],
+        "tags": [
+          "Licenses"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -773,6 +821,7 @@
       "post": {
         "operationId": "validateLicense",
         "summary": "Validates a license key or instance.",
+        "description": "Verify if a license key is valid and active for a specific instance. Check activation status and expiration.",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -806,7 +855,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Licenses"],
+        "tags": [
+          "Licenses"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -818,6 +869,7 @@
       "get": {
         "operationId": "retrieveDiscount",
         "summary": "Retrieve discount",
+        "description": "Retrieve discount code details by ID or code. Check usage limits, expiration, and discount amount.",
         "parameters": [
           {
             "name": "discount_id",
@@ -859,7 +911,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Discounts"],
+        "tags": [
+          "Discounts"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -869,6 +923,7 @@
       "post": {
         "operationId": "createDiscount",
         "summary": "Create a discount.",
+        "description": "Create promotional discount codes for products. Set percentage or fixed amount discounts with expiration dates.",
         "parameters": [],
         "requestBody": {
           "required": true,
@@ -902,7 +957,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Discounts"],
+        "tags": [
+          "Discounts"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -914,6 +971,7 @@
       "delete": {
         "operationId": "deleteDiscount",
         "summary": "Delete a discount.",
+        "description": "Permanently delete a discount code. Prevent further usage of the discount.",
         "parameters": [
           {
             "name": "id",
@@ -946,7 +1004,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Discounts"],
+        "tags": [
+          "Discounts"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -958,6 +1018,7 @@
       "get": {
         "operationId": "getTransactionById",
         "summary": "Get a transaction by ID",
+        "description": "Retrieve a single transaction by ID. View payment details, status, and associated order information.",
         "parameters": [
           {
             "name": "transaction_id",
@@ -991,7 +1052,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Transactions"],
+        "tags": [
+          "Transactions"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -1003,6 +1066,7 @@
       "get": {
         "operationId": "searchTransactions",
         "summary": "List all transactions",
+        "description": "Search and retrieve payment transactions. Filter by customer, product, date range, and status.",
         "parameters": [
           {
             "name": "customer_id",
@@ -1071,7 +1135,9 @@
             "description": "Not Found - Resource does not exist"
           }
         },
-        "tags": ["Transactions"],
+        "tags": [
+          "Transactions"
+        ],
         "security": [
           {
             "ApiKey": []
@@ -1098,10 +1164,10 @@
   "tags": [],
   "servers": [
     {
-      "url": "https://test-api.creem.io"
+      "url": "https://api.creem.io"
     },
     {
-      "url": "https://api.creem.io"
+      "url": "https://test-api.creem.io"
     }
   ],
   "components": {
@@ -1117,12 +1183,20 @@
       "EnvironmentMode": {
         "type": "string",
         "description": "String representing the environment.",
-        "enum": ["test", "prod", "sandbox"]
+        "enum": [
+          "test",
+          "prod",
+          "sandbox"
+        ]
       },
       "ProductFeatureType": {
         "type": "string",
         "description": "The type of the feature: privateNote (custom note), file (downloadable files), or licenseKey (license key).",
-        "enum": ["custom", "file", "licenseKey"]
+        "enum": [
+          "custom",
+          "file",
+          "licenseKey"
+        ]
       },
       "FeatureEntity": {
         "type": "object",
@@ -1142,7 +1216,11 @@
             "example": "Access to premium course materials."
           }
         },
-        "required": ["id", "type", "description"]
+        "required": [
+          "id",
+          "type",
+          "description"
+        ]
       },
       "ProductEntity": {
         "type": "object",
@@ -1211,7 +1289,11 @@
           "tax_category": {
             "type": "string",
             "description": "Categorizes the type of product or service for tax purposes. This helps determine the applicable tax rules based on the nature of the item or service.",
-            "example": ["saas", "digital-goods-service", "ebooks"]
+            "example": [
+              "saas",
+              "digital-goods-service",
+              "ebooks"
+            ]
           },
           "product_url": {
             "type": "string",
@@ -1312,12 +1394,18 @@
             ]
           }
         },
-        "required": ["items", "pagination"]
+        "required": [
+          "items",
+          "pagination"
+        ]
       },
       "CustomFieldRequestType": {
         "type": "string",
         "description": "The type of the field.",
-        "enum": ["text", "checkbox"]
+        "enum": [
+          "text",
+          "checkbox"
+        ]
       },
       "TextFieldConfig": {
         "type": "object",
@@ -1384,7 +1472,11 @@
             ]
           }
         },
-        "required": ["type", "key", "label"]
+        "required": [
+          "type",
+          "key",
+          "label"
+        ]
       },
       "CreateProductRequestEntity": {
         "type": "object",
@@ -1431,7 +1523,11 @@
           "tax_category": {
             "type": "string",
             "description": "Categorizes the type of product or service for tax purposes. This helps determine the applicable tax rules based on the nature of the item or service.",
-            "example": ["saas", "digital-goods-service", "ebooks"]
+            "example": [
+              "saas",
+              "digital-goods-service",
+              "ebooks"
+            ]
           },
           "default_success_url": {
             "type": "string",
@@ -1459,7 +1555,12 @@
             "default": false
           }
         },
-        "required": ["name", "price", "currency", "billing_type"]
+        "required": [
+          "name",
+          "price",
+          "currency",
+          "billing_type"
+        ]
       },
       "CustomerEntity": {
         "type": "object",
@@ -1533,7 +1634,10 @@
             ]
           }
         },
-        "required": ["items", "pagination"]
+        "required": [
+          "items",
+          "pagination"
+        ]
       },
       "CreateCustomerPortalLinkRequestEntity": {
         "type": "object",
@@ -1543,7 +1647,9 @@
             "description": "Unique identifier of the customer."
           }
         },
-        "required": ["customer_id"]
+        "required": [
+          "customer_id"
+        ]
       },
       "CustomerLinksEntity": {
         "type": "object",
@@ -1553,7 +1659,9 @@
             "description": "Customer portal link."
           }
         },
-        "required": ["customer_portal_link"]
+        "required": [
+          "customer_portal_link"
+        ]
       },
       "SubscriptionItemEntity": {
         "type": "object",
@@ -1582,7 +1690,11 @@
             "description": "The number of units for the subscription item."
           }
         },
-        "required": ["id", "mode", "object"]
+        "required": [
+          "id",
+          "mode",
+          "object"
+        ]
       },
       "TransactionEntity": {
         "type": "object",
@@ -1828,13 +1940,19 @@
           "mode": {
             "type": "string",
             "description": "The mode of cancellation (immediate or scheduled), default can be configured in the store billing settings.",
-            "enum": ["immediate", "scheduled"],
+            "enum": [
+              "immediate",
+              "scheduled"
+            ],
             "example": "immediate"
           },
           "onExecute": {
             "type": "string",
             "description": "The action to execute when canceling (cancel or pause) when mode is scheduled, ignored when mode is immediate or not provided",
-            "enum": ["cancel", "pause"],
+            "enum": [
+              "cancel",
+              "pause"
+            ],
             "example": "cancel"
           }
         }
@@ -1901,7 +2019,9 @@
             "default": "proration-charge-immediately"
           }
         },
-        "required": ["product_id"]
+        "required": [
+          "product_id"
+        ]
       },
       "OrderEntity": {
         "type": "object",
@@ -1988,14 +2108,20 @@
           "status": {
             "type": "string",
             "description": "Current status of the order.",
-            "enum": ["pending", "paid"],
+            "enum": [
+              "pending",
+              "paid"
+            ],
             "example": "pending"
           },
           "type": {
             "type": "string",
             "description": "The type of order. This can specify whether it's a regular purchase, subscription, etc.",
             "example": "recurring",
-            "enum": ["recurring", "onetime"]
+            "enum": [
+              "recurring",
+              "onetime"
+            ]
           },
           "affiliate": {
             "type": "string",
@@ -2030,7 +2156,10 @@
       "CustomFieldType": {
         "type": "string",
         "description": "The type of the field.",
-        "enum": ["text", "checkbox"]
+        "enum": [
+          "text",
+          "checkbox"
+        ]
       },
       "Text": {
         "type": "object",
@@ -2099,7 +2228,11 @@
             ]
           }
         },
-        "required": ["type", "key", "label"]
+        "required": [
+          "type",
+          "key",
+          "label"
+        ]
       },
       "FeatureFileEntity": {
         "type": "object",
@@ -2130,7 +2263,13 @@
             "example": 1024000
           }
         },
-        "required": ["id", "file_name", "url", "type", "size"]
+        "required": [
+          "id",
+          "file_name",
+          "url",
+          "type",
+          "size"
+        ]
       },
       "FileFeatureEntity": {
         "type": "object",
@@ -2143,7 +2282,9 @@
             }
           }
         },
-        "required": ["files"]
+        "required": [
+          "files"
+        ]
       },
       "LicenseInstanceEntity": {
         "type": "object",
@@ -2168,7 +2309,10 @@
           "status": {
             "type": "string",
             "description": "The status of the license instance.",
-            "enum": ["active", "deactivated"],
+            "enum": [
+              "active",
+              "deactivated"
+            ],
             "example": "active"
           },
           "created_at": {
@@ -2178,7 +2322,14 @@
             "example": "2023-09-13T00:00:00Z"
           }
         },
-        "required": ["id", "mode", "object", "name", "status", "created_at"]
+        "required": [
+          "id",
+          "mode",
+          "object",
+          "name",
+          "status",
+          "created_at"
+        ]
       },
       "LicenseEntity": {
         "type": "object",
@@ -2197,7 +2348,12 @@
           "status": {
             "type": "string",
             "description": "The current status of the license key.",
-            "enum": ["inactive", "active", "expired", "disabled"],
+            "enum": [
+              "inactive",
+              "active",
+              "expired",
+              "disabled"
+            ],
             "example": "active"
           },
           "key": {
@@ -2286,8 +2442,7 @@
               }
             ]
           }
-        },
-        "required": ["description", "type"]
+        }
       },
       "CheckoutEntity": {
         "type": "object",
@@ -2306,7 +2461,12 @@
           "status": {
             "type": "string",
             "description": "Status of the checkout.",
-            "enum": ["pending", "processing", "completed", "expired"],
+            "enum": [
+              "pending",
+              "processing",
+              "completed",
+              "expired"
+            ],
             "example": "completed"
           },
           "request_id": {
@@ -2394,7 +2554,13 @@
             "additionalProperties": true
           }
         },
-        "required": ["id", "mode", "object", "status", "product"]
+        "required": [
+          "id",
+          "mode",
+          "object",
+          "status",
+          "product"
+        ]
       },
       "CustomerRequestEntity": {
         "type": "object",
@@ -2471,7 +2637,9 @@
             "additionalProperties": true
           }
         },
-        "required": ["product_id"]
+        "required": [
+          "product_id"
+        ]
       },
       "ActivateLicenseRequestEntity": {
         "type": "object",
@@ -2485,7 +2653,10 @@
             "description": "A label for the new instance to identify it in Creem."
           }
         },
-        "required": ["key", "instance_name"]
+        "required": [
+          "key",
+          "instance_name"
+        ]
       },
       "DeactivateLicenseRequestEntity": {
         "type": "object",
@@ -2499,7 +2670,10 @@
             "description": "Id of the instance to deactivate."
           }
         },
-        "required": ["key", "instance_id"]
+        "required": [
+          "key",
+          "instance_id"
+        ]
       },
       "ValidateLicenseRequestEntity": {
         "type": "object",
@@ -2513,7 +2687,10 @@
             "description": "Id of the instance to validate."
           }
         },
-        "required": ["key", "instance_id"]
+        "required": [
+          "key",
+          "instance_id"
+        ]
       },
       "DiscountEntity": {
         "type": "object",
@@ -2533,7 +2710,12 @@
           "status": {
             "type": "string",
             "description": "The status of the discount (e.g., active, inactive).",
-            "enum": ["active", "draft", "expired", "scheduled"],
+            "enum": [
+              "active",
+              "draft",
+              "expired",
+              "scheduled"
+            ],
             "example": "active"
           },
           "name": {
@@ -2549,7 +2731,10 @@
           "type": {
             "type": "string",
             "description": "The type of the discount, either \"percentage\" or \"fixed\".",
-            "enum": ["percentage", "fixed"],
+            "enum": [
+              "percentage",
+              "fixed"
+            ],
             "example": "percentage"
           },
           "amount": {
@@ -2581,7 +2766,11 @@
           "duration": {
             "type": "string",
             "description": "The duration type for the discount.",
-            "enum": ["forever", "once", "repeating"],
+            "enum": [
+              "forever",
+              "once",
+              "repeating"
+            ],
             "example": "repeating"
           },
           "duration_in_months": {
@@ -2591,7 +2780,10 @@
           },
           "applies_to_products": {
             "description": "The list of product IDs to which this discount applies.",
-            "example": ["prod_123", "prod_456"],
+            "example": [
+              "prod_123",
+              "prod_456"
+            ],
             "type": "array",
             "items": {
               "type": "string"
@@ -2603,17 +2795,32 @@
             "example": 15
           }
         },
-        "required": ["id", "mode", "object", "status", "name", "code", "type"]
+        "required": [
+          "id",
+          "mode",
+          "object",
+          "status",
+          "name",
+          "code",
+          "type"
+        ]
       },
       "DiscountType": {
         "type": "string",
         "description": "The type of the discount, either \"percentage\" or \"fixed\".",
-        "enum": ["percentage", "fixed"]
+        "enum": [
+          "percentage",
+          "fixed"
+        ]
       },
       "CouponDurationType": {
         "type": "string",
         "description": "The duration type for the discount.",
-        "enum": ["forever", "once", "repeating"]
+        "enum": [
+          "forever",
+          "once",
+          "repeating"
+        ]
       },
       "CreateDiscountRequestEntity": {
         "type": "object",
@@ -2668,14 +2875,22 @@
           },
           "applies_to_products": {
             "description": "The list of product IDs to which this discount applies.",
-            "example": ["prod_123", "prod_456"],
+            "example": [
+              "prod_123",
+              "prod_456"
+            ],
             "type": "array",
             "items": {
               "type": "string"
             }
           }
         },
-        "required": ["name", "type", "duration", "applies_to_products"]
+        "required": [
+          "name",
+          "type",
+          "duration",
+          "applies_to_products"
+        ]
       },
       "TransactionListEntity": {
         "type": "object",
@@ -2696,7 +2911,10 @@
             ]
           }
         },
-        "required": ["items", "pagination"]
+        "required": [
+          "items",
+          "pagination"
+        ]
       }
     }
   },
