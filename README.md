@@ -53,14 +53,14 @@ node scripts/generate-api-docs.js --url https://your-api.com/open-api/json --dry
 
 ### Script Options
 
-| Option | Description |
-|--------|-------------|
-| `--url <url>` | Fetch OpenAPI spec from a remote URL |
+| Option          | Description                                                               |
+| --------------- | ------------------------------------------------------------------------- |
+| `--url <url>`   | Fetch OpenAPI spec from a remote URL                                      |
 | `--file <path>` | Read OpenAPI spec from local file (default: `api-reference/openapi.json`) |
-| `--update-spec` | Update the local `openapi.json` from the remote URL |
-| `--dry-run` | Preview changes without writing files |
-| `--cleanup` | Delete orphaned MDX files (endpoints removed from spec) |
-| `--help` | Show help message |
+| `--update-spec` | Update the local `openapi.json` from the remote URL                       |
+| `--dry-run`     | Preview changes without writing files                                     |
+| `--cleanup`     | Delete orphaned MDX files (endpoints removed from spec)                   |
+| `--help`        | Show help message                                                         |
 
 ### Output Legend
 
