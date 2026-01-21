@@ -2307,6 +2307,15 @@
                 "$ref": "#/components/schemas/LicenseEntity"
               }
             ]
+          },
+          "license": {
+            "description": "DEPRECATED: Use `license_key` instead. License key issued for the order.",
+            "deprecated": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LicenseEntity"
+              }
+            ]
           }
         }
       },
