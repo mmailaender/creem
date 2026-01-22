@@ -5,6 +5,37 @@ description: Integrate Creem faster with AI coding assistants like Claude Code, 
 
 AI coding assistants like Claude Code, Cursor, and Windsurf are transforming how developers build software. To help you integrate Creem faster and with best practices built-in, we've created an official **Creem API Skill** that gives AI assistants deep knowledge about our payment infrastructure.
 
+## Quick Install for Claude Code
+
+Install the Creem skill with a single command:
+
+```bash
+/plugin marketplace add armitage-labs/creem-skills
+```
+
+Then install the skill using either method:
+
+**Option A: Use the interactive UI (easiest)**
+
+1. Type `/plugin` and press Enter
+2. Go to the **Discover** tab
+3. Search for `creem-api`
+4. Press Enter to install
+
+**Option B: Use the command directly**
+
+```bash
+/plugin install creem-api@creem-skills
+```
+
+<Tip>
+  That's it! Claude Code now has complete knowledge of the Creem API and will
+  generate production-ready integration code when you ask about payments,
+  subscriptions, webhooks, or licenses.
+</Tip>
+
+---
+
 ## What is a Skill?
 
 A skill is a structured set of instructions and reference materials that AI assistants use to provide more accurate, contextual help for specific tasks. When you load the Creem skill, your AI assistant gains comprehensive knowledge about:
@@ -15,14 +46,17 @@ A skill is a structured set of instructions and reference materials that AI assi
 - Best practices for security and error handling
 - Test mode configuration
 
-<Tip>
-  With the Creem skill loaded, you can simply describe what you want to build
-  and your AI assistant will generate production-ready integration code.
-</Tip>
+---
 
 ## Get the Skill
 
-<CardGroup cols={2}>
+<CardGroup cols={3}>
+  <Card title="Claude Code (Recommended)" icon="terminal">
+    ```bash
+    /plugin marketplace add armitage-labs/creem-skills
+    /plugin install creem-api@creem-skills
+    ```
+  </Card>
   <Card
     title="GitHub Repository"
     icon="github"
@@ -35,9 +69,11 @@ A skill is a structured set of instructions and reference materials that AI assi
     icon="download"
     href="https://github.com/armitage-labs/creem-skills/archive/refs/heads/main.zip"
   >
-    Download as a ZIP file for quick setup
+    Download as a ZIP file for manual setup
   </Card>
 </CardGroup>
+
+---
 
 ## Skill Contents
 
@@ -63,25 +99,27 @@ The skill includes four comprehensive reference files:
     - **Transactions**: Query payment history
   </Accordion>
 
-{' '}
-<Accordion title="Webhook Events (10 types)">
+  <Accordion title="Webhook Events (10 types)">
+    - `checkout.completed` - Payment successful
+    - `subscription.active` - New subscription created
+    - `subscription.paid` - Recurring payment processed
+    - `subscription.canceled` - Subscription ended
+    - `subscription.expired` - Period ended without payment
+    - `subscription.trialing` - Trial started
+    - `subscription.paused` - Subscription paused
+    - `subscription.update` - Subscription modified
+    - `refund.created` - Refund processed
+    - `dispute.created` - Chargeback opened
+  </Accordion>
 
-- `checkout.completed` - Payment successful - `subscription.active` - New
-  subscription created - `subscription.paid` - Recurring payment processed -
-  `subscription.canceled` - Subscription ended - `subscription.expired` - Period
-  ended without payment - `subscription.trialing` - Trial started -
-  `subscription.paused` - Subscription paused - `subscription.update` -
-  Subscription modified - `refund.created` - Refund processed -
-  `dispute.created` - Chargeback opened
-</Accordion>
-
-{' '}
-<Accordion title="Integration Workflows">
-
-- Basic SaaS subscription flows - One-time purchases with digital delivery -
-  License key systems for desktop/mobile apps - Seat-based team billing -
-  Freemium with upgrade flows - Affiliate and referral tracking
-</Accordion>
+  <Accordion title="Integration Workflows">
+    - Basic SaaS subscription flows
+    - One-time purchases with digital delivery
+    - License key systems for desktop/mobile apps
+    - Seat-based team billing
+    - Freemium with upgrade flows
+    - Affiliate and referral tracking
+  </Accordion>
 
   <Accordion title="Best Practices">
     - Webhook signature verification (HMAC-SHA256)
@@ -98,33 +136,65 @@ The skill includes four comprehensive reference files:
 
 ### Claude Code
 
-Claude Code natively supports skills. You can use the Creem skill in two ways:
+<Note>
+  **Recommended Method**: Use the plugin marketplace for the easiest setup experience.
+</Note>
 
-**Option 1: Direct Reference**
+**One-Line Install (Plugin Marketplace)**
 
-When working on a project, simply tell Claude to use the skill:
+Claude Code's plugin marketplace makes installation effortless:
+
+<Steps>
+  <Step title="Add the Marketplace">
+    Open Claude Code and run:
+    ```bash
+    /plugin marketplace add armitage-labs/creem-skills
+    ```
+  </Step>
+  <Step title="Install the Skill">
+    **Option A: Interactive UI (easiest)**
+
+    Type `/plugin`, go to the **Discover** tab, search for `creem-api`, and press Enter to install.
+
+    **Option B: Command**
+    ```bash
+    /plugin install creem-api@creem-skills
+    ```
+  </Step>
+  <Step title="Start Building">
+    Ask Claude to help with Creem integration:
+    ```
+    Help me create a checkout flow for my SaaS product
+    ```
+  </Step>
+</Steps>
+
+**Managing the Plugin**
+
+```bash
+# View installed plugins
+/plugin
+
+# Disable the skill temporarily
+/plugin disable creem-api@creem-skills
+
+# Enable again
+/plugin enable creem-api@creem-skills
+
+# Uninstall
+/plugin uninstall creem-api@creem-skills
+
+# Update marketplace to get latest version
+/plugin marketplace update creem-skills
+```
+
+**Alternative: Direct Reference**
+
+If you prefer not to use the marketplace, you can reference the skill directly in any conversation:
 
 ```
-Help me integrate Creem payments. Use the skill at skills/creem-api/Skill.md
+Help me integrate Creem payments. Use the skill at https://github.com/armitage-labs/creem-skills
 ```
-
-**Option 2: Install as Custom Skill**
-
-1. Download the skill from GitHub
-2. Navigate to the `creem-api` folder
-3. Zip the folder:
-
-   ```bash
-   zip -r creem-api.zip creem-api/
-   ```
-
-4. Upload to Claude Code's skill management
-5. The skill will be available for all future conversations
-
-<Tip>
-  Once installed, Claude will automatically recognize when you're working on
-  payment integration and apply the Creem skill.
-</Tip>
 
 ---
 
@@ -442,11 +512,11 @@ Found an issue or want to improve the skill? We welcome contributions:
 
 <CardGroup cols={2}>
   <Card
-    title="Get the Skill"
-    icon="github"
+    title="Install the Skill"
+    icon="terminal"
     href="https://github.com/armitage-labs/creem-skills"
   >
-    Download from GitHub and start building
+    Run `/plugin marketplace add armitage-labs/creem-skills` in Claude Code
   </Card>
   <Card title="API Reference" icon="book" href="/api-reference/introduction">
     Explore the full API documentation

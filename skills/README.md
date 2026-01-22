@@ -1,6 +1,17 @@
 # CREEM Skills for AI Coding Assistants
 
-This folder contains skills designed to help developers integrate CREEM payment infrastructure using AI coding assistants like Claude Code, Cursor, and other AI-powered development tools.
+Official Creem payment integration skills for AI coding assistants like Claude Code, Cursor, and Windsurf.
+
+## Quick Install for Claude Code
+
+Install the Creem skill with two simple commands:
+
+```bash
+/plugin marketplace add armitage-labs/creem-skills
+/plugin install creem-api@creem-skills
+```
+
+That's it! Claude Code now has complete knowledge of the Creem API.
 
 ## What is a Skill?
 
@@ -26,53 +37,89 @@ A comprehensive skill for integrating the CREEM REST API. Covers:
 - `WEBHOOKS.md` - Webhook events documentation with payload examples
 - `WORKFLOWS.md` - Step-by-step integration guides for common use cases
 
-## Using with Claude Code
+## Installation Methods
 
-### Option 1: Direct Reference
+### Claude Code (Recommended)
 
-When working with Claude Code, you can reference this skill by asking:
+**Option 1: Plugin Marketplace (Easiest)**
+
+```bash
+# Add the marketplace
+/plugin marketplace add armitage-labs/creem-skills
+
+# Install the skill
+/plugin install creem-api@creem-skills
+```
+
+**Managing the plugin:**
+
+```bash
+# View installed plugins
+/plugin
+
+# Disable temporarily
+/plugin disable creem-api@creem-skills
+
+# Enable again
+/plugin enable creem-api@creem-skills
+
+# Uninstall
+/plugin uninstall creem-api@creem-skills
+
+# Update to latest version
+/plugin marketplace update creem-skills
+```
+
+**Option 2: Direct Reference**
+
+Reference the skill in any conversation:
 
 ```
-Help me integrate CREEM payments. Use the skill at skills/creem-api/Skill.md
+Help me integrate Creem payments. Use the skill at https://github.com/armitage-labs/creem-skills
 ```
 
-### Option 2: Install as Custom Skill
+### Cursor
 
-1. Zip the `creem-api` folder:
+1. Clone the skill repository into your project:
    ```bash
-   cd skills
-   zip -r creem-api.zip creem-api/
+   git clone https://github.com/armitage-labs/creem-skills.git .cursor/skills
    ```
 
-2. Upload to Claude Code or your AI assistant's skill management system
+2. Reference the skill files in your conversations using `@` mentions:
+   ```
+   @.cursor/skills/creem-api/Skill.md Help me create a checkout flow
+   ```
 
-3. The skill will be available for all future conversations
+### Windsurf
 
-## Using with Cursor
+1. Clone the skill repository:
+   ```bash
+   git clone https://github.com/armitage-labs/creem-skills.git .windsurf/creem
+   ```
 
-In Cursor, you can:
+2. Add to your project's knowledge base in Windsurf settings
 
-1. **Add to context**: Add the skill files to your conversation context
-2. **Use @docs**: Reference the documentation files directly
-3. **Custom instructions**: Add the skill content to your project's custom instructions
+### Other AI Tools
 
-## Using with Other AI Tools
+Most AI coding assistants support adding custom context. You can:
 
-Most AI coding assistants support adding custom context or instructions. You can:
-
-1. Copy relevant sections from the skill files into your conversation
-2. Add the files to your project's AI configuration
+1. Clone this repository into your project
+2. Add the files to your AI tool's context or knowledge base
 3. Reference the OpenAPI specification (`api-reference/openapi.json`) for structured API information
 
 ## Skill Structure
 
 ```
 skills/
-└── creem-api/
-    ├── Skill.md          # Core skill instructions (required)
-    ├── REFERENCE.md      # Detailed API reference
-    ├── WEBHOOKS.md       # Webhook documentation
-    └── WORKFLOWS.md      # Integration patterns
+├── .claude-plugin/
+│   └── marketplace.json    # Plugin marketplace configuration
+├── creem-api/
+│   ├── plugin.json         # Plugin metadata
+│   ├── Skill.md            # Core skill instructions
+│   ├── REFERENCE.md        # Detailed API reference
+│   ├── WEBHOOKS.md         # Webhook documentation
+│   └── WORKFLOWS.md        # Integration patterns
+└── README.md               # This file
 ```
 
 ## What This Skill Covers
@@ -105,12 +152,11 @@ skills/
 
 This skill focuses on the CREEM REST API. It does not cover:
 
-- **TypeScript SDK** (`creem_io`) - See `/code/sdks/typescript.mdx`
-- **Next.js SDK** (`@creem_io/nextjs`) - See `/code/sdks/nextjs.mdx`
-- **Better Auth Plugin** (`@creem_io/better-auth`) - See `/code/sdks/better-auth.mdx`
-- **Community Boilerplates** - See `/code/community/`
+- **TypeScript SDK** (`creem_io`) - See [TypeScript SDK docs](https://docs.creem.io/code/sdks/typescript)
+- **Next.js SDK** (`@creem_io/nextjs`) - See [Next.js SDK docs](https://docs.creem.io/code/sdks/nextjs)
+- **Better Auth Plugin** (`@creem_io/better-auth`) - See [Better Auth docs](https://docs.creem.io/code/sdks/better-auth)
 
-For SDK-specific help, refer to the SDK documentation in the main docs.
+For SDK-specific help, refer to the SDK documentation.
 
 ## Contributing
 
@@ -118,7 +164,7 @@ To improve this skill:
 
 1. Test the integration patterns in real projects
 2. Identify common pain points or missing information
-3. Update the relevant markdown file
+3. Submit a pull request with improvements
 4. Keep examples current with API changes
 
 ## Support
