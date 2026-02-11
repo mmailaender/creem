@@ -223,6 +223,10 @@ https://yoursite.com/success?checkout_id=ch_xxx&subscription_id=sub_xxx&customer
 | `request_id`      | Optional. The request/reference ID you provided when creating this checkout.   |
 | `signature`       | All previous parameters signed by Creem using your API-key, verifiable by you. |
 
+<Tip>
+  See [Verifying Redirect Signatures](/features/checkout/checkout-api#verifying-redirect-signatures) for code examples on how to validate the signature. Remember that null values (like `order_id` for subscription checkouts) are **excluded** from the signature string.
+</Tip>
+
 <Warning>
   For production applications, we recommend using [Webhooks](/code/webhooks) to
   handle subscription events like renewals, cancellations, and payment failures.
