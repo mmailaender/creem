@@ -41,6 +41,28 @@
             ]
           },
           {
+            "group": "AI",
+            "icon": "robot",
+            "pages": [
+              "ai/introduction",
+              {
+                "group": "For Humans",
+                "pages": [
+                  "ai/for-humans/getting-started",
+                  "ai/for-humans/cli"
+                ]
+              },
+              {
+                "group": "For Agents",
+                "pages": [
+                  "ai/for-agents/skill-files",
+                  "ai/for-agents/cli",
+                  "ai/for-agents/store-monitoring"
+                ]
+              }
+            ]
+          },
+          {
             "group": "Features",
             "icon": "sparkles",
             "pages": [
@@ -102,6 +124,7 @@
                   "code/sdks/ai-agents"
                 ]
               },
+              "code/cli",
               "code/webhooks"
             ]
           },
