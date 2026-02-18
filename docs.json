@@ -37,7 +37,9 @@
             "pages": [
               "getting-started/introduction",
               "getting-started/quickstart",
-              "getting-started/test-mode"
+              "getting-started/test-mode",
+              "merchant-of-record/account-reviews/account-reviews",
+              "getting-started/dashboard-overview"
             ]
           },
           {
@@ -148,11 +150,11 @@
                 "group": "Finance",
                 "pages": [
                   "merchant-of-record/finance/payouts",
+                  "merchant-of-record/finance/payout-accounts",
                   "merchant-of-record/finance/refunds-and-chargebacks",
                   "merchant-of-record/finance/payment-methods"
                 ]
-              },
-              "merchant-of-record/account-reviews/account-reviews"
+              }
             ]
           },
           {
@@ -175,7 +177,8 @@
             "pages": [
               "guides/introduction",
               "guides/create-your-first-product",
-              "guides/create-checkout-session"
+              "guides/create-checkout-session",
+              "guides/faq"
             ]
           }
         ]
