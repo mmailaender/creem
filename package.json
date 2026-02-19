@@ -1,0 +1,134 @@
+{
+  "name": "@mmailaender/creem",
+  "description": "A Creem component for Convex.",
+  "repository": "github:mmailaender/creem",
+  "homepage": "https://github.com/mmailaender/creem#readme",
+  "bugs": {
+    "url": "https://github.com/mmailaender/creem/issues"
+  },
+  "version": "0.8.1",
+  "license": "Apache-2.0",
+  "keywords": [
+    "convex",
+    "component",
+    "creem",
+    "subscription",
+    "billing",
+    "payments",
+    "checkout"
+  ],
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently --kill-others --prefix-colors 'blue,yellow,magenta' --names 'frontend,backend,build' 'pnpm dev:frontend' 'pnpm dev:backend' 'pnpm dev:build'",
+    "dev:backend": "convex dev --typecheck-components",
+    "dev:frontend": "cd example && vite --clearScreen false",
+    "dev:build": "chokidar 'tsconfig*.json' 'src/**/*.ts' -i '**/*.test.ts' -c 'npx convex codegen --component-dir ./src/component && npm run build' --initial",
+    "predev": "convex dev --skip-push",
+    "clean": "rm -rf dist *.tsbuildinfo",
+    "build": "tsc --project ./tsconfig.build.json",
+    "typecheck": "tsc --noEmit && tsc -p example && tsc -p example/convex",
+    "lint": "eslint .",
+    "all": "concurrently --kill-others --prefix-colors 'blue,yellow,magenta,cyan' --names 'frontend,backend,build,test' 'pnpm dev:frontend' 'pnpm dev:backend' 'pnpm dev:build' 'pnpm test:watch'",
+    "test": "vitest run --typecheck",
+    "test:watch": "vitest --typecheck --clearScreen false",
+    "test:debug": "vitest --inspect-brk --no-file-parallelism",
+    "test:coverage": "vitest run --coverage --coverage.reporter=text",
+    "prepublishOnly": "npm run clean && npm run build",
+    "preversion": "npm run clean && npm ci && npm run build && concurrently --kill-others --names 'test,lint,typecheck' --prefix-colors 'blue,yellow,magenta' 'pnpm test' 'pnpm lint' 'pnpm typecheck'",
+    "alpha": "npm version prerelease --preid alpha && npm publish --tag alpha && git push --follow-tags",
+    "release": "npm version patch && npm publish && git push --follow-tags",
+    "version": "vim -c 'normal o' -c 'normal o## '$npm_package_version CHANGELOG.md && prettier -w CHANGELOG.md && git add CHANGELOG.md"
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/client/index.d.ts",
+      "default": "./dist/client/index.js"
+    },
+    "./react": {
+      "types": "./dist/react/index.d.ts",
+      "default": "./dist/react/index.js"
+    },
+    "./test": "./src/test.ts",
+    "./_generated/component.js": {
+      "types": "./dist/component/_generated/component.d.ts"
+    },
+    "./convex.config": {
+      "types": "./dist/component/convex.config.d.ts",
+      "default": "./dist/component/convex.config.js"
+    },
+    "./convex.config.js": {
+      "types": "./dist/component/convex.config.d.ts",
+      "default": "./dist/component/convex.config.js"
+    }
+  },
+  "peerDependencies": {
+    "convex": "^1.29.0",
+    "creem": "^1.3.6",
+    "react": "^18 || ^19",
+    "react-dom": "^18 || ^19"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "0.18.2",
+    "@convex-dev/eslint-plugin": "1.1.1",
+    "@edge-runtime/vm": "5.0.0",
+    "@eslint/eslintrc": "3.3.3",
+    "@eslint/js": "9.39.2",
+    "@radix-ui/react-dialog": "1.1.15",
+    "@radix-ui/react-icons": "1.3.2",
+    "@radix-ui/react-separator": "1.1.8",
+    "@radix-ui/react-slot": "1.2.4",
+    "@tailwindcss/postcss": "4.1.18",
+    "@tailwindcss/vite": "4.1.18",
+    "@tanstack/react-table": "8.21.3",
+    "@types/node": "20.19.32",
+    "@types/react": "19.2.13",
+    "@types/react-dom": "19.2.3",
+    "@vitejs/plugin-react": "5.1.3",
+    "autoprefixer": "10.4.24",
+    "chokidar-cli": "3.0.0",
+    "class-variance-authority": "0.7.1",
+    "clsx": "2.1.1",
+    "concurrently": "^9.2.1",
+    "convex": "1.31.7",
+    "convex-helpers": "0.1.111",
+    "convex-test": "0.0.41",
+    "cpy-cli": "6.0.0",
+    "creem": "^1.3.6",
+    "eslint": "9.39.2",
+    "eslint-plugin-react": "7.37.5",
+    "eslint-plugin-react-hooks": "7.0.1",
+    "eslint-plugin-react-refresh": "0.5.0",
+    "globals": "16.5.0",
+    "lucide-react": "0.563.0",
+    "next-themes": "0.4.6",
+    "path-exists-cli": "2.0.0",
+    "pkg-pr-new": "0.0.63",
+    "postcss": "8.5.6",
+    "prettier": "3.8.1",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "remeda": "2.33.5",
+    "tailwind-merge": "3.4.0",
+    "tailwindcss": "4.1.18",
+    "tw-animate-css": "1.4.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.54.0",
+    "use-debounce": "10.1.0",
+    "vite": "6.4.1",
+    "vitest": "3.2.4",
+    "wrangler": "4.63.0"
+  },
+  "types": "./dist/client/index.d.ts",
+  "module": "./dist/client/index.js",
+  "dependencies": {
+    "buffer": "^6.0.3",
+    "convex-helpers": "^0.1.63",
+    "remeda": "^2.20.2",
+    "standardwebhooks": "^1.0.0"
+  }
+}
