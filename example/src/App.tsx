@@ -92,8 +92,8 @@ function PriceDisplay({ price }: { price: any }) {
 export default function TodoList() {
   const user = useQuery(api.example.getCurrentUser);
   const todos = useQuery(api.example.listTodos);
-  const products = useQuery(api.example.getConfiguredProducts);
-  const allProducts = useQuery(api.example.listAllProducts);
+  const products = useQuery(api.billing.getConfiguredProducts);
+  const allProducts = useQuery(api.billing.listAllProducts);
   const insertTodo = useMutation(api.example.insertTodo).withOptimisticUpdate(
     insertTodoOptimistic
   );
@@ -104,8 +104,8 @@ export default function TodoList() {
     deleteTodoOptimistic
   );
   const createDemoUser = useMutation(api.example.createDemoUser);
-  const cancelSubscription = useAction(api.example.cancelCurrentSubscription);
-  const changeSubscription = useAction(api.example.changeCurrentSubscription);
+  const cancelSubscription = useAction(api.billing.cancelCurrentSubscription);
+  const changeSubscription = useAction(api.billing.changeCurrentSubscription);
   const [newTodo, setNewTodo] = useState("");
   const [isCreatingDemoUser, setIsCreatingDemoUser] = useState(false);
   const [selectedCycle, setSelectedCycle] = useState<RecurringCycle>("every-month");
@@ -121,10 +121,10 @@ export default function TodoList() {
   } = products ?? {};
 
   const checkoutApi = {
-    generateCheckoutLink: api.example.generateCheckoutLink,
+    generateCheckoutLink: api.billing.generateCheckoutLink,
   } as const;
   const customerPortalApi = {
-    generateCustomerPortalUrl: api.example.generateCustomerPortalUrl,
+    generateCustomerPortalUrl: api.billing.generateCustomerPortalUrl,
   } as const;
 
   const showcaseProductId =
@@ -401,7 +401,7 @@ export default function TodoList() {
               <CustomerPortalLink
                 creemApi={{
                   generateCustomerPortalUrl:
-                    api.example.generateCustomerPortalUrl,
+                    api.billing.generateCustomerPortalUrl,
                 }}
                 className="text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
               >
@@ -587,7 +587,7 @@ export default function TodoList() {
                           <CheckoutLink
                             creemApi={{
                               generateCheckoutLink:
-                                api.example.generateCheckoutLink,
+                                api.billing.generateCheckoutLink,
                             }}
                             productId={premiumMonthly.id}
                             className="text-sm text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
@@ -597,7 +597,7 @@ export default function TodoList() {
                           <CheckoutLink
                             creemApi={{
                               generateCheckoutLink:
-                                api.example.generateCheckoutLink,
+                                api.billing.generateCheckoutLink,
                             }}
                             productId={premiumMonthly.id}
                             className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
@@ -643,7 +643,7 @@ export default function TodoList() {
                       <CheckoutLink
                         creemApi={{
                           generateCheckoutLink:
-                            api.example.generateCheckoutLink,
+                            api.billing.generateCheckoutLink,
                         }}
                         productId={premiumPlusMonthly.id}
                         className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
@@ -731,7 +731,7 @@ export default function TodoList() {
                       <OneTimeCheckoutLink
                         creemApi={{
                           generateCheckoutLink:
-                            api.example.generateCheckoutLink,
+                            api.billing.generateCheckoutLink,
                         }}
                         productId={product.id}
                         lazy

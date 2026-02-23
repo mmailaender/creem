@@ -13,6 +13,7 @@
     displayName?: string;
     description?: string;
     contactUrl?: string;
+    recommended?: boolean;
     productIds?: Partial<Record<RecurringCycle, string>>;
   }
 
@@ -22,6 +23,7 @@
     displayName = undefined,
     description = undefined,
     contactUrl = undefined,
+    recommended = undefined,
     productIds = undefined,
   }: Props = $props();
 
@@ -41,6 +43,7 @@
       displayName,
       description,
       contactUrl,
+      recommended,
       productIds,
     };
     const unregister = untrack(() => context.registerPlan(registration));

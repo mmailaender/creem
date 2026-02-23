@@ -50,6 +50,8 @@
   <Ark
     as="a"
     href={href}
+    target="_blank"
+    rel="noopener noreferrer"
     class={`inline-flex items-center justify-center rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100 dark:text-zinc-100 hover:dark:bg-zinc-800 ${className}`}
   >
     {#if children}

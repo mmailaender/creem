@@ -70,6 +70,7 @@ const convertCreemFeature = (feature: FeatureEntity) => ({
 
 export const convertToDatabaseSubscription = (
   subscription: CreemSubscription,
+  options?: { rawMetadata?: Record<string, unknown> },
 ): Infer<typeof schema.tables.subscriptions.validator> => {
   const customerId = entityId(subscription.customer);
   if (!customerId) {
@@ -87,6 +88,20 @@ export const convertToDatabaseSubscription = (
       ? subscription.product
       : null;
   const now = new Date().toISOString();
+
+  const periodEndStr = toIsoString(subscription.currentPeriodEndDate);
+
+  // Only `scheduled_cancel` is the resumable cancel-at-period-end state.
+  // `canceled` means truly ended (even if currentPeriodEnd is in the future).
+  const isScheduledCancel = subscription.status === "scheduled_cancel";
+
+  // SDK's SubscriptionEntity type does not include `metadata` — zod strips it.
+  // Accept rawMetadata from the caller (extracted from the raw webhook object).
+  const metadata =
+    options?.rawMetadata ??
+    (subscription as { metadata?: Record<string, unknown> }).metadata ??
+    {};
+
   return {
     id: subscription.id,
     customerId,
@@ -101,8 +116,8 @@ export const convertToDatabaseSubscription = (
     currentPeriodStart:
       toIsoString(subscription.currentPeriodStartDate) ??
       toIsoStringOrNow(subscription.createdAt),
-    currentPeriodEnd: toIsoString(subscription.currentPeriodEndDate),
-    cancelAtPeriodEnd: subscription.status === "scheduled_cancel",
+    currentPeriodEnd: periodEndStr,
+    cancelAtPeriodEnd: isScheduledCancel,
     customerCancellationReason: null,
     customerCancellationComment: null,
     startedAt:
@@ -112,12 +127,11 @@ export const convertToDatabaseSubscription = (
       subscription.status === "canceled"
         ? (toIsoString(subscription.canceledAt) ?? now)
         : null,
-    metadata:
-      (subscription as { metadata?: Record<string, unknown> }).metadata ?? {},
+    metadata,
     discountId:
       (subscription.discount as { id?: string } | undefined)?.id ?? null,
     canceledAt: toIsoString(subscription.canceledAt),
-    endsAt: null,
+    endsAt: isScheduledCancel ? periodEndStr : null,
     recurringIntervalCount: undefined,
     trialStart: null,
     trialEnd: null,

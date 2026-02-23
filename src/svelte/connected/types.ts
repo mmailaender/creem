@@ -5,9 +5,18 @@ export type ConnectedBillingApi = {
   getBillingUiModel: FunctionReference<"query">;
   generateCheckoutLink: FunctionReference<"action">;
   generateCustomerPortalUrl?: FunctionReference<"action">;
+  cancelCurrentSubscription?: FunctionReference<"action">;
+  resumeCurrentSubscription?: FunctionReference<"action">;
   syncProducts?: FunctionReference<"action">;
   createDemoUser?: FunctionReference<"mutation">;
   grantDemoEntitlement?: FunctionReference<"mutation">;
+};
+
+export type ConnectedProductPrice = {
+  priceAmount?: number;
+  priceCurrency?: string;
+  recurringInterval?: string | null;
+  amountType?: string;
 };
 
 export type ConnectedProduct = {
@@ -17,6 +26,7 @@ export type ConnectedProduct = {
   recurringInterval?: string | null;
   trialInterval?: string | null;
   trialIntervalCount?: number | null;
+  prices?: ConnectedProductPrice[];
 };
 
 export type ConnectedBillingModel = {
@@ -33,6 +43,22 @@ export type ConnectedBillingModel = {
   ownedProductIds: string[];
   subscriptionProductId: string | null;
   hasCreemCustomer?: boolean;
+  planCatalog?: {
+    version?: string;
+    defaultPlanId?: string;
+    plans: Array<{
+      planId: string;
+      category: string;
+      billingType?: string;
+      pricingModel?: string;
+      displayName: string;
+      description?: string;
+      creemProductIds?: Record<string, string>;
+      billingCycles?: string[];
+      contactUrl?: string;
+      recommended?: boolean;
+    }>;
+  } | null;
   policy?: unknown;
 };
 
@@ -44,6 +70,7 @@ export type SubscriptionPlanRegistration = {
   displayName?: string;
   description?: string;
   contactUrl?: string;
+  recommended?: boolean;
   productIds?: Partial<Record<RecurringCycle, string>>;
 };
 

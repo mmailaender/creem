@@ -18,12 +18,14 @@
   setupConvex(convexUrl);
 
   const connectedApi: ConnectedBillingApi = {
-    getBillingUiModel: api.example.getBillingUiModel,
-    generateCheckoutLink: api.example.generateCheckoutLink,
-    generateCustomerPortalUrl: api.example.generateCustomerPortalUrl,
-    syncProducts: api.example.syncBillingProducts,
+    getBillingUiModel: api.billing.getBillingUiModel,
+    generateCheckoutLink: api.billing.generateCheckoutLink,
+    generateCustomerPortalUrl: api.billing.generateCustomerPortalUrl,
+    cancelCurrentSubscription: api.billing.cancelCurrentSubscription,
+    resumeCurrentSubscription: api.billing.resumeCurrentSubscription,
+    syncProducts: api.billing.syncBillingProducts,
     createDemoUser: api.example.createDemoUser,
-    grantDemoEntitlement: api.example.grantDemoEntitlement,
+    grantDemoEntitlement: api.billing.grantDemoEntitlement,
   };
 
   const upgradeTransitions: Transition[] = [
@@ -41,7 +43,7 @@
   const grantOwnership = async (productId: string) => {
     grantError = null;
     try {
-      await convex.mutation(api.example.grantDemoEntitlement, {
+      await convex.mutation(api.billing.grantDemoEntitlement, {
         productId,
         mode: "lifetime",
         source: "svelte-demo-widget",
@@ -89,6 +91,9 @@
       <Subscription.Plan
         planId="premium"
         type="single"
+        displayName="Premium"
+        description="Advanced subscription plan."
+        recommended
         productIds={{
           "every-month": "prod_7Cukw2hVIT5DvozmomK67A",
           "every-three-months": "prod_7V5gRIqWgui5wQflemUBOF",

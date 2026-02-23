@@ -1,7 +1,7 @@
 import { httpRouter } from "convex/server";
 import { Id } from "./_generated/dataModel";
 import { api } from "./_generated/api";
-import { billingPolicy, creem } from "./example";
+import { billingPolicy, creem } from "./billing";
 
 const http = httpRouter();
 
@@ -56,7 +56,7 @@ creem.registerRoutes(http, {
         return;
       }
 
-      await ctx.runMutation(api.example.upsertEntitlementForUser, {
+      await ctx.runMutation(api.billing.upsertEntitlementForUser, {
         userId: convexUserId as Id<"users">,
         productId,
         mode: entitlementRule.mode,

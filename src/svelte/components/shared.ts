@@ -1,4 +1,5 @@
 import type { AvailableAction, BillingSnapshot, PlanCatalogEntry, RecurringCycle } from "../../core/types.js";
+import type { ConnectedProduct } from "../connected/types.js";
 
 const CYCLE_KEY_ALIASES: Record<RecurringCycle, string[]> = {
   "every-month": ["every-month", "monthly", "month"],
@@ -47,3 +48,44 @@ export const hasBillingActionLocal = (
   snapshot: BillingSnapshot,
   action: AvailableAction,
 ) => snapshot.availableActions.includes(action);
+
+export const formatPrice = (amount: number, currency: string): string => {
+  return new Intl.NumberFormat(undefined, {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(amount / 100);
+};
+
+export const resolveProductPrice = (
+  productId: string | undefined,
+  products: ConnectedProduct[],
+): { formatted: string; interval?: string } | null => {
+  if (!productId || !products.length) return null;
+  const product = products.find((p) => p.id === productId);
+  if (!product?.prices?.length) return null;
+  const price = product.prices[0];
+  if (price.priceAmount == null || !price.priceCurrency) return null;
+  const formatted = formatPrice(price.priceAmount, price.priceCurrency);
+  return { formatted, interval: product.recurringInterval ?? undefined };
+};
+
+const INTERVAL_LABELS: Record<string, string> = {
+  month: "/mo",
+  "every-month": "/mo",
+  "every-three-months": "/3mo",
+  "every-six-months": "/6mo",
+  year: "/yr",
+  "every-year": "/yr",
+};
+
+export const formatPriceWithInterval = (
+  productId: string | undefined,
+  products: ConnectedProduct[],
+): string | null => {
+  const resolved = resolveProductPrice(productId, products);
+  if (!resolved) return null;
+  const suffix = resolved.interval ? (INTERVAL_LABELS[resolved.interval] ?? "") : "";
+  return `${resolved.formatted}${suffix}`;
+};

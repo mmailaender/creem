@@ -40,6 +40,7 @@ export type PlanCatalogEntry = {
   pricingModel?: "flat" | "seat" | "metered" | "hybrid";
   creemProductIds?: Record<string, string>;
   contactUrl?: string;
+  recommended?: boolean;
   metadata?: Record<string, unknown>;
 };
 

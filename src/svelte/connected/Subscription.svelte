@@ -7,6 +7,7 @@
   import ScheduledChangeBanner from "../components/ScheduledChangeBanner.svelte";
   import TrialLimitBanner from "../components/TrialLimitBanner.svelte";
   import CustomerPortalButton from "../components/CustomerPortalButton.svelte";
+  import CancelConfirmDialog from "../components/CancelConfirmDialog.svelte";
   import type { PlanCatalogEntry, RecurringCycle } from "../../core/types.js";
   import {
     SUBSCRIPTION_CONTEXT_KEY,
@@ -44,6 +45,8 @@
   const billingUiModelRef = api.getBillingUiModel;
   const checkoutLinkRef = api.generateCheckoutLink;
   const portalUrlRef = api.generateCustomerPortalUrl;
+  const cancelRef = api.cancelCurrentSubscription;
+  const resumeRef = api.resumeCurrentSubscription;
   const syncProductsRef = api.syncProducts;
   const createDemoUserRef = api.createDemoUser;
 
@@ -51,8 +54,10 @@
 
   let selectedCycle = $state<RecurringCycle>("every-month");
   let isActionLoading = $state(false);
+  let isCancelInFlight = $state(false);
   let actionError = $state<string | null>(null);
   let registeredPlans = $state<SubscriptionPlanRegistration[]>([]);
+  let cancelDialogOpen = $state(false);
 
   const contextValue: SubscriptionContextValue = {
     registerPlan: (plan) => {
@@ -91,7 +96,7 @@
 
   const allProducts = $derived(model?.allProducts ?? []);
 
-  const plans = $derived.by<PlanCatalogEntry[]>(() => {
+  const plansFromRegistered = $derived.by<PlanCatalogEntry[]>(() => {
     return registeredPlans.map((plan) => {
       const productIds = plan.productIds ?? {};
       const firstProductId = Object.values(productIds)[0];
@@ -114,9 +119,10 @@
         billingType:
           plan.type === "free" || plan.type === "enterprise" ? "custom" : "recurring",
         pricingModel: plan.type === "seat-based" ? "seat" : "flat",
-        displayName: plan.displayName ?? firstProduct?.name ?? plan.planId,
-        description: plan.description ?? firstProduct?.description,
+        displayName: plan.displayName ?? firstProduct?.name ?? plan.planId.charAt(0).toUpperCase() + plan.planId.slice(1),
+        description: plan.description ?? firstProduct?.description ?? undefined,
         contactUrl: plan.contactUrl,
+        recommended: plan.recommended,
         creemProductIds:
           Object.keys(productIds).length > 0
             ? (productIds as Record<string, string>)
@@ -126,6 +132,41 @@
         entry.billingCycles = cycleKeys;
       }
       return entry;
+    });
+  });
+
+  // Auto-derive plans from the planCatalog when no <Subscription.Plan> children are registered.
+  const plansFromCatalog = $derived.by<PlanCatalogEntry[]>(() => {
+    const catalog = model?.planCatalog;
+    if (!catalog?.plans) return [];
+    return catalog.plans.map((p) => ({
+      planId: p.planId,
+      category: (p.category ?? "custom") as PlanCatalogEntry["category"],
+      billingType: (p.billingType ?? "custom") as PlanCatalogEntry["billingType"],
+      pricingModel: (p.pricingModel ?? "flat") as PlanCatalogEntry["pricingModel"],
+      displayName: p.displayName,
+      description: p.description,
+      contactUrl: p.contactUrl,
+      recommended: p.recommended,
+      creemProductIds: p.creemProductIds,
+      billingCycles: p.billingCycles as RecurringCycle[] | undefined,
+    }));
+  });
+
+  // Explicit <Subscription.Plan> children take priority; otherwise auto-render from catalog
+  const plans = $derived(
+    plansFromRegistered.length > 0 ? plansFromRegistered : plansFromCatalog,
+  );
+
+  // Check if the user's active subscription belongs to a plan in THIS component instance.
+  // Used to scope cancel/resume buttons to only the owning <Subscription> block.
+  const ownsActiveSubscription = $derived.by(() => {
+    const subProductId = model?.subscriptionProductId;
+    if (!subProductId) return false;
+    return plans.some((plan) => {
+      const ids = plan.creemProductIds;
+      if (!ids) return false;
+      return Object.values(ids).includes(subProductId);
     });
   });
 
@@ -141,6 +182,11 @@
     return `${window.location.origin}${window.location.pathname}`;
   };
 
+  const getPreferredTheme = (): "light" | "dark" => {
+    if (typeof window === "undefined") return "light";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  };
+
   const startCheckout = async (productId: string, checkoutUnits?: number) => {
     isActionLoading = true;
     actionError = null;
@@ -148,6 +194,7 @@
       const { url } = await client.action(checkoutLinkRef, {
         productId,
         successUrl: getSuccessUrl(),
+        theme: getPreferredTheme(),
         ...(checkoutUnits != null ? { units: checkoutUnits } : {}),
       });
       window.location.href = url;
@@ -166,13 +213,41 @@
     await startCheckout(payload.productId, payload.units);
   };
 
+  const confirmCancelSubscription = async () => {
+    if (!cancelRef) return;
+    // Close dialog immediately for snappy UX
+    cancelDialogOpen = false;
+    isCancelInFlight = true;
+    actionError = null;
+    try {
+      await client.action(cancelRef, {});
+    } catch (error) {
+      actionError = error instanceof Error ? error.message : "Cancel failed";
+    } finally {
+      isCancelInFlight = false;
+    }
+  };
+
+  const resumeSubscription = async () => {
+    if (!resumeRef) return;
+    isActionLoading = true;
+    actionError = null;
+    try {
+      await client.action(resumeRef, {});
+    } catch (error) {
+      actionError = error instanceof Error ? error.message : "Resume failed";
+    } finally {
+      isActionLoading = false;
+    }
+  };
+
   const openPortal = async () => {
     if (!portalUrlRef) return;
     isActionLoading = true;
     actionError = null;
     try {
       const { url } = await client.action(portalUrlRef, {});
-      window.location.href = url;
+      window.open(url, "_blank", "noopener,noreferrer");
     } catch (error) {
       actionError = error instanceof Error ? error.message : "Portal failed";
     } finally {
@@ -256,14 +331,28 @@
       </Ark>
     {/if}
 
+    {#if isCancelInFlight && ownsActiveSubscription}
+      <Ark
+        as="div"
+        class="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-200"
+      >
+        <Ark as="span" class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+        Processing cancellation…
+      </Ark>
+    {/if}
+
     <TrialLimitBanner snapshot={snapshot} />
-    <ScheduledChangeBanner snapshot={snapshot} />
+    {#if ownsActiveSubscription}
+      <ScheduledChangeBanner snapshot={snapshot} isLoading={isActionLoading} onResume={resumeRef ? resumeSubscription : undefined} />
+    {/if}
     <PaymentWarningBanner snapshot={snapshot} />
 
     <PricingSection
       plans={plans}
       snapshot={snapshot ? { ...snapshot, activePlanId } : null}
       {selectedCycle}
+      products={allProducts}
+      subscriptionProductId={model?.subscriptionProductId ?? null}
       {units}
       {showSeatPicker}
       onCycleChange={(cycle) => {
@@ -272,13 +361,34 @@
       onCheckout={handlePricingCheckout}
     />
 
-    {#if showPortalButton && portalUrlRef && hasCreemCustomer}
-      <CustomerPortalButton
-        disabled={isActionLoading}
-        onOpenPortal={openPortal}
-      >
-        Open billing portal
-      </CustomerPortalButton>
-    {/if}
+    <Ark as="div" class="flex flex-wrap items-center gap-3">
+      {#if showPortalButton && portalUrlRef && hasCreemCustomer}
+        <CustomerPortalButton
+          disabled={isActionLoading}
+          onOpenPortal={openPortal}
+        >
+          Open billing portal
+        </CustomerPortalButton>
+      {/if}
+
+      {#if cancelRef && ownsActiveSubscription && snapshot?.availableActions?.includes("cancel") && snapshot?.subscriptionState !== "scheduled_cancel"}
+        <Ark
+          as="button"
+          type="button"
+          class="text-sm text-red-600 transition hover:text-red-700 disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300"
+          disabled={isActionLoading}
+          onclick={() => { cancelDialogOpen = true; }}
+        >
+          Cancel subscription
+        </Ark>
+      {/if}
+    </Ark>
+
+    <CancelConfirmDialog
+      open={cancelDialogOpen}
+      isLoading={isActionLoading}
+      onOpenChange={(open) => { cancelDialogOpen = open; }}
+      onConfirm={confirmCancelSubscription}
+    />
   {/if}
 </Ark>

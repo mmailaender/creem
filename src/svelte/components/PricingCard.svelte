@@ -2,12 +2,15 @@
   import { Ark } from "@ark-ui/svelte/factory";
   import CheckoutButton from "./CheckoutButton.svelte";
   import type { PlanCatalogEntry, RecurringCycle } from "../../core/types.js";
-  import { formatRecurringCycle, resolveProductIdForPlan } from "./shared.js";
+  import type { ConnectedProduct } from "../connected/types.js";
+  import { resolveProductIdForPlan, formatPriceWithInterval } from "./shared.js";
 
   interface Props {
     plan: PlanCatalogEntry;
     selectedCycle?: RecurringCycle;
     activePlanId?: string | null;
+    subscriptionProductId?: string | null;
+    products?: ConnectedProduct[];
     units?: number;
     showSeatPicker?: boolean;
     className?: string;
@@ -23,6 +26,8 @@
     plan,
     selectedCycle = undefined,
     activePlanId = undefined,
+    subscriptionProductId = null,
+    products = [],
     units = undefined,
     showSeatPicker = false,
     className = "",
@@ -31,15 +36,28 @@
   }: Props = $props();
 
   const isSeatPlan = $derived(plan.pricingModel === "seat");
-  let seatCount = $state(units ?? 1);
+  let seatCount = $derived(units ?? 1);
   const effectiveUnits = $derived(
     isSeatPlan ? (showSeatPicker ? seatCount : units) : undefined,
   );
 
-  const isActive = $derived(activePlanId === plan.planId);
   const productId = $derived(resolveProductIdForPlan(plan, selectedCycle));
+  const priceLabel = $derived(formatPriceWithInterval(productId, products));
+
+  // Exact match: user is subscribed to THIS specific product (plan + cycle)
+  const isActiveProduct = $derived(
+    subscriptionProductId != null && productId != null && productId === subscriptionProductId,
+  );
+  // Same plan but different billing cycle — offer to switch interval
+  const isActivePlanOtherCycle = $derived(
+    !isActiveProduct && activePlanId === plan.planId && productId != null,
+  );
   const checkoutLabel = $derived(
-    plan.billingType === "onetime" ? "Buy now" : "Start checkout",
+    isActivePlanOtherCycle
+      ? "Switch interval"
+      : plan.billingType === "onetime"
+        ? "Buy now"
+        : "Subscribe",
   );
   const handleCheckout = (payload: { productId: string }) =>
     onCheckout?.({ plan, productId: payload.productId, units: effectiveUnits });
@@ -47,33 +65,42 @@
 
 <Ark
   as="section"
-  class={`rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 ${className}`}
+  class={`relative flex flex-col rounded-xl border bg-white p-5 shadow-sm dark:bg-zinc-950 ${
+    plan.recommended
+      ? "border-indigo-500 ring-2 ring-indigo-500/20 dark:border-indigo-400 dark:ring-indigo-400/20"
+      : "border-zinc-200 dark:border-zinc-800"
+  } ${className}`}
 >
-  <Ark as="div" class="mb-2 flex items-center justify-between gap-2">
-    <Ark as="h3" class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-      {plan.displayName}
-    </Ark>
+  {#if plan.recommended}
     <Ark
       as="span"
-      class="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200"
+      class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-indigo-600 px-3 py-0.5 text-xs font-semibold text-white dark:bg-indigo-500"
     >
-      {plan.category}
+      Recommended
     </Ark>
+  {/if}
+
+  <Ark as="h3" class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+    {plan.displayName}
   </Ark>
 
   {#if plan.description}
-    <Ark as="p" class="mb-3 text-sm text-zinc-600 dark:text-zinc-300">
+    <Ark as="p" class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
       {plan.description}
     </Ark>
   {/if}
 
-  {#if plan.billingCycles && plan.billingCycles.length > 0}
-    <Ark as="p" class="mb-4 text-xs text-zinc-500 dark:text-zinc-400">
-      Available cycles: {plan.billingCycles.map(formatRecurringCycle).join(" · ")}
-    </Ark>
-  {/if}
+  <Ark as="div" class="mt-3 mb-4">
+    {#if plan.category === "free"}
+      <Ark as="span" class="text-3xl font-bold text-zinc-900 dark:text-zinc-100">Free</Ark>
+    {:else if plan.category === "enterprise"}
+      <Ark as="span" class="text-lg font-medium text-zinc-600 dark:text-zinc-300">Custom pricing</Ark>
+    {:else if priceLabel}
+      <Ark as="span" class="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{priceLabel}</Ark>
+    {/if}
+  </Ark>
 
-  {#if isSeatPlan && showSeatPicker && !isActive}
+  {#if isSeatPlan && showSeatPicker && !isActiveProduct}
     <Ark as="div" class="mb-4 flex items-center gap-2">
       <Ark as="label" class="text-sm text-zinc-600 dark:text-zinc-300">Seats</Ark>
       <Ark
@@ -90,39 +117,41 @@
     </Ark>
   {/if}
 
-  {#if isActive}
-    <Ark
-      as="span"
-      class="inline-flex rounded-md bg-emerald-100 px-3 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
-    >
-      Current plan
-    </Ark>
-  {:else if plan.category === "enterprise"}
-    {#if plan.contactUrl}
+  <Ark as="div" class="mt-auto">
+    {#if isActiveProduct}
       <Ark
-        as="a"
-        href={plan.contactUrl}
-        class="inline-flex items-center justify-center rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100 dark:text-zinc-100 hover:dark:bg-zinc-800"
+        as="span"
+        class="inline-flex rounded-md bg-emerald-100 px-3 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
       >
-        Contact sales
+        Current plan
       </Ark>
-    {:else if onContactSales}
-      <Ark
-        as="button"
-        type="button"
-        class="inline-flex items-center justify-center rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100"
-        onclick={() => onContactSales?.({ plan })}
-      >
-        Contact sales
+    {:else if plan.category === "enterprise"}
+      {#if plan.contactUrl}
+        <Ark
+          as="a"
+          href={plan.contactUrl}
+          class="inline-flex items-center justify-center rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100 dark:text-zinc-100 hover:dark:bg-zinc-800"
+        >
+          Contact sales
+        </Ark>
+      {:else if onContactSales}
+        <Ark
+          as="button"
+          type="button"
+          class="inline-flex items-center justify-center rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100"
+          onclick={() => onContactSales?.({ plan })}
+        >
+          Contact sales
+        </Ark>
+      {/if}
+    {:else if productId}
+      <CheckoutButton {productId} onCheckout={handleCheckout}>
+        {checkoutLabel}
+      </CheckoutButton>
+    {:else if plan.category !== "free"}
+      <Ark as="span" class="text-sm text-zinc-500 dark:text-zinc-400">
+        Configure a checkout handler to activate this plan.
       </Ark>
     {/if}
-  {:else if productId}
-    <CheckoutButton {productId} onCheckout={handleCheckout}>
-      {checkoutLabel}
-    </CheckoutButton>
-  {:else}
-    <Ark as="span" class="text-sm text-zinc-500 dark:text-zinc-400">
-      Configure a checkout handler to activate this plan.
-    </Ark>
-  {/if}
+  </Ark>
 </Ark>

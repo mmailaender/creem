@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as billing from "../billing.js";
 import type * as example from "../example.js";
 import type * as http from "../http.js";
 import type * as seed from "../seed.js";
@@ -19,6 +20,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  billing: typeof billing;
   example: typeof example;
   http: typeof http;
   seed: typeof seed;

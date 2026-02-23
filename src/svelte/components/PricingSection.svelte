@@ -3,11 +3,14 @@
   import BillingToggle from "./BillingToggle.svelte";
   import PricingCard from "./PricingCard.svelte";
   import type { BillingSnapshot, PlanCatalogEntry, RecurringCycle } from "../../core/types.js";
+  import type { ConnectedProduct } from "../connected/types.js";
 
   interface Props {
     plans?: PlanCatalogEntry[];
     snapshot?: BillingSnapshot | null;
     selectedCycle?: RecurringCycle;
+    products?: ConnectedProduct[];
+    subscriptionProductId?: string | null;
     units?: number;
     showSeatPicker?: boolean;
     className?: string;
@@ -24,6 +27,8 @@
     plans = [],
     snapshot = null,
     selectedCycle = undefined,
+    products = [],
+    subscriptionProductId = null,
     units = undefined,
     showSeatPicker = false,
     className = "",
@@ -69,6 +74,8 @@
         {plan}
         selectedCycle={effectiveCycle}
         activePlanId={snapshot?.activePlanId}
+        {subscriptionProductId}
+        {products}
         {units}
         {showSeatPicker}
         {onCheckout}

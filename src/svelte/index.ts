@@ -9,6 +9,7 @@ export { default as PricingCard } from "./components/PricingCard.svelte";
 export { default as PricingSection } from "./components/PricingSection.svelte";
 export { default as BillingGate } from "./components/BillingGate.svelte";
 export { default as ScheduledChangeBanner } from "./components/ScheduledChangeBanner.svelte";
+export { default as CancelConfirmDialog } from "./components/CancelConfirmDialog.svelte";
 export { default as PaymentWarningBanner } from "./components/PaymentWarningBanner.svelte";
 export { default as TrialLimitBanner } from "./components/TrialLimitBanner.svelte";
 export { default as OneTimeCheckoutButton } from "./components/OneTimeCheckoutButton.svelte";
