@@ -8,11 +8,14 @@
     plans?: PlanCatalogEntry[];
     snapshot?: BillingSnapshot | null;
     selectedCycle?: RecurringCycle;
+    units?: number;
+    showSeatPicker?: boolean;
     className?: string;
     onCycleChange?: (cycle: RecurringCycle) => void;
     onCheckout?: (payload: {
       plan: PlanCatalogEntry;
       productId: string;
+      units?: number;
     }) => Promise<void> | void;
     onContactSales?: (payload: { plan: PlanCatalogEntry }) => Promise<void> | void;
   }
@@ -21,6 +24,8 @@
     plans = [],
     snapshot = null,
     selectedCycle = undefined,
+    units = undefined,
+    showSeatPicker = false,
     className = "",
     onCycleChange,
     onCheckout,
@@ -64,6 +69,8 @@
         {plan}
         selectedCycle={effectiveCycle}
         activePlanId={snapshot?.activePlanId}
+        {units}
+        {showSeatPicker}
         {onCheckout}
         {onContactSales}
       />

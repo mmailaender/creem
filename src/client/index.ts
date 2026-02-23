@@ -209,13 +209,12 @@ export class Creem<
 
     if (!dbCustomer) {
       const customerId = getEntityId(checkout.customer);
-      if (!customerId) {
-        throw new Error("Checkout completed but customer id is missing");
+      if (customerId) {
+        await ctx.runMutation(this.component.lib.insertCustomer, {
+          id: customerId,
+          userId,
+        });
       }
-      await ctx.runMutation(this.component.lib.insertCustomer, {
-        id: customerId,
-        userId,
-      });
     }
 
     return checkout;

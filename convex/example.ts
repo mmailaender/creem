@@ -41,13 +41,29 @@ type BillingPolicy = {
 };
 
 const configuredProductIds = {
-  basicMonthly: "prod_3tqZFdQNMukL0AevNgjH03",
-  basicYearly: "prod_4uNmv0F22pqaDQL8xnI5hA",
-  premiumMonthly: "prod_3tqZFdQNMukL0AevNgjH03",
-  premiumYearly: "prod_4uNmv0F22pqaDQL8xnI5hA",
-  premiumPlusMonthly: "prod_3tqZFdQNMukL0AevNgjH03",
-  premiumPlusYearly: "prod_Cb7ydeGmcxuC383ItErhf",
-  creditsPack: "prod_6qIqmMqX49oO25XGUAFpyR",
+  // Subscriptions with trial (4 cycles)
+  basicTrialMonthly: "prod_4if4apw1SzOXSUAfGL0Jp9",
+  basicTrialQuarterly: "prod_5SxwV6WbbluzUQ2FmZ4trD",
+  basicTrialSemiAnnual: "prod_7Lhs8en6kiBONIywQUlaQC",
+  basicTrialYearly: "prod_KE9mMfH58482NIbKgK4nF",
+  premiumTrialMonthly: "prod_7Cukw2hVIT5DvozmomK67A",
+  premiumTrialQuarterly: "prod_7V5gRIqWgui5wQflemUBOF",
+  premiumTrialSemiAnnual: "prod_4JN9cHsEto3dr0CQpgCxn4",
+  premiumTrialYearly: "prod_6ytx0cFhBvgXLp1jA6CQqH",
+  // Subscriptions without trial (monthly only)
+  basicNoTrialMonthly: "prod_53CU7duHB58lGTUqKlRroI",
+  premiumNoTrialMonthly: "prod_3ymOe55fDzKgmPoZnPEOBq",
+  // Seat-based subscriptions (monthly, no trial)
+  basicSeatMonthly: "prod_1c6ZGcxekHKrVYuWriHs68",
+  premiumSeatMonthly: "prod_3861b06bJDnvpEBcs2uxYv",
+  // One-time purchase
+  oneTimeLicense: "prod_6npEfkzgtr9hSqdWd7fqKG",
+  // Exclusive product group with upgrade
+  groupBasic: "prod_4Di7Lkhf3TXy4UOKsUrGw0",
+  groupPremium: "prod_56sJIyL7piLCVv270n4KBz",
+  groupBasicToPremium: "prod_5LApsYRX8dHbx8QuLJgJ3j",
+  // Repeating (consumable) product
+  creditTopUp: "prod_73CnZ794MaJ1DUn8MU0O5f",
 } as const;
 
 export const billingPolicy: BillingPolicy = {
@@ -64,20 +80,22 @@ export const billingPolicy: BillingPolicy = {
       displayName: "Basic",
       description: "Starter subscription plan.",
       productIds: {
-        "every-month": configuredProductIds.basicMonthly,
-        "every-year": configuredProductIds.basicYearly,
-        default: configuredProductIds.basicMonthly,
+        "every-month": configuredProductIds.basicTrialMonthly,
+        "every-three-months": configuredProductIds.basicTrialQuarterly,
+        "every-six-months": configuredProductIds.basicTrialSemiAnnual,
+        "every-year": configuredProductIds.basicTrialYearly,
       },
     },
     {
       planId: "premium",
-      type: "seat-based",
+      type: "single",
       displayName: "Premium",
       description: "Advanced subscription plan.",
       productIds: {
-        "every-month": configuredProductIds.premiumPlusMonthly,
-        "every-year": configuredProductIds.premiumPlusYearly,
-        default: configuredProductIds.premiumPlusMonthly,
+        "every-month": configuredProductIds.premiumTrialMonthly,
+        "every-three-months": configuredProductIds.premiumTrialQuarterly,
+        "every-six-months": configuredProductIds.premiumTrialSemiAnnual,
+        "every-year": configuredProductIds.premiumTrialYearly,
       },
     },
     {
@@ -89,23 +107,50 @@ export const billingPolicy: BillingPolicy = {
   ],
   productGroups: [
     {
-      groupId: "credits-pack",
+      groupId: "exclusive-upgrade",
       exclusive: true,
       items: [
         {
-          productId: configuredProductIds.creditsPack,
+          productId: configuredProductIds.groupBasic,
           type: "one-time",
-          displayName: "Credits Pack",
+          displayName: "Basic",
+        },
+        {
+          productId: configuredProductIds.groupPremium,
+          type: "one-time",
+          displayName: "Premium",
         },
       ],
-      transitions: [],
+      transitions: [
+        {
+          from: configuredProductIds.groupBasic,
+          to: configuredProductIds.groupPremium,
+          kind: "via_product" as const,
+          viaProductId: configuredProductIds.groupBasicToPremium,
+        },
+      ],
     },
   ],
   entitlementRules: [
     {
-      productId: configuredProductIds.creditsPack,
+      productId: configuredProductIds.oneTimeLicense,
+      mode: "lifetime",
+      grants: ["license"],
+    },
+    {
+      productId: configuredProductIds.creditTopUp,
       mode: "consumable",
       grants: ["credits"],
+    },
+    {
+      productId: configuredProductIds.groupBasic,
+      mode: "lifetime",
+      grants: ["group-basic"],
+    },
+    {
+      productId: configuredProductIds.groupPremium,
+      mode: "lifetime",
+      grants: ["group-premium"],
     },
   ],
 };
@@ -225,13 +270,15 @@ export const getBillingUiModel = query({
         allProducts,
         ownedProductIds: [],
         subscriptionProductId: null,
+        hasCreemCustomer: false,
         policy: billingPolicy,
       };
     }
 
-    const [billingSnapshot, ownedProductIds] = await Promise.all([
+    const [billingSnapshot, ownedProductIds, creemCustomer] = await Promise.all([
       creem.getBillingSnapshot(ctx, { userId: user._id }),
       listOwnedProductIds(ctx, user._id),
+      creem.getCustomerByUserId(ctx, user._id),
     ]);
 
     return {
@@ -241,6 +288,7 @@ export const getBillingUiModel = query({
       allProducts,
       ownedProductIds,
       subscriptionProductId: user.subscription?.productId ?? null,
+      hasCreemCustomer: creemCustomer != null,
       policy: billingPolicy,
     };
   },
@@ -321,22 +369,20 @@ const currentUser = async (ctx: QueryCtx) => {
   const subscription = await creem.getCurrentSubscription(ctx, {
     userId: user._id,
   });
-  const productKey = subscription?.productKey;
-  const isPremium =
-    productKey === "premiumMonthly" || productKey === "premiumYearly";
-  const isPremiumPlus =
-    productKey === "premiumPlusMonthly" || productKey === "premiumPlusYearly";
+  const productKey = subscription?.productKey as string | undefined;
+  const isPremium = productKey != null && productKey.startsWith("premium");
+  const isBasic = productKey != null && productKey.startsWith("basic");
   return {
     ...user,
-    isFree: !isPremium && !isPremiumPlus,
+    isFree: !isPremium && !isBasic,
     isPremium,
-    isPremiumPlus,
+    isBasic,
     isTrialing: subscription?.status === "trialing",
     trialEnd: subscription?.trialEnd ?? null,
     subscription,
-    maxTodos: isPremiumPlus
+    maxTodos: isPremium
       ? undefined
-      : isPremium
+      : isBasic
         ? MAX_PREMIUM_TODOS
         : MAX_FREE_TODOS,
   };
@@ -357,12 +403,17 @@ export const createDemoUser = mutation({
       return existingUser;
     }
 
+    const email = process.env.TEST_USER_EMAIL;
+    if (!email) {
+      throw new Error("TEST_USER_EMAIL environment variable is not set");
+    }
+
     const userId = await ctx.db.insert("users", {
-      email: "user@example.com",
+      email,
     });
     return {
       _id: userId,
-      email: "user@example.com",
+      email,
     };
   },
 });
@@ -406,15 +457,16 @@ export const insertTodo = mutation({
         .withIndex("userId", (q) => q.eq("userId", user._id))
         .collect()
     ).length;
-    const productKey = user.subscription?.productKey;
+    const productKey = user.subscription?.productKey as string | undefined;
     if (!productKey && todoCount >= MAX_FREE_TODOS) {
       throw new Error("Reached maximum number of todos for free plan");
     }
     if (
-      (productKey === "premiumMonthly" || productKey === "premiumYearly") &&
+      productKey != null &&
+      productKey.startsWith("basic") &&
       todoCount >= MAX_PREMIUM_TODOS
     ) {
-      throw new Error("Reached maximum number of todos for premium plan");
+      throw new Error("Reached maximum number of todos for basic plan");
     }
     await ctx.db.insert("todos", {
       userId: user._id,

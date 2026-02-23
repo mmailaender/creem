@@ -23,6 +23,8 @@
     className?: string;
     successUrl?: string;
     showPortalButton?: boolean;
+    units?: number;
+    showSeatPicker?: boolean;
     children?: import("svelte").Snippet;
   }
 
@@ -31,6 +33,8 @@
     className = "",
     successUrl = undefined,
     showPortalButton = true,
+    units = undefined,
+    showSeatPicker = false,
     children,
   }: Props = $props();
 
@@ -68,6 +72,7 @@
 
   const model = $derived((billingModelQuery.data ?? null) as ConnectedBillingModel | null);
   const snapshot = $derived(model?.billingSnapshot ?? null);
+  const hasCreemCustomer = $derived(model?.hasCreemCustomer ?? false);
 
   const activePlanId = $derived.by<string | null>(() => {
     if (!model) return null;
@@ -79,20 +84,25 @@
 
     const matchedPlan = registeredPlans.find((plan) => {
       const values = Object.values(plan.productIds ?? {}).filter(Boolean) as string[];
-      if (plan.productId) {
-        values.push(plan.productId);
-      }
       return values.includes(subscriptionProductId);
     });
     return matchedPlan?.planId ?? null;
   });
 
+  const allProducts = $derived(model?.allProducts ?? []);
+
   const plans = $derived.by<PlanCatalogEntry[]>(() => {
     return registeredPlans.map((plan) => {
-      const productIds = {
-        ...(plan.productIds ?? {}),
-        ...(plan.productId ? { default: plan.productId } : {}),
-      };
+      const productIds = plan.productIds ?? {};
+      const firstProductId = Object.values(productIds)[0];
+      const firstProduct = firstProductId
+        ? allProducts.find((p) => p.id === firstProductId)
+        : undefined;
+
+      const cycleKeys = Object.keys(productIds).filter(
+        (k): k is RecurringCycle => k !== "custom",
+      );
+
       const entry: PlanCatalogEntry = {
         planId: plan.planId,
         category:
@@ -104,16 +114,16 @@
         billingType:
           plan.type === "free" || plan.type === "enterprise" ? "custom" : "recurring",
         pricingModel: plan.type === "seat-based" ? "seat" : "flat",
-        displayName: plan.displayName ?? plan.planId,
-        description: plan.description,
+        displayName: plan.displayName ?? firstProduct?.name ?? plan.planId,
+        description: plan.description ?? firstProduct?.description,
         contactUrl: plan.contactUrl,
         creemProductIds:
           Object.keys(productIds).length > 0
             ? (productIds as Record<string, string>)
             : undefined,
       };
-      if (plan.type !== "enterprise" && plan.type !== "free") {
-        entry.billingCycles = ["every-month", "every-three-months", "every-six-months", "every-year"];
+      if (cycleKeys.length > 0) {
+        entry.billingCycles = cycleKeys;
       }
       return entry;
     });
@@ -131,13 +141,14 @@
     return `${window.location.origin}${window.location.pathname}`;
   };
 
-  const startCheckout = async (productId: string) => {
+  const startCheckout = async (productId: string, checkoutUnits?: number) => {
     isActionLoading = true;
     actionError = null;
     try {
       const { url } = await client.action(checkoutLinkRef, {
         productId,
         successUrl: getSuccessUrl(),
+        ...(checkoutUnits != null ? { units: checkoutUnits } : {}),
       });
       window.location.href = url;
     } catch (error) {
@@ -150,8 +161,9 @@
   const handlePricingCheckout = async (payload: {
     plan: PlanCatalogEntry;
     productId: string;
+    units?: number;
   }) => {
-    await startCheckout(payload.productId);
+    await startCheckout(payload.productId, payload.units);
   };
 
   const openPortal = async () => {
@@ -235,7 +247,7 @@
         <Ark
           as="button"
           type="button"
-          class="rounded-md border px-3 py-2 text-sm"
+          class="rounded-md cursor-pointer border px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
           disabled={isActionLoading}
           onclick={syncProducts}
         >
@@ -252,13 +264,15 @@
       plans={plans}
       snapshot={snapshot ? { ...snapshot, activePlanId } : null}
       {selectedCycle}
+      {units}
+      {showSeatPicker}
       onCycleChange={(cycle) => {
         selectedCycle = cycle;
       }}
       onCheckout={handlePricingCheckout}
     />
 
-    {#if showPortalButton && portalUrlRef}
+    {#if showPortalButton && portalUrlRef && hasCreemCustomer}
       <CustomerPortalButton
         disabled={isActionLoading}
         onOpenPortal={openPortal}

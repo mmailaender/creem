@@ -46,7 +46,7 @@ const CYCLE_KEY_ALIASES: Record<RecurringCycle, string[]> = {
   "every-three-months": ["every-three-months", "quarterly", "every-quarter"],
   "every-six-months": ["every-six-months", "semiannual", "semi-annually"],
   "every-year": ["every-year", "yearly", "annual"],
-  custom: ["custom", "default"],
+  custom: ["custom"],
 };
 
 const formatRecurringCycle = (cycle: RecurringCycle) => {
@@ -81,7 +81,7 @@ const resolveProductIdForPlan = (
     }
   }
 
-  return productIds.default ?? Object.values(productIds)[0];
+  return Object.values(productIds)[0];
 };
 
 type CheckoutApi = Pick<CreemComponentApi, "generateCheckoutLink">;

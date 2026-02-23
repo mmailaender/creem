@@ -13,6 +13,7 @@ export type ConnectedBillingApi = {
 export type ConnectedProduct = {
   id: string;
   name?: string;
+  description?: string;
   recurringInterval?: string | null;
   trialInterval?: string | null;
   trialIntervalCount?: number | null;
@@ -31,6 +32,7 @@ export type ConnectedBillingModel = {
   allProducts: ConnectedProduct[];
   ownedProductIds: string[];
   subscriptionProductId: string | null;
+  hasCreemCustomer?: boolean;
   policy?: unknown;
 };
 
@@ -42,8 +44,7 @@ export type SubscriptionPlanRegistration = {
   displayName?: string;
   description?: string;
   contactUrl?: string;
-  productId?: string;
-  productIds?: Partial<Record<RecurringCycle | "default", string>>;
+  productIds?: Partial<Record<RecurringCycle, string>>;
 };
 
 export type ProductType = "one-time" | "recurring";

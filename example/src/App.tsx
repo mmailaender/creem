@@ -114,10 +114,10 @@ export default function TodoList() {
   const isAtMaxTodos = user?.maxTodos && todosLength >= user.maxTodos;
 
   const {
-    premiumMonthly,
-    premiumYearly,
-    premiumPlusMonthly,
-    premiumPlusYearly,
+    basicTrialMonthly: premiumMonthly,
+    basicTrialYearly: premiumYearly,
+    premiumTrialMonthly: premiumPlusMonthly,
+    premiumTrialYearly: premiumPlusYearly,
   } = products ?? {};
 
   const checkoutApi = {
@@ -430,9 +430,9 @@ export default function TodoList() {
             )}
             <span className="text-sm text-gray-600 dark:text-gray-400">
               •{" "}
-              {user?.isPremiumPlus
+              {user?.isPremium
                 ? "Unlimited todos"
-                : user?.isPremium
+                : user?.isBasic
                   ? "Up to 6 todos"
                   : "Up to 3 todos"}
             </span>

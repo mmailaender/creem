@@ -13,8 +13,7 @@
     displayName?: string;
     description?: string;
     contactUrl?: string;
-    productId?: string;
-    productIds?: Partial<Record<RecurringCycle | "default", string>>;
+    productIds?: Partial<Record<RecurringCycle, string>>;
   }
 
   let {
@@ -23,7 +22,6 @@
     displayName = undefined,
     description = undefined,
     contactUrl = undefined,
-    productId = undefined,
     productIds = undefined,
   }: Props = $props();
 
@@ -36,14 +34,13 @@
   }
 
   $effect(() => {
-    const resolvedPlanId = planId ?? productId ?? type;
+    const resolvedPlanId = planId ?? Object.values(productIds ?? {})[0] ?? type;
     const registration = {
       planId: resolvedPlanId,
       type,
       displayName,
       description,
       contactUrl,
-      productId,
       productIds,
     };
     const unregister = untrack(() => context.registerPlan(registration));

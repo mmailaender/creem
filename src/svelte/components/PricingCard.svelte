@@ -8,10 +8,13 @@
     plan: PlanCatalogEntry;
     selectedCycle?: RecurringCycle;
     activePlanId?: string | null;
+    units?: number;
+    showSeatPicker?: boolean;
     className?: string;
     onCheckout?: (payload: {
       plan: PlanCatalogEntry;
       productId: string;
+      units?: number;
     }) => Promise<void> | void;
     onContactSales?: (payload: { plan: PlanCatalogEntry }) => Promise<void> | void;
   }
@@ -20,10 +23,18 @@
     plan,
     selectedCycle = undefined,
     activePlanId = undefined,
+    units = undefined,
+    showSeatPicker = false,
     className = "",
     onCheckout,
     onContactSales,
   }: Props = $props();
+
+  const isSeatPlan = $derived(plan.pricingModel === "seat");
+  let seatCount = $state(units ?? 1);
+  const effectiveUnits = $derived(
+    isSeatPlan ? (showSeatPicker ? seatCount : units) : undefined,
+  );
 
   const isActive = $derived(activePlanId === plan.planId);
   const productId = $derived(resolveProductIdForPlan(plan, selectedCycle));
@@ -31,7 +42,7 @@
     plan.billingType === "onetime" ? "Buy now" : "Start checkout",
   );
   const handleCheckout = (payload: { productId: string }) =>
-    onCheckout?.({ plan, productId: payload.productId });
+    onCheckout?.({ plan, productId: payload.productId, units: effectiveUnits });
 </script>
 
 <Ark
@@ -59,6 +70,23 @@
   {#if plan.billingCycles && plan.billingCycles.length > 0}
     <Ark as="p" class="mb-4 text-xs text-zinc-500 dark:text-zinc-400">
       Available cycles: {plan.billingCycles.map(formatRecurringCycle).join(" · ")}
+    </Ark>
+  {/if}
+
+  {#if isSeatPlan && showSeatPicker && !isActive}
+    <Ark as="div" class="mb-4 flex items-center gap-2">
+      <Ark as="label" class="text-sm text-zinc-600 dark:text-zinc-300">Seats</Ark>
+      <Ark
+        as="input"
+        type="number"
+        min="1"
+        value={seatCount}
+        oninput={(e: Event) => {
+          const val = parseInt((e.target as HTMLInputElement).value, 10);
+          if (val > 0) seatCount = val;
+        }}
+        class="w-20 rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+      />
     </Ark>
   {/if}
 
