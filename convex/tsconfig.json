@@ -21,11 +21,12 @@
     "noEmit": true,
     "baseUrl": "..",
     "paths": {
-      "@convex-dev/creem": ["../src/client/index.ts"],
-      "@convex-dev/creem/react": ["../src/react/index.tsx"],
-      "@convex-dev/creem/convex.config": ["../src/component/convex.config.ts"],
-      "@convex-dev/creem/test": ["../src/test.ts"],
-      "@convex-dev/creem/_generated/component.js": [
+      "@mmailaender/creem": ["../src/client/index.ts"],
+      "@mmailaender/creem/react": ["../src/react/index.tsx"],
+      "@mmailaender/creem/svelte": ["../src/svelte/index.ts"],
+      "@mmailaender/creem/convex.config": ["../src/component/convex.config.ts"],
+      "@mmailaender/creem/test": ["../src/test.ts"],
+      "@mmailaender/creem/_generated/component.js": [
         "../src/component/_generated/component.ts"
       ]
     }

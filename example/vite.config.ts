@@ -11,6 +11,6 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    exclude: ["@convex-dev/creem/react"],
+    exclude: ["@mmailaender/creem/react"],
   },
 });

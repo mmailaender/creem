@@ -27,6 +27,17 @@ import {
   type RunActionCtx,
 } from "../component/util.js";
 import type { ComponentApi } from "../component/_generated/component.js";
+import { resolveBillingSnapshot as defaultResolveBillingSnapshot } from "../core/resolver.js";
+import type {
+  BillingResolverInput,
+  BillingSnapshot,
+  BillingUserContext,
+  PaymentSnapshot,
+  PlanCatalog,
+  SubscriptionSnapshot,
+} from "../core/types.js";
+
+export * from "../core/index.js";
 
 export const subscriptionValidator = schema.tables.subscriptions.validator;
 export type Subscription = Infer<typeof subscriptionValidator>;
@@ -52,6 +63,28 @@ export type WebhookEventHandlers = Record<
   string,
   (ctx: RunMutationCtx, event: CreemWebhookEvent) => Promise<void> | void
 >;
+
+type CreemConfig<Products extends Record<string, string>> = {
+  products?: Products;
+  getUserInfo: (ctx: RunQueryCtx) => Promise<{
+    userId: string;
+    email: string;
+  }>;
+  getPlanCatalog?: (ctx: RunQueryCtx) => Promise<PlanCatalog> | PlanCatalog;
+  getUserBillingContext?:
+    | ((ctx: RunQueryCtx) => Promise<BillingUserContext> | BillingUserContext)
+    | undefined;
+  resolvePlan?:
+    | ((
+        ctx: RunQueryCtx,
+        input: BillingResolverInput,
+      ) => Promise<BillingSnapshot> | BillingSnapshot)
+    | undefined;
+  apiKey?: string;
+  webhookSecret?: string;
+  serverIdx?: number;
+  serverURL?: string;
+};
 
 const getEntityId = (value: unknown): string | null => {
   if (typeof value === "string") {
@@ -108,17 +141,7 @@ export class Creem<
 
   constructor(
     public component: ComponentApi,
-    private config: {
-      products?: Products;
-      getUserInfo: (ctx: RunQueryCtx) => Promise<{
-        userId: string;
-        email: string;
-      }>;
-      apiKey?: string;
-      webhookSecret?: string;
-      serverIdx?: number;
-      serverURL?: string;
-    },
+    private config: CreemConfig<Products>,
   ) {
     this.products = config.products ?? ({} as Products);
     this.apiKey = config.apiKey ?? process.env["CREEM_API_KEY"] ?? "";
@@ -177,7 +200,10 @@ export class Creem<
       productId,
       successUrl,
       units,
-      metadata,
+      metadata: {
+        ...(metadata ?? {}),
+        convexUserId: userId,
+      },
       customer: dbCustomer ? { id: dbCustomer.id } : { email },
     });
 
@@ -281,6 +307,55 @@ export class Creem<
       },
     );
     return updatedSubscription;
+  }
+
+  private toSubscriptionSnapshot(subscription: Subscription): SubscriptionSnapshot {
+    return {
+      id: subscription.id,
+      productId: subscription.productId,
+      status: subscription.status,
+      recurringInterval: subscription.recurringInterval,
+      seats: subscription.seats,
+      cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+      currentPeriodEnd: subscription.currentPeriodEnd,
+    };
+  }
+
+  async getBillingSnapshot(
+    ctx: RunQueryCtx,
+    {
+      userId,
+      payment,
+    }: {
+      userId: string;
+      payment?: PaymentSnapshot | null;
+    },
+  ): Promise<BillingSnapshot> {
+    const [catalog, userContext, currentSubscription, allSubscriptions] =
+      await Promise.all([
+        this.config.getPlanCatalog?.(ctx),
+        this.config.getUserBillingContext?.(ctx),
+        this.getCurrentSubscription(ctx, { userId }),
+        this.listAllUserSubscriptions(ctx, { userId }),
+      ]);
+
+    const resolverInput: BillingResolverInput = {
+      catalog,
+      currentSubscription: currentSubscription
+        ? this.toSubscriptionSnapshot(currentSubscription)
+        : null,
+      allSubscriptions: allSubscriptions.map((subscription) =>
+        this.toSubscriptionSnapshot(subscription),
+      ),
+      payment: payment ?? null,
+      userContext,
+    };
+
+    if (this.config.resolvePlan) {
+      return await this.config.resolvePlan(ctx, resolverInput);
+    }
+
+    return defaultResolveBillingSnapshot(resolverInput);
   }
 
   /** Cancel an active or trialing subscription, optionally revoking immediately. */
@@ -407,6 +482,14 @@ export class Creem<
         handler: async (ctx) => {
           const { userId } = await this.config.getUserInfo(ctx);
           return await this.listAllUserSubscriptions(ctx, { userId });
+        },
+      }),
+      getCurrentBillingSnapshot: queryGeneric({
+        args: {},
+        returns: v.any(),
+        handler: async (ctx) => {
+          const { userId } = await this.config.getUserInfo(ctx);
+          return await this.getBillingSnapshot(ctx, { userId });
         },
       }),
       generateCheckoutLink: actionGeneric({

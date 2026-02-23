@@ -9,6 +9,7 @@ export default [
     ignores: [
       "dist/**",
       "example/dist/**",
+      "example-svelte/dist/**",
       "*.config.{js,mjs,cjs,ts,tsx}",
       "example/**/*.config.{js,mjs,cjs,ts,tsx}",
       "**/_generated/",

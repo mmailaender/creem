@@ -1,5 +1,5 @@
-import { api } from "../convex/_generated/api";
-import { Id } from "../convex/_generated/dataModel";
+import { api } from "../../convex/_generated/api";
+import { Id } from "../../convex/_generated/dataModel";
 import { OptimisticUpdate } from "convex/browser";
 
 export const insertTodoOptimistic: OptimisticUpdate<

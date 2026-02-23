@@ -1,0 +1,24 @@
+@import "tailwindcss";
+@source "./**/*.{svelte,ts}";
+@source "../../src/svelte/components/**/*.{svelte,ts}";
+
+:root {
+  font-family: "IBM Plex Sans", "Segoe UI", sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--color-zinc-900);
+  background-color: var(--color-gray-50);
+  @media (prefers-color-scheme: dark) {
+    color: var(--color-zinc-100);
+  }
+  @media (prefers-color-scheme: dark) {
+    background-color: var(--color-gray-950);
+  };
+}

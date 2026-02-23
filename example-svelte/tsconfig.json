@@ -10,7 +10,6 @@
     "moduleResolution": "Bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "react-jsx",
     "paths": {
       "@/*": ["./src/*"],
       "@mmailaender/creem": ["../src/client/index.ts"],

@@ -3,8 +3,29 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
 import { useMutation, useQuery, useAction } from "convex/react";
-import { api } from "../convex/_generated/api";
-import { CheckoutLink, CustomerPortalLink } from "@convex-dev/creem/react";
+import { api } from "../../convex/_generated/api";
+import {
+  BillingGate,
+  BillingToggle,
+  CheckoutButton,
+  CheckoutLink,
+  CheckoutSuccessSummary,
+  CustomerPortalButton,
+  CustomerPortalLink,
+  OneTimeCheckoutButton,
+  OneTimeCheckoutLink,
+  OneTimePaymentStatusBadge,
+  PaymentWarningBanner,
+  PricingCard,
+  PricingSection,
+  ScheduledChangeBanner,
+  TrialLimitBanner,
+} from "@mmailaender/creem/react";
+import type {
+  BillingSnapshot,
+  PlanCatalogEntry,
+  RecurringCycle,
+} from "@mmailaender/creem";
 import {
   insertTodoOptimistic,
   completeTodoOptimistic,
@@ -50,7 +71,7 @@ function PriceDisplay({ price }: { price: any }) {
                 {tier.minSeats}
                 {tier.maxSeats ? `–${tier.maxSeats}` : "+"} seats: $
                 {tier.pricePerSeat / 100}/seat
-              </div>
+                  </div>
             ),
           )}
         </div>
@@ -82,9 +103,12 @@ export default function TodoList() {
   const deleteTodo = useMutation(api.example.deleteTodo).withOptimisticUpdate(
     deleteTodoOptimistic
   );
+  const createDemoUser = useMutation(api.example.createDemoUser);
   const cancelSubscription = useAction(api.example.cancelCurrentSubscription);
   const changeSubscription = useAction(api.example.changeCurrentSubscription);
   const [newTodo, setNewTodo] = useState("");
+  const [isCreatingDemoUser, setIsCreatingDemoUser] = useState(false);
+  const [selectedCycle, setSelectedCycle] = useState<RecurringCycle>("every-month");
 
   const todosLength = todos?.length ?? 0;
   const isAtMaxTodos = user?.maxTodos && todosLength >= user.maxTodos;
@@ -95,6 +119,117 @@ export default function TodoList() {
     premiumPlusMonthly,
     premiumPlusYearly,
   } = products ?? {};
+
+  const checkoutApi = {
+    generateCheckoutLink: api.example.generateCheckoutLink,
+  } as const;
+  const customerPortalApi = {
+    generateCustomerPortalUrl: api.example.generateCustomerPortalUrl,
+  } as const;
+
+  const showcaseProductId =
+    allProducts?.[0]?.id ?? premiumMonthly?.id ?? premiumPlusMonthly?.id;
+
+  const pricingPlans: PlanCatalogEntry[] = [];
+  if (premiumMonthly) {
+    pricingPlans.push({
+      planId: "premium",
+      category: "paid",
+      billingType: "recurring",
+      displayName: "Premium",
+      description: "Up to 6 todos with subscription benefits.",
+      billingCycles: ["every-month", "every-year"],
+      creemProductIds: {
+        default: premiumMonthly.id,
+        "every-month": premiumMonthly.id,
+        ...(premiumYearly ? { "every-year": premiumYearly.id } : {}),
+      },
+    });
+  }
+  if (premiumPlusMonthly) {
+    pricingPlans.push({
+      planId: "premium-plus",
+      category: "paid",
+      billingType: "recurring",
+      displayName: "Premium Plus",
+      description: "Unlimited todos and top-tier features.",
+      billingCycles: ["every-month", "every-year"],
+      creemProductIds: {
+        default: premiumPlusMonthly.id,
+        "every-month": premiumPlusMonthly.id,
+        ...(premiumPlusYearly ? { "every-year": premiumPlusYearly.id } : {}),
+      },
+    });
+  }
+  pricingPlans.push({
+    planId: "enterprise",
+    category: "enterprise",
+    billingType: "custom",
+    displayName: "Enterprise",
+    description: "Custom pricing and onboarding support.",
+    contactUrl: "https://creem.io",
+  });
+
+  const featuredPlan = pricingPlans[0];
+
+  const activeCategory = user?.isTrialing
+    ? "trial"
+    : user?.isFree
+      ? "free"
+      : "paid";
+
+  const baseSnapshot: BillingSnapshot | null = user
+    ? {
+        resolvedAt: new Date().toISOString(),
+        activePlanId: user.subscription?.productId ?? null,
+        activeCategory,
+        billingType: user.subscription ? "recurring" : "custom",
+        recurringCycle: selectedCycle,
+        availableBillingCycles: ["every-month", "every-year"],
+        subscriptionState: user.subscription?.status,
+        payment: null,
+        availableActions: user.subscription
+          ? ["portal", "cancel", "switch_interval", "checkout"]
+          : ["checkout"],
+        metadata: {
+          trialEnd: user.trialEnd ?? undefined,
+        },
+      }
+    : null;
+
+  const scheduledSnapshot: BillingSnapshot | null = baseSnapshot
+    ? {
+        ...baseSnapshot,
+        metadata: {
+          ...(baseSnapshot.metadata ?? {}),
+          cancelAtPeriodEnd: true,
+          currentPeriodEnd: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14).toISOString(),
+        },
+      }
+    : null;
+
+  const warningSnapshot: BillingSnapshot | null = baseSnapshot
+    ? {
+        ...baseSnapshot,
+        payment: {
+          status: "pending",
+          checkoutId: "ch_demo_pending",
+          productId: showcaseProductId,
+        },
+      }
+    : null;
+
+  const trialSnapshot: BillingSnapshot | null = baseSnapshot
+    ? {
+        ...baseSnapshot,
+        activeCategory: "trial",
+        metadata: {
+          ...(baseSnapshot.metadata ?? {}),
+          trialEnd:
+            user?.trialEnd ?? new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString(),
+        },
+      }
+    : null;
 
   const getButtonText = (targetProductId: string) => {
     if (!user?.subscription) return "Upgrade";
@@ -108,6 +243,16 @@ export default function TodoList() {
       return "Upgrade";
     }
     return "Downgrade";
+  };
+
+  const handleCreateDemoUser = async () => {
+    if (isCreatingDemoUser) return;
+    setIsCreatingDemoUser(true);
+    try {
+      await createDemoUser({});
+    } finally {
+      setIsCreatingDemoUser(false);
+    }
   };
 
   const handlePlanChange = async (productId: string) => {
@@ -136,6 +281,10 @@ export default function TodoList() {
     e.preventDefault();
     const todo = newTodo.trim();
     if (todo) {
+      if (!user) {
+        alert("Create a demo user first.");
+        return;
+      }
       if (isAtMaxTodos) {
         alert(
           "You've reached the maximum number of todos for your current plan. Please upgrade to add more!"
@@ -171,65 +320,79 @@ export default function TodoList() {
           </ol>
         </div>
 
-        {/* Todo List */}
-        <div className="max-w-4xl mx-auto p-6 bg-white dark:bg-gray-950 border border-transparent dark:border-gray-900 rounded-lg shadow-lg dark:shadow-gray-800/30">
-          <h2 className="text-3xl font-light mb-6 text-gray-800 dark:text-gray-100">
-            Todo List
-          </h2>
-          <form onSubmit={addTodo} className="mb-6">
-            <Input
-              type="text"
-              value={newTodo}
-              onChange={(e) => setNewTodo(e.target.value)}
-              placeholder="Add a new task"
-              className="w-full text-lg py-2 border-b border-gray-300 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400 transition-colors duration-300 bg-transparent dark:text-gray-100 dark:placeholder-gray-400"
-            />
-          </form>
-          {isAtMaxTodos && (
-            <div className="flex items-center text-yellow-600 dark:text-yellow-400 mb-4">
-              <AlertCircle className="mr-2" />
-              <span>
-                You've reached the limit for your current plan. Upgrade to add
-                more!
-              </span>
+        {user === null ? (
+          <div className="max-w-4xl mx-auto p-6 bg-white dark:bg-gray-950 border border-transparent dark:border-gray-900 rounded-lg shadow-lg dark:shadow-gray-800/30">
+            <h2 className="text-2xl font-light mb-2 text-gray-800 dark:text-gray-100">
+              Create demo data
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+              This example is auth-free. Create a demo user to continue testing todos and Creem checkout flows.
+            </p>
+            <Button onClick={handleCreateDemoUser} disabled={isCreatingDemoUser}>
+              {isCreatingDemoUser ? "Creating demo user..." : "Create demo user"}
+            </Button>
+          </div>
+        ) : (
+          <>
+            {/* Todo List */}
+            <div className="max-w-4xl mx-auto p-6 bg-white dark:bg-gray-950 border border-transparent dark:border-gray-900 rounded-lg shadow-lg dark:shadow-gray-800/30">
+              <h2 className="text-3xl font-light mb-6 text-gray-800 dark:text-gray-100">
+                Todo List
+              </h2>
+              <form onSubmit={addTodo} className="mb-6">
+                <Input
+                  type="text"
+                  value={newTodo}
+                  onChange={(e) => setNewTodo(e.target.value)}
+                  placeholder="Add a new task"
+                  className="w-full text-lg py-2 border-b border-gray-300 dark:border-gray-700 focus:border-purple-500 dark:focus:border-purple-400 transition-colors duration-300 bg-transparent dark:text-gray-100 dark:placeholder-gray-400"
+                />
+              </form>
+              {isAtMaxTodos && (
+                <div className="flex items-center text-yellow-600 dark:text-yellow-400 mb-4">
+                  <AlertCircle className="mr-2" />
+                  <span>
+                    You've reached the limit for your current plan. Upgrade to add
+                    more!
+                  </span>
+                </div>
+              )}
+              <ul className="space-y-2">
+                {todos?.map((todo) => (
+                  <li
+                    key={todo._id}
+                    className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-800"
+                  >
+                    <button
+                      onClick={() =>
+                        completeTodo({
+                          todoId: todo._id,
+                          completed: !todo.completed,
+                        })
+                      }
+                      className={`text-lg flex-grow text-left ${
+                        todo.completed
+                          ? "line-through text-gray-400 dark:text-gray-500"
+                          : "text-gray-800 dark:text-gray-100"
+                      }`}
+                    >
+                      {todo.text}
+                    </button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => deleteTodo({ todoId: todo._id })}
+                      className="text-gray-400 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400"
+                    >
+                      Delete
+                    </Button>
+                  </li>
+                ))}
+              </ul>
             </div>
-          )}
-          <ul className="space-y-2">
-            {todos?.map((todo) => (
-              <li
-                key={todo._id}
-                className="flex items-center justify-between py-2 border-b border-gray-200 dark:border-gray-800"
-              >
-                <button
-                  onClick={() =>
-                    completeTodo({
-                      todoId: todo._id,
-                      completed: !todo.completed,
-                    })
-                  }
-                  className={`text-lg flex-grow text-left ${
-                    todo.completed
-                      ? "line-through text-gray-400 dark:text-gray-500"
-                      : "text-gray-800 dark:text-gray-100"
-                  }`}
-                >
-                  {todo.text}
-                </button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => deleteTodo({ todoId: todo._id })}
-                  className="text-gray-400 hover:text-red-500 dark:text-gray-400 dark:hover:text-red-400"
-                >
-                  Delete
-                </Button>
-              </li>
-            ))}
-          </ul>
-        </div>
 
-        {/* Current Subscription */}
-        <div className="mt-8 p-6 bg-white dark:bg-gray-950 border border-transparent dark:border-gray-900 rounded-lg shadow-lg dark:shadow-gray-800/30">
+            {/* Current Subscription */}
+            <div className="mt-8 p-6 bg-white dark:bg-gray-950 border border-transparent dark:border-gray-900 rounded-lg shadow-lg dark:shadow-gray-800/30">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-2xl font-light text-gray-800 dark:text-gray-100">
               Subscription
@@ -288,9 +451,108 @@ export default function TodoList() {
           )}
         </div>
 
-        {/* Configured Products */}
-        {premiumMonthly && !user?.isTrialing && (
-          <div className="mt-8 p-6 bg-white dark:bg-gray-950 border border-transparent dark:border-gray-900 rounded-lg shadow-lg dark:shadow-gray-800/30">
+            {/* React Billing UI Showcase */}
+            <div className="mt-8 p-6 bg-white dark:bg-gray-950 border border-transparent dark:border-gray-900 rounded-lg shadow-lg dark:shadow-gray-800/30 space-y-5">
+              <h2 className="text-2xl font-light text-gray-800 dark:text-gray-100">
+                Billing UI Components (React)
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                This section demonstrates all exported React billing components.
+              </p>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <BillingToggle
+                  cycles={["every-month", "every-year"]}
+                  value={selectedCycle}
+                  onValueChange={setSelectedCycle}
+                />
+                <OneTimePaymentStatusBadge
+                  status="pending"
+                  className="rounded-md bg-amber-100 px-2 py-1 text-xs font-medium text-amber-800 dark:bg-amber-900/40 dark:text-amber-200"
+                />
+                <OneTimePaymentStatusBadge
+                  status="paid"
+                  className="rounded-md bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-200"
+                />
+              </div>
+
+              <TrialLimitBanner snapshot={trialSnapshot} />
+              <ScheduledChangeBanner snapshot={scheduledSnapshot} />
+              <PaymentWarningBanner snapshot={warningSnapshot} />
+
+              <BillingGate
+                snapshot={baseSnapshot}
+                requiredActions="portal"
+                fallback={
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Portal access requires an active subscription.
+                  </p>
+                }
+              >
+                <p className="text-sm text-gray-700 dark:text-gray-200">
+                  BillingGate unlocked: this user can access portal actions.
+                </p>
+              </BillingGate>
+
+              <div className="flex flex-wrap gap-3">
+                {showcaseProductId ? (
+                  <>
+                    <CheckoutButton
+                      creemApi={checkoutApi}
+                      productId={showcaseProductId}
+                      lazy
+                    >
+                      CheckoutButton
+                    </CheckoutButton>
+                    <OneTimeCheckoutButton
+                      creemApi={checkoutApi}
+                      productId={showcaseProductId}
+                      lazy
+                    >
+                      OneTimeCheckoutButton
+                    </OneTimeCheckoutButton>
+                  </>
+                ) : (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Product IDs unavailable. Sync products to test checkout buttons.
+                  </p>
+                )}
+
+                <CustomerPortalButton creemApi={customerPortalApi}>
+                  CustomerPortalButton
+                </CustomerPortalButton>
+              </div>
+
+              {featuredPlan && (
+                <PricingCard
+                  plan={featuredPlan}
+                  selectedCycle={selectedCycle}
+                  activePlanId={baseSnapshot?.activePlanId}
+                  checkoutApi={checkoutApi}
+                />
+              )}
+
+              <PricingSection
+                plans={pricingPlans}
+                snapshot={baseSnapshot ?? undefined}
+                selectedCycle={selectedCycle}
+                onCycleChange={setSelectedCycle}
+                checkoutApi={checkoutApi}
+              />
+
+              <CheckoutSuccessSummary
+                params={{
+                  checkoutId: "ch_demo_success",
+                  orderId: "ord_demo_success",
+                  productId: showcaseProductId,
+                }}
+                className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-200"
+              />
+            </div>
+
+            {/* Configured Products */}
+            {premiumMonthly && !user?.isTrialing && (
+              <div className="mt-8 p-6 bg-white dark:bg-gray-950 border border-transparent dark:border-gray-900 rounded-lg shadow-lg dark:shadow-gray-800/30">
             <h2 className="text-2xl font-light mb-2 text-gray-800 dark:text-gray-100">
               Configured Products
             </h2>
@@ -402,11 +664,11 @@ export default function TodoList() {
                 </div>
               )}
             </div>
-          </div>
-        )}
+              </div>
+            )}
 
-        {/* Products Showcase */}
-        <div className="mt-8 p-6 bg-white dark:bg-gray-950 border border-transparent dark:border-gray-900 rounded-lg shadow-lg dark:shadow-gray-800/30">
+            {/* Products Showcase */}
+            <div className="mt-8 p-6 bg-white dark:bg-gray-950 border border-transparent dark:border-gray-900 rounded-lg shadow-lg dark:shadow-gray-800/30">
           <h2 className="text-2xl font-light mb-2 text-gray-800 dark:text-gray-100">
             All Products
           </h2>
@@ -415,7 +677,7 @@ export default function TodoList() {
           </p>
           {allProducts && allProducts.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {allProducts.map((product: any, index: number) => (
+              {allProducts.map((product: any) => (
                 <div
                   key={product.id}
                   className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg space-y-3"
@@ -466,7 +728,7 @@ export default function TodoList() {
                   {/* Checkout — lazy to avoid rate limits from eager fetching */}
                   {user?.subscription?.productId !== product.id && (
                     <div className="pt-2">
-                      <CheckoutLink
+                      <OneTimeCheckoutLink
                         creemApi={{
                           generateCheckoutLink:
                             api.example.generateCheckoutLink,
@@ -475,8 +737,8 @@ export default function TodoList() {
                         lazy
                         className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
                       >
-                        Subscribe to {product.name}
-                      </CheckoutLink>
+                        Buy/Subscribe to {product.name}
+                      </OneTimeCheckoutLink>
                     </div>
                   )}
                 </div>
@@ -488,7 +750,9 @@ export default function TodoList() {
               Creem.
             </p>
           )}
-        </div>
+            </div>
+          </>
+        )}
       </div>
     </main>
   );
