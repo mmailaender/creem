@@ -2,6 +2,7 @@
   import { Ark } from "@ark-ui/svelte/factory";
   import { useConvexClient, useQuery } from "convex-svelte";
   import CheckoutButton from "../components/CheckoutButton.svelte";
+  import { formatPriceWithInterval } from "../components/shared.js";
   import type { ConnectedBillingApi, ConnectedBillingModel, ProductType } from "./types.js";
 
   interface Props {
@@ -44,6 +45,9 @@
   const resolvedDescription = $derived(
     description ?? matchedProduct?.description ?? (type === "one-time" ? "Buy once and own it." : "Purchase any time."),
   );
+  const resolvedPrice = $derived(
+    formatPriceWithInterval(productId, model?.allProducts ?? []),
+  );
 
   const getSuccessUrl = () => {
     if (successUrl) return successUrl;
@@ -85,6 +89,12 @@
   <Ark as="p" class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
     {resolvedDescription}
   </Ark>
+
+  {#if resolvedPrice}
+    <Ark as="p" class="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+      {resolvedPrice}
+    </Ark>
+  {/if}
 
   {#if error}
     <Ark as="p" class="mt-2 text-sm text-red-600">{error}</Ark>

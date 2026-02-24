@@ -3,6 +3,7 @@
   import { Ark } from "@ark-ui/svelte/factory";
   import { useConvexClient, useQuery } from "convex-svelte";
   import CheckoutButton from "../components/CheckoutButton.svelte";
+  import { formatPriceWithInterval } from "../components/shared.js";
   import {
     PRODUCT_GROUP_CONTEXT_KEY,
     type ProductGroupContextValue,
@@ -60,10 +61,45 @@
 
   const model = $derived((billingModelQuery.data ?? null) as ConnectedBillingModel | null);
   const allProducts = $derived(model?.allProducts ?? []);
-  const ownedProductIds = $derived(model?.ownedProductIds ?? []);
+  const rawOwnedProductIds = $derived(model?.ownedProductIds ?? []);
+
+  // Resolve effective ownership by applying transition rules.
+  // If the user purchased a "via_product" (upgrade delta), they effectively
+  // own the transition target ('to') and no longer just the source ('from').
+  const effectiveOwnedProductIds = $derived.by<string[]>(() => {
+    const effective = new Set(rawOwnedProductIds);
+    for (const rule of transition) {
+      if (rule.kind === "via_product" && effective.has(rule.viaProductId)) {
+        effective.add(rule.to);
+        effective.delete(rule.from);
+      }
+    }
+    return [...effective];
+  });
+
   const activeOwnedProductId = $derived(
-    registeredItems.find((item) => ownedProductIds.includes(item.productId))?.productId ?? null,
+    registeredItems.find((item) => effectiveOwnedProductIds.includes(item.productId))?.productId ?? null,
   );
+
+  // Determine if a product is a lower tier than the target by traversing the
+  // transition graph (from → to edges). Returns true if there is a path from
+  // `productId` to `targetId`, meaning `productId` is a lower tier.
+  const isLowerTierThan = (productId: string, targetId: string): boolean => {
+    const visited = new Set<string>();
+    const queue = [productId];
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      if (visited.has(current)) continue;
+      visited.add(current);
+      for (const rule of transition) {
+        if (rule.from === current) {
+          if (rule.to === targetId) return true;
+          queue.push(rule.to);
+        }
+      }
+    }
+    return false;
+  };
 
   const resolveTransitionTarget = (fromProductId: string, toProductId: string) =>
     transition.find(
@@ -124,14 +160,16 @@
 
   <Ark as="div" class="grid gap-4 md:grid-cols-2">
     {#each registeredItems as item (item.productId)}
-      {@const isOwned = ownedProductIds.includes(item.productId)}
+      {@const isOwned = effectiveOwnedProductIds.includes(item.productId)}
+      {@const isIncluded = !isOwned && activeOwnedProductId != null && isLowerTierThan(item.productId, activeOwnedProductId)}
       {@const checkoutProductId = resolveCheckoutProductId(item.productId)}
       {@const matchedProduct = allProducts.find((p) => p.id === item.productId)}
       {@const resolvedTitle = item.title ?? matchedProduct?.name ?? item.productId}
       {@const resolvedDescription = item.description ?? matchedProduct?.description}
+      {@const resolvedPrice = formatPriceWithInterval(item.productId, allProducts)}
       <Ark
         as="article"
-        class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950"
+        class={`rounded-xl border p-4 shadow-sm ${isIncluded ? "border-zinc-100 bg-zinc-50 opacity-60 dark:border-zinc-800 dark:bg-zinc-900" : "border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950"}`}
       >
         <Ark as="h3" class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
           {resolvedTitle}
@@ -139,6 +177,12 @@
         {#if resolvedDescription}
           <Ark as="p" class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
             {resolvedDescription}
+          </Ark>
+        {/if}
+
+        {#if resolvedPrice}
+          <Ark as="p" class={`mt-2 text-2xl font-bold ${isIncluded ? "text-zinc-400 dark:text-zinc-500" : "text-zinc-900 dark:text-zinc-100"}`}>
+            {resolvedPrice}
           </Ark>
         {/if}
 
@@ -150,6 +194,13 @@
             >
               Owned
             </Ark>
+          {:else if isIncluded}
+            <Ark
+              as="span"
+              class="inline-flex rounded-md bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
+            >
+              Included
+            </Ark>
           {:else if checkoutProductId}
             <CheckoutButton
               productId={checkoutProductId}
@@ -159,7 +210,13 @@
               {activeOwnedProductId ? "Upgrade" : "Buy now"}
             </CheckoutButton>
           {:else}
-            <Ark as="span" class="text-sm text-zinc-500">No upgrade path available.</Ark>
+            <CheckoutButton
+              productId={item.productId}
+              disabled={isLoading}
+              onCheckout={() => startCheckout(item.productId)}
+            >
+              Buy now
+            </CheckoutButton>
           {/if}
         </Ark>
       </Ark>
