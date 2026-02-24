@@ -326,6 +326,50 @@ export const updateProduct = mutation({
   },
 });
 
+export const createOrder = mutation({
+  args: {
+    order: schema.tables.orders.validator,
+  },
+  handler: async (ctx, args) => {
+    const existing = await ctx.db
+      .query("orders")
+      .withIndex("id", (q) => q.eq("id", args.order.id))
+      .unique();
+    if (!existing) {
+      await ctx.db.insert("orders", args.order);
+      return;
+    }
+    // Update if incoming is newer
+    if ((args.order.updatedAt ?? "") >= (existing.updatedAt ?? "")) {
+      await ctx.db.patch(existing._id, args.order);
+    }
+  },
+});
+
+/** List paid one-time orders for a user. */
+export const listUserOrders = query({
+  args: {
+    userId: v.string(),
+  },
+  returns: v.array(schema.tables.orders.validator),
+  handler: async (ctx, args) => {
+    const customer = await ctx.db
+      .query("customers")
+      .withIndex("userId", (q) => q.eq("userId", args.userId))
+      .unique();
+    if (!customer) {
+      return [];
+    }
+    const orders = await ctx.db
+      .query("orders")
+      .withIndex("customerId", (q) => q.eq("customerId", customer.id))
+      .collect();
+    return orders
+      .filter((o) => o.status === "paid" && o.type === "onetime")
+      .map(omitSystemFields);
+  },
+});
+
 export const listCustomerSubscriptions = query({
   args: {
     customerId: v.string(),

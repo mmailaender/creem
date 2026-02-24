@@ -11,7 +11,6 @@ export type ConnectedBillingApi = {
   resumeCurrentSubscription?: FunctionReference<"action">;
   syncProducts?: FunctionReference<"action">;
   createDemoUser?: FunctionReference<"mutation">;
-  grantDemoEntitlement?: FunctionReference<"mutation">;
 };
 
 export type ConnectedProductPrice = {

@@ -4,6 +4,8 @@ import ProductRoot from "./Product.svelte";
 import ProductGroup from "./ProductGroup.svelte";
 import ProductItem from "./ProductItem.svelte";
 
+export { default as ConnectedBillingPortal } from "./ConnectedBillingPortal.svelte";
+
 export const Subscription = Object.assign(SubscriptionRoot, {
   Plan: SubscriptionPlan,
 });

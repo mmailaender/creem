@@ -141,6 +141,41 @@ export const convertToDatabaseSubscription = (
   };
 };
 
+export const convertToOrder = (
+  order: {
+    id: string;
+    customer?: string | null;
+    product: string;
+    amount: number;
+    currency: string;
+    status: string;
+    type: string;
+    transaction?: string | null;
+    createdAt?: Date | string | null;
+    updatedAt?: Date | string | null;
+  },
+  options?: {
+    checkoutId?: string | null;
+    metadata?: Record<string, unknown>;
+  },
+): Infer<typeof schema.tables.orders.validator> => {
+  const now = new Date().toISOString();
+  return {
+    id: order.id,
+    customerId: order.customer ?? "",
+    productId: order.product,
+    amount: order.amount,
+    currency: order.currency,
+    status: order.status,
+    type: order.type,
+    transactionId: order.transaction ?? null,
+    checkoutId: options?.checkoutId ?? null,
+    metadata: (options?.metadata as Record<string, string>) ?? undefined,
+    createdAt: toIsoString(order.createdAt) ?? now,
+    updatedAt: toIsoString(order.updatedAt) ?? now,
+  };
+};
+
 export const convertToDatabaseProduct = (
   product: CreemProduct,
 ): Infer<typeof schema.tables.products.validator> => {

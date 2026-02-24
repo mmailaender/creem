@@ -89,6 +89,11 @@
     return `${window.location.origin}${window.location.pathname}`;
   };
 
+  const getPreferredTheme = (): "light" | "dark" => {
+    if (typeof window === "undefined") return "light";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  };
+
   const startCheckout = async (checkoutProductId: string) => {
     isLoading = true;
     error = null;
@@ -96,6 +101,7 @@
       const { url } = await client.action(checkoutLinkRef, {
         productId: checkoutProductId,
         successUrl: getSuccessUrl(),
+        theme: getPreferredTheme(),
       });
       window.location.href = url;
     } catch (checkoutError) {

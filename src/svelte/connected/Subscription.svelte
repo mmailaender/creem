@@ -6,7 +6,6 @@
   import PaymentWarningBanner from "../components/PaymentWarningBanner.svelte";
   import ScheduledChangeBanner from "../components/ScheduledChangeBanner.svelte";
   import TrialLimitBanner from "../components/TrialLimitBanner.svelte";
-  import CustomerPortalButton from "../components/CustomerPortalButton.svelte";
   import CancelConfirmDialog from "../components/CancelConfirmDialog.svelte";
   import type { PlanCatalogEntry, RecurringCycle } from "../../core/types.js";
   import {
@@ -23,7 +22,6 @@
     api: ConnectedBillingApi;
     className?: string;
     successUrl?: string;
-    showPortalButton?: boolean;
     units?: number;
     showSeatPicker?: boolean;
     children?: import("svelte").Snippet;
@@ -33,7 +31,6 @@
     api,
     className = "",
     successUrl = undefined,
-    showPortalButton = true,
     units = undefined,
     showSeatPicker = false,
     children,
@@ -44,7 +41,6 @@
   // Capture static function references (these never change at runtime)
   const billingUiModelRef = api.getBillingUiModel;
   const checkoutLinkRef = api.generateCheckoutLink;
-  const portalUrlRef = api.generateCustomerPortalUrl;
   const changeSubRef = api.changeCurrentSubscription;
   const updateSeatsRef = api.updateSubscriptionSeats;
   const cancelRef = api.cancelCurrentSubscription;
@@ -79,7 +75,6 @@
 
   const model = $derived((billingModelQuery.data ?? null) as ConnectedBillingModel | null);
   const snapshot = $derived(model?.billingSnapshot ?? null);
-  const hasCreemCustomer = $derived(model?.hasCreemCustomer ?? false);
 
   const activePlanId = $derived.by<string | null>(() => {
     if (!model) return null;
@@ -286,20 +281,6 @@
     }
   };
 
-  const openPortal = async () => {
-    if (!portalUrlRef) return;
-    isActionLoading = true;
-    actionError = null;
-    try {
-      const { url } = await client.action(portalUrlRef, {});
-      window.open(url, "_blank", "noopener,noreferrer");
-    } catch (error) {
-      actionError = error instanceof Error ? error.message : "Portal failed";
-    } finally {
-      isActionLoading = false;
-    }
-  };
-
   const syncProducts = async () => {
     if (!syncProductsRef) return;
     isActionLoading = true;
@@ -415,13 +396,8 @@
     />
 
     <Ark as="div" class="flex flex-wrap items-center gap-3">
-      {#if showPortalButton && portalUrlRef && hasCreemCustomer}
-        <CustomerPortalButton
-          disabled={isActionLoading}
-          onOpenPortal={openPortal}
-        >
-          Open billing portal
-        </CustomerPortalButton>
+      {#if children}
+        {@render children()}
       {/if}
 
       {#if cancelRef && ownsActiveSubscription && localSubscriptionState !== "scheduled_cancel" && localSubscriptionState !== "canceled"}

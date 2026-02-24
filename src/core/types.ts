@@ -29,10 +29,8 @@ export type PlanCatalogEntry = {
   planId: string;
   category: PlanCategory;
   billingType?: BillingType;
-  displayName: string;
-  description?: string;
   billingCycles?: RecurringCycle[];
-  pricingModel?: "flat" | "seat" | "metered" | "hybrid";
+  pricingModel?: "flat" | "seat";
   creemProductIds?: Record<string, string>;
   contactUrl?: string;
   recommended?: boolean;

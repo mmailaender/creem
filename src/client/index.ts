@@ -30,6 +30,7 @@ import {
   type RunQueryCtx,
   convertToDatabaseProduct,
   convertToDatabaseSubscription,
+  convertToOrder,
   type RunActionCtx,
 } from "../component/util.js";
 import type { ComponentApi } from "../component/_generated/component.js";
@@ -289,6 +290,12 @@ export class Creem<
   /** Return active subscriptions for a user, excluding ended and expired trials. */
   listUserSubscriptions(ctx: RunQueryCtx, { userId }: { userId: string }) {
     return ctx.runQuery(this.component.lib.listUserSubscriptions, {
+      userId,
+    });
+  }
+  /** Return paid one-time orders for a user. */
+  listUserOrders(ctx: RunQueryCtx, { userId }: { userId: string }) {
+    return ctx.runQuery(this.component.lib.listUserOrders, {
       userId,
     });
   }
@@ -671,21 +678,26 @@ export class Creem<
         products.find((p) => p.id === productId) ?? null,
       ]),
     );
-    const [billingSnapshot, subscription, activeSubscriptions, customer] =
+    const [billingSnapshot, subscription, activeSubscriptions, customer, orders] =
       await Promise.all([
         this.getBillingSnapshot(ctx, { userId }),
         this.getCurrentSubscription(ctx, { userId }),
         this.listUserSubscriptions(ctx, { userId }),
         this.getCustomerByUserId(ctx, userId),
+        this.listUserOrders(ctx, { userId }),
       ]);
     const catalog =
       (await this.config.getPlanCatalog?.(ctx)) ??
       this.config.planCatalog ??
       null;
+    const ownedProductIds = [
+      ...new Set(orders.map((o) => o.productId)),
+    ];
     return {
       billingSnapshot,
       configuredProducts,
       allProducts: products,
+      ownedProductIds,
       subscriptionProductId: subscription?.productId ?? null,
       activeSubscriptions: activeSubscriptions.map((s) => ({
         id: s.id,
@@ -820,7 +832,6 @@ export class Creem<
           return {
             user: { _id: userInfo.userId, email: userInfo.email },
             ...billingData,
-            ownedProductIds: [],
           };
         },
       }),
@@ -950,6 +961,31 @@ export class Creem<
                 );
                 await ctx.runMutation(this.component.lib.createSubscription, {
                   subscription,
+                });
+              }
+
+              // Store the order (present for both one-time and subscription checkouts)
+              if (checkout.order && typeof checkout.order === "object") {
+                const orderRaw = checkout.order as {
+                  id: string;
+                  customer?: string | null;
+                  product: string;
+                  amount: number;
+                  currency: string;
+                  status: string;
+                  type: string;
+                  transaction?: string | null;
+                  createdAt?: Date | string | null;
+                  updatedAt?: Date | string | null;
+                };
+                const order = convertToOrder(orderRaw, {
+                  checkoutId: checkout.id,
+                  metadata: checkout.metadata as
+                    | Record<string, unknown>
+                    | undefined,
+                });
+                await ctx.runMutation(this.component.lib.createOrder, {
+                  order,
                 });
               }
             }

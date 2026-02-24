@@ -15,7 +15,7 @@ export { default as TrialLimitBanner } from "./components/TrialLimitBanner.svelt
 export { default as OneTimeCheckoutButton } from "./components/OneTimeCheckoutButton.svelte";
 export { default as OneTimePaymentStatusBadge } from "./components/OneTimePaymentStatusBadge.svelte";
 export { default as CheckoutSuccessSummary } from "./components/CheckoutSuccessSummary.svelte";
-export { Subscription, Product } from "./connected/index.js";
+export { Subscription, Product, ConnectedBillingPortal } from "./connected/index.js";
 export type {
   BillingSnapshot,
   CheckoutSuccessParams,

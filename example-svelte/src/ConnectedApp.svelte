@@ -1,7 +1,8 @@
 <script lang="ts">
-  import { setupConvex, useConvexClient } from "convex-svelte";
+  import { setupConvex } from "convex-svelte";
   import {
     CheckoutSuccessSummary,
+    ConnectedBillingPortal,
     Product,
     Subscription,
     type ConnectedBillingApi,
@@ -27,7 +28,6 @@
     resumeCurrentSubscription: api.billing.resumeCurrentSubscription,
     syncProducts: api.billing.syncBillingProducts,
     createDemoUser: api.example.createDemoUser,
-    grantDemoEntitlement: api.billing.grantDemoEntitlement,
   };
 
   const upgradeTransitions: Transition[] = [
@@ -39,22 +39,6 @@
     },
   ];
 
-  const convex = useConvexClient();
-  let grantError = $state<string | null>(null);
-
-  const grantOwnership = async (productId: string) => {
-    grantError = null;
-    try {
-      await convex.mutation(api.billing.grantDemoEntitlement, {
-        productId,
-        mode: "lifetime",
-        source: "svelte-demo-widget",
-      });
-    } catch (error) {
-      grantError =
-        error instanceof Error ? error.message : "Could not grant ownership";
-    }
-  };
 </script>
 
 <main class="mx-auto max-w-6xl px-4 py-10 space-y-14">
@@ -62,7 +46,7 @@
     <h1 class="text-3xl font-semibold">Connected Billing Widgets (Svelte)</h1>
     <p class="text-sm text-zinc-600 dark:text-zinc-300">
       These widgets query Convex directly through the Creem wrapper API using
-      <code>convex-svelte</code>, with backend policy and entitlements in the UI
+      <code>convex-svelte</code>, with backend-derived billing state in the UI
       model.
     </p>
   </header>
@@ -104,6 +88,7 @@
         }}
       />
       <Subscription.Plan type="enterprise" displayName="Enterprise" contactUrl="https://creem.io" />
+      <ConnectedBillingPortal api={connectedApi} />
     </Subscription>
   </section>
 
@@ -128,6 +113,7 @@
         productIds={{ "every-month": "prod_3ymOe55fDzKgmPoZnPEOBq" }}
       />
       <Subscription.Plan type="enterprise" displayName="Enterprise" contactUrl="https://creem.io" />
+      <ConnectedBillingPortal api={connectedApi} />
     </Subscription>
   </section>
 
@@ -151,6 +137,7 @@
         description="Per-seat monthly subscription"
         productIds={{ "every-month": "prod_3861b06bJDnvpEBcs2uxYv" }}
       />
+      <ConnectedBillingPortal api={connectedApi} />
     </Subscription>
   </section>
 
@@ -199,27 +186,6 @@
       Transition graph decides available upgrade paths. Upgrading from Basic to
       Premium uses a dedicated delta product.
     </p>
-
-    <div class="flex flex-wrap gap-2">
-      <button
-        type="button"
-        class="rounded-md border px-3 py-2 text-sm hover:cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800"
-        onclick={() => grantOwnership("prod_4Di7Lkhf3TXy4UOKsUrGw0")}
-      >
-        Grant ownership of Basic
-      </button>
-      <button
-        type="button"
-        class="rounded-md border px-3 py-2 text-sm hover:cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800"
-        onclick={() => grantOwnership("prod_56sJIyL7piLCVv270n4KBz")}
-      >
-        Grant ownership of Premium
-      </button>
-    </div>
-
-    {#if grantError}
-      <p class="text-sm text-red-600">{grantError}</p>
-    {/if}
 
     <Product.Group api={connectedApi} transition={upgradeTransitions}>
       <Product.Item

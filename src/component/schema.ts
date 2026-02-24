@@ -135,6 +135,23 @@ export default defineSchema(
       .index("customerId", ["customerId"])
       .index("customerId_status", ["customerId", "status"])
       .index("customerId_endedAt", ["customerId", "endedAt"]),
+    orders: defineTable({
+      id: v.string(),
+      customerId: v.string(),
+      productId: v.string(),
+      amount: v.number(),
+      currency: v.string(),
+      status: v.string(),
+      type: v.string(),
+      transactionId: v.optional(v.union(v.string(), v.null())),
+      checkoutId: v.optional(v.union(v.string(), v.null())),
+      metadata: v.optional(v.record(v.string(), v.any())),
+      createdAt: v.string(),
+      updatedAt: v.string(),
+    })
+      .index("id", ["id"])
+      .index("customerId", ["customerId"])
+      .index("customerId_productId", ["customerId", "productId"]),
   },
   {
     schemaValidation: true,

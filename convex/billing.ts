@@ -1,8 +1,7 @@
 import { Creem } from "@mmailaender/creem";
 import type { PlanCatalog } from "@mmailaender/creem";
 import { api, components } from "./_generated/api";
-import { MutationCtx, action, mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import { action, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 
 export type Transition =
@@ -24,11 +23,6 @@ type BillingPolicy = {
       displayName?: string;
     }>;
     transitions: Transition[];
-  }>;
-  entitlementRules: Array<{
-    productId: string;
-    mode: "lifetime" | "consumable";
-    grants: string[];
   }>;
 };
 
@@ -146,28 +140,6 @@ export const billingPolicy: BillingPolicy = {
       ],
     },
   ],
-  entitlementRules: [
-    {
-      productId: configuredProductIds.oneTimeLicense,
-      mode: "lifetime",
-      grants: ["license"],
-    },
-    {
-      productId: configuredProductIds.creditTopUp,
-      mode: "consumable",
-      grants: ["credits"],
-    },
-    {
-      productId: configuredProductIds.groupBasic,
-      mode: "lifetime",
-      grants: ["group-basic"],
-    },
-    {
-      productId: configuredProductIds.groupPremium,
-      mode: "lifetime",
-      grants: ["group-premium"],
-    },
-  ],
 };
 
 // User query to use in the Creem component
@@ -196,14 +168,13 @@ export const creem = new Creem(components.creem, {
     };
   },
   planCatalog,
-  cancelMode: "scheduled",
 
   // These can be configured in code or via environment variables
   // Uncomment and replace with actual values to configure in code:
-  // apiKey: "your_creem_api_key", // Or use CREEM_API_KEY env var
-  // webhookSecret: "your_webhook_secret", // Or use CREEM_WEBHOOK_SECRET env var
-  // serverIdx: 0, // Optional, defaults to CREEM_SERVER_IDX env var when set
-  // serverURL: "https://test-api.creem.io", // Optional, defaults to CREEM_SERVER_URL env var
+  // apiKey: "your_creem_api_key", // Uses CREEM_API_KEY env var by default
+  // webhookSecret: "your_webhook_secret", // Uses CREEM_WEBHOOK_SECRET env var by default
+  // serverIdx: 0, // Default 0, can be also set via CREEM_SERVER_IDX env var
+  // serverURL: "https://test-api.creem.io", // Optional, can be also set via CREEM_SERVER_URL env var
 });
 
 export const {
@@ -249,78 +220,3 @@ export const syncBillingProducts = action({
   },
 });
 
-export const grantDemoEntitlement = mutation({
-  args: {
-    productId: v.string(),
-    mode: v.optional(v.union(v.literal("lifetime"), v.literal("consumable"))),
-    quantity: v.optional(v.number()),
-    source: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    const user = await ctx.db.query("users").first();
-    if (!user) {
-      throw new Error("No user found. Create a demo user first.");
-    }
-
-    return await upsertEntitlement(ctx, {
-      userId: user._id,
-      productId: args.productId,
-      mode: args.mode ?? "lifetime",
-      quantity: args.quantity,
-      source: args.source ?? "manual",
-    });
-  },
-});
-
-export const upsertEntitlementForUser = mutation({
-  args: {
-    userId: v.id("users"),
-    productId: v.string(),
-    mode: v.optional(v.union(v.literal("lifetime"), v.literal("consumable"))),
-    quantity: v.optional(v.number()),
-    source: v.optional(v.string()),
-  },
-  handler: async (ctx, args) => {
-    return await upsertEntitlement(ctx, {
-      userId: args.userId,
-      productId: args.productId,
-      mode: args.mode ?? "lifetime",
-      quantity: args.quantity,
-      source: args.source ?? "webhook",
-    });
-  },
-});
-
-const upsertEntitlement = async (
-  ctx: MutationCtx,
-  args: {
-    userId: Id<"users">;
-    productId: string;
-    mode: "lifetime" | "consumable";
-    quantity?: number;
-    source?: string;
-  },
-) => {
-  const existing = await ctx.db
-    .query("entitlements")
-    .withIndex("userId_productId", (q) =>
-      q.eq("userId", args.userId).eq("productId", args.productId),
-    )
-    .unique();
-
-  const payload = {
-    userId: args.userId,
-    productId: args.productId,
-    mode: args.mode,
-    quantity: args.quantity,
-    source: args.source ?? "manual",
-    updatedAt: new Date().toISOString(),
-  } as const;
-
-  if (existing) {
-    await ctx.db.patch(existing._id, payload);
-    return existing._id;
-  }
-
-  return await ctx.db.insert("entitlements", payload);
-};

@@ -24,6 +24,28 @@ import type { FunctionReference } from "convex/server";
 export type ComponentApi<Name extends string | undefined = string | undefined> =
   {
     lib: {
+      createOrder: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          order: {
+            amount: number;
+            checkoutId?: string | null;
+            createdAt: string;
+            currency: string;
+            customerId: string;
+            id: string;
+            metadata?: Record<string, any>;
+            productId: string;
+            status: string;
+            transactionId?: string | null;
+            type: string;
+            updatedAt: string;
+          };
+        },
+        any,
+        Name
+      >;
       createProduct: FunctionReference<
         "mutation",
         "internal",
@@ -588,6 +610,26 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           recurringIntervalCount?: number | null;
           trialInterval?: string | null;
           trialIntervalCount?: number | null;
+        }>,
+        Name
+      >;
+      listUserOrders: FunctionReference<
+        "query",
+        "internal",
+        { userId: string },
+        Array<{
+          amount: number;
+          checkoutId?: string | null;
+          createdAt: string;
+          currency: string;
+          customerId: string;
+          id: string;
+          metadata?: Record<string, any>;
+          productId: string;
+          status: string;
+          transactionId?: string | null;
+          type: string;
+          updatedAt: string;
         }>,
         Name
       >;
