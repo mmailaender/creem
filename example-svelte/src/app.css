@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @source "./**/*.{svelte,ts}";
-@source "../../src/svelte/components/**/*.{svelte,ts}";
+@source "../../src/svelte/primitives/**/*.{svelte,ts}";
+@source "../../src/svelte/widgets/**/*.{svelte,ts}";
 
 :root {
   font-family: "IBM Plex Sans", "Segoe UI", sans-serif;

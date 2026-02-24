@@ -2,7 +2,7 @@
   import { setupConvex } from "convex-svelte";
   import {
     CheckoutSuccessSummary,
-    ConnectedBillingPortal,
+    BillingPortal,
     Product,
     Subscription,
     type ConnectedBillingApi,
@@ -60,16 +60,16 @@
   <section class="space-y-3">
     <h2 class="text-xl font-semibold">0. Simple Setup (Auto-Render from planCatalog)</h2>
     <p class="text-sm text-zinc-600 dark:text-zinc-300">
-      No <code>&lt;Subscription.Plan&gt;</code> children needed — plans, titles,
+      No <code>&lt;Subscription&gt;</code> children needed — plans, titles,
       and descriptions are resolved automatically from the <code>planCatalog</code>
       config and the Creem product table.
     </p>
-    <Subscription api={connectedApi} className="space-y-4" />
-    <ConnectedBillingPortal api={connectedApi} />
+    <Subscription.Group api={connectedApi} className="space-y-4" />
+    <BillingPortal api={connectedApi} />
   </section>
 
   <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <!--  ADVANCED / FLEXIBLE — explicit <Subscription.Plan> children      -->
+  <!--  ADVANCED / FLEXIBLE — explicit <Subscription> children            -->
   <!-- ═══════════════════════════════════════════════════════════════════ -->
 
   <!-- ─── Section 1: Subscriptions with trial (all 4 billing cycles) ─── -->
@@ -79,9 +79,9 @@
       All four billing cycles are available. The toggle derives from the
       registered plans automatically.
     </p>
-    <Subscription api={connectedApi} className="space-y-4">
-      <Subscription.Plan type="free" title="Free" description="Start here with limited access" />
-      <Subscription.Plan
+    <Subscription.Group api={connectedApi} className="space-y-4">
+      <Subscription type="free" title="Free" description="Start here with limited access" />
+      <Subscription
         planId="basic"
         type="single"
         productIds={{
@@ -91,7 +91,7 @@
           "every-year": "prod_KE9mMfH58482NIbKgK4nF",
         }}
       />
-      <Subscription.Plan
+      <Subscription
         planId="premium"
         type="single"
         title="Premium"
@@ -104,9 +104,9 @@
           "every-year": "prod_6ytx0cFhBvgXLp1jA6CQqH",
         }}
       />
-      <Subscription.Plan type="enterprise" title="Enterprise" contactUrl="https://creem.io" />
-    </Subscription>
-    <ConnectedBillingPortal api={connectedApi} />
+      <Subscription type="enterprise" title="Enterprise" contactUrl="https://creem.io" />
+    </Subscription.Group>
+    <BillingPortal api={connectedApi} />
   </section>
 
   <!-- ─── Section 2: Subscriptions without trial (monthly only) ─── -->
@@ -115,23 +115,23 @@
     <p class="text-sm text-zinc-600 dark:text-zinc-300">
       Only monthly products registered. The billing toggle should not appear.
     </p>
-    <Subscription api={connectedApi} className="space-y-4">
-      <Subscription.Plan type="free" title="Free" description="No-cost tier" />
-      <Subscription.Plan
+    <Subscription.Group api={connectedApi} className="space-y-4">
+      <Subscription type="free" title="Free" description="No-cost tier" />
+      <Subscription
         type="single"
         title="Basic"
         description="Monthly subscription, no trial"
         productIds={{ "every-month": "prod_53CU7duHB58lGTUqKlRroI" }}
       />
-      <Subscription.Plan
+      <Subscription
         type="single"
         title="Premium"
         description="Monthly subscription, no trial"
         productIds={{ "every-month": "prod_3ymOe55fDzKgmPoZnPEOBq" }}
       />
-      <Subscription.Plan type="enterprise" title="Enterprise" contactUrl="https://creem.io" />
-    </Subscription>
-    <ConnectedBillingPortal api={connectedApi} />
+      <Subscription type="enterprise" title="Enterprise" contactUrl="https://creem.io" />
+    </Subscription.Group>
+    <BillingPortal api={connectedApi} />
   </section>
 
   <!-- ─── Section 3: Seat-based subscriptions ─── -->
@@ -141,21 +141,21 @@
       Seat-based plans with a quantity picker. The user selects how many seats
       before checkout.
     </p>
-    <Subscription api={connectedApi} className="space-y-4" showSeatPicker>
-      <Subscription.Plan
+    <Subscription.Group api={connectedApi} className="space-y-4" showSeatPicker>
+      <Subscription
         type="seat-based"
         title="Basic (per seat)"
         description="Per-seat monthly subscription"
         productIds={{ "every-month": "prod_1c6ZGcxekHKrVYuWriHs68" }}
       />
-      <Subscription.Plan
+      <Subscription
         type="seat-based"
         title="Premium (per seat)"
         description="Per-seat monthly subscription"
         productIds={{ "every-month": "prod_3861b06bJDnvpEBcs2uxYv" }}
       />
-    </Subscription>
-    <ConnectedBillingPortal api={connectedApi} />
+    </Subscription.Group>
+    <BillingPortal api={connectedApi} />
   </section>
 
   <!-- ─── Section 3b: Seat-based with auto-derived units ─── -->
@@ -165,20 +165,20 @@
       Same seat-based products but with a fixed unit count (e.g. derived from
       organization member count). No picker shown — hardcoded to 5 seats.
     </p>
-    <Subscription api={connectedApi} className="space-y-4" units={5}>
-      <Subscription.Plan
+    <Subscription.Group api={connectedApi} className="space-y-4" units={5}>
+      <Subscription
         type="seat-based"
         title="Basic"
         description="Per-seat monthly subscription"
         productIds={{ "every-month": "prod_1c6ZGcxekHKrVYuWriHs68" }}
       />
-      <Subscription.Plan
+      <Subscription
         type="seat-based"
         title="Premium"
         description="Per-seat monthly subscription"
         productIds={{ "every-month": "prod_3861b06bJDnvpEBcs2uxYv" }}
       />
-    </Subscription>
+    </Subscription.Group>
   </section>
 
   <!-- ─── Section 4: Standalone one-time product ─── -->
@@ -205,13 +205,13 @@
     </p>
 
     <Product.Group api={connectedApi} transition={upgradeTransitions}>
-      <Product.Item
+      <Product
         type="one-time"
         productId="prod_4Di7Lkhf3TXy4UOKsUrGw0"
         title="Basic"
         description="Entry-level one-time product"
       />
-      <Product.Item
+      <Product
         type="one-time"
         productId="prod_56sJIyL7piLCVv270n4KBz"
         title="Premium"

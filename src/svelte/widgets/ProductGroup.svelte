@@ -2,8 +2,8 @@
   import { setContext } from "svelte";
   import { Ark } from "@ark-ui/svelte/factory";
   import { useConvexClient, useQuery } from "convex-svelte";
-  import CheckoutButton from "../components/CheckoutButton.svelte";
-  import { formatPriceWithInterval } from "../components/shared.js";
+  import CheckoutButton from "../primitives/CheckoutButton.svelte";
+  import { formatPriceWithInterval } from "../primitives/shared.js";
   import {
     PRODUCT_GROUP_CONTEXT_KEY,
     type ProductGroupContextValue,

@@ -175,7 +175,7 @@ syncing, and billing state out of the box.
 <script lang="ts">
   import { setupConvex } from "convex-svelte";
   import {
-    Subscription, Product, ConnectedBillingPortal,
+    Subscription, Product, BillingPortal,
     type ConnectedBillingApi,
   } from "@mmailaender/creem/svelte";
   import { api } from "../convex/_generated/api.js";
@@ -194,22 +194,22 @@ syncing, and billing state out of the box.
 </script>
 ```
 
-### `<Subscription>` — subscription pricing page
+### `<Subscription.Group>` — subscription pricing page
 
 If `planCatalog` is configured in the Creem constructor, plans auto-render with
 zero config:
 
 ```svelte
-<Subscription api={billingApi} />
+<Subscription.Group api={billingApi} />
 ```
 
-Or override with explicit children for custom layouts or multiple subscription
-widgets:
+Or override with explicit `<Subscription>` children for custom layouts or
+multiple subscription widgets:
 
 ```svelte
-<Subscription api={billingApi}>
-  <Subscription.Plan type="free" title="Free" />
-  <Subscription.Plan
+<Subscription.Group api={billingApi}>
+  <Subscription type="free" title="Free" />
+  <Subscription
     planId="basic"
     type="single"
     productIds={{
@@ -217,12 +217,12 @@ widgets:
       "every-year": "prod_basic_yearly",
     }}
   />
-  <Subscription.Plan type="enterprise" contactUrl="https://example.com/sales" />
-  <ConnectedBillingPortal api={billingApi} />
-</Subscription>
+  <Subscription type="enterprise" contactUrl="https://example.com/sales" />
+</Subscription.Group>
+<BillingPortal api={billingApi} />
 ```
 
-#### `<Subscription>` props
+#### `<Subscription.Group>` props
 
 | Prop             | Type                  | Description                                        |
 | ---------------- | --------------------- | -------------------------------------------------- |
@@ -231,9 +231,14 @@ widgets:
 | `successUrl`     | `string`              | Redirect after checkout. Defaults to current page. |
 | `units`          | `number`              | Auto-derived seat count for seat-based plans.      |
 | `showSeatPicker` | `boolean`             | Show a quantity picker on seat-based plan cards.   |
-| `children`       | `Snippet`             | Slot for `<ConnectedBillingPortal>` or custom UI.  |
+| `children`       | `Snippet`             | Slot for `<Subscription>` items or custom UI.      |
 
-#### `<Subscription.Plan>` props
+### `<Subscription>` — subscription plan (standalone or grouped)
+
+The same component works both as an item inside `<Subscription.Group>` and as a
+standalone single-plan card. When used inside a group, it registers plan data
+with the parent. When used standalone, it fetches its own billing model and
+renders a pricing card.
 
 | Prop          | Type                                                 | Description                                                     |
 | ------------- | ---------------------------------------------------- | --------------------------------------------------------------- |
@@ -243,6 +248,11 @@ widgets:
 | `description` | `string`                                             | Plan subtitle. Auto-resolves from product data if omitted.      |
 | `contactUrl`  | `string`                                             | "Contact sales" link for enterprise plans.                      |
 | `productIds`  | `Record<RecurringCycle, string>`                     | Creem product IDs keyed by billing cycle.                       |
+| `api`         | `ConnectedBillingApi`                                | Required in standalone mode only.                               |
+| `className`   | `string`                                             | Standalone mode only. Wrapper CSS class.                        |
+| `successUrl`  | `string`                                             | Standalone mode only. Redirect after checkout.                  |
+
+`Subscription.Item` is an alias for `Subscription` for discoverability.
 
 Supported billing cycles: `every-month`, `every-three-months`,
 `every-six-months`, `every-year`.
@@ -254,25 +264,25 @@ plans. If all plans only have `every-month`, no toggle is shown.
 
 Two workflows:
 
-1. **User-selectable** — set `showSeatPicker` on `<Subscription>` to show a
-   quantity input per seat-based plan card.
-2. **Auto-derived** — set `units={count}` on `<Subscription>` to pass a fixed
-   count (e.g. from org member count) to checkout.
+1. **User-selectable** — set `showSeatPicker` on `<Subscription.Group>` to show
+   a quantity input per seat-based plan card.
+2. **Auto-derived** — set `units={count}` on `<Subscription.Group>` to pass a
+   fixed count (e.g. from org member count) to checkout.
 
-### `<ConnectedBillingPortal>` — billing portal button
+### `<BillingPortal>` — billing portal button
 
-A standalone connected component for the Creem customer billing portal. Place it
-inside `<Subscription>`, after it, or anywhere else:
+A standalone widget for the Creem customer billing portal. Place it after a
+subscription group or anywhere else:
 
 ```svelte
-<!-- Inside a subscription widget -->
-<Subscription api={billingApi}>
-  <Subscription.Plan ... />
-  <ConnectedBillingPortal api={billingApi} />
-</Subscription>
+<Subscription.Group api={billingApi}>
+  <Subscription type="free" title="Free" />
+  <Subscription type="single" productIds={{ ... }} />
+</Subscription.Group>
+<BillingPortal api={billingApi} />
 
 <!-- Or standalone, e.g. in a settings page -->
-<ConnectedBillingPortal api={billingApi}>Manage billing</ConnectedBillingPortal>
+<BillingPortal api={billingApi}>Manage billing</BillingPortal>
 ```
 
 | Prop        | Type                  | Description                                |
@@ -283,21 +293,29 @@ inside `<Subscription>`, after it, or anywhere else:
 
 The component auto-hides when the user has no Creem customer record.
 
-### `<Product>` — standalone product card
+### `<Product>` — product card (standalone or grouped)
+
+The same component works both as an item inside `<Product.Group>` and as a
+standalone product card. When used inside a group, it registers product data
+with the parent. When used standalone, it fetches its own billing model and
+renders a full card with checkout.
 
 ```svelte
+<!-- Standalone -->
 <Product api={billingApi} type="one-time" productId="prod_xxx" />
 <Product api={billingApi} type="recurring" productId="prod_yyy" title="Credit Top-Up" />
 ```
 
 | Prop          | Type                        | Description                                          |
 | ------------- | --------------------------- | ---------------------------------------------------- |
-| `api`         | `ConnectedBillingApi`       | **Required.**                                        |
 | `productId`   | `string`                    | **Required.** Creem product ID.                      |
 | `type`        | `"one-time" \| "recurring"` | **Required.** One-time shows "Owned" after purchase. |
 | `title`       | `string`                    | Card title. Auto-resolves from product data.         |
 | `description` | `string`                    | Card subtitle. Auto-resolves from product data.      |
-| `successUrl`  | `string`                    | Redirect after checkout.                             |
+| `api`         | `ConnectedBillingApi`       | Required in standalone mode only.                    |
+| `successUrl`  | `string`                    | Standalone mode only. Redirect after checkout.       |
+
+`Product.Item` is an alias for `Product` for discoverability.
 
 ### `<Product.Group>` — mutually exclusive products with upgrades
 
@@ -305,8 +323,8 @@ The component auto-hides when the user has no Creem customer record.
 <Product.Group api={billingApi} transition={[
   { from: "prod_basic", to: "prod_premium", kind: "via_product", viaProductId: "prod_upgrade" },
 ]}>
-  <Product.Item type="one-time" productId="prod_basic" title="Basic" />
-  <Product.Item type="one-time" productId="prod_premium" title="Premium" />
+  <Product type="one-time" productId="prod_basic" title="Basic" />
+  <Product type="one-time" productId="prod_premium" title="Premium" />
 </Product.Group>
 ```
 

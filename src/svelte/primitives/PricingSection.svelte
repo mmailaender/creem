@@ -3,7 +3,7 @@
   import BillingToggle from "./BillingToggle.svelte";
   import PricingCard from "./PricingCard.svelte";
   import type { BillingSnapshot, UIPlanEntry, RecurringCycle } from "../../core/types.js";
-  import type { ConnectedProduct } from "../connected/types.js";
+  import type { ConnectedProduct } from "../widgets/types.js";
 
   interface Props {
     plans?: UIPlanEntry[];

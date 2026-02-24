@@ -2,11 +2,11 @@
   import { setContext } from "svelte";
   import { useConvexClient, useQuery } from "convex-svelte";
   import { Ark } from "@ark-ui/svelte/factory";
-  import PricingSection from "../components/PricingSection.svelte";
-  import PaymentWarningBanner from "../components/PaymentWarningBanner.svelte";
-  import ScheduledChangeBanner from "../components/ScheduledChangeBanner.svelte";
-  import TrialLimitBanner from "../components/TrialLimitBanner.svelte";
-  import CancelConfirmDialog from "../components/CancelConfirmDialog.svelte";
+  import PricingSection from "../primitives/PricingSection.svelte";
+  import PaymentWarningBanner from "../primitives/PaymentWarningBanner.svelte";
+  import ScheduledChangeBanner from "../primitives/ScheduledChangeBanner.svelte";
+  import TrialLimitBanner from "../primitives/TrialLimitBanner.svelte";
+  import CancelConfirmDialog from "../primitives/CancelConfirmDialog.svelte";
   import type { UIPlanEntry, RecurringCycle } from "../../core/types.js";
   import {
     SUBSCRIPTION_CONTEXT_KEY,

@@ -2,7 +2,7 @@
   import { Ark } from "@ark-ui/svelte/factory";
   import CheckoutButton from "./CheckoutButton.svelte";
   import type { UIPlanEntry, RecurringCycle } from "../../core/types.js";
-  import type { ConnectedProduct } from "../connected/types.js";
+  import type { ConnectedProduct } from "../widgets/types.js";
   import { resolveProductIdForPlan, formatPriceWithInterval, formatSeatPrice } from "./shared.js";
 
   interface Props {

@@ -4,7 +4,7 @@ import type {
   UIPlanEntry,
   RecurringCycle,
 } from "../../core/types.js";
-import type { ConnectedProduct } from "../connected/types.js";
+import type { ConnectedProduct } from "../widgets/types.js";
 
 const CYCLE_KEY_ALIASES: Record<RecurringCycle, string[]> = {
   "every-month": ["every-month", "monthly", "month"],
