@@ -5,6 +5,8 @@ export type ConnectedBillingApi = {
   getBillingUiModel: FunctionReference<"query">;
   generateCheckoutLink: FunctionReference<"action">;
   generateCustomerPortalUrl?: FunctionReference<"action">;
+  changeCurrentSubscription?: FunctionReference<"action">;
+  updateSubscriptionSeats?: FunctionReference<"action">;
   cancelCurrentSubscription?: FunctionReference<"action">;
   resumeCurrentSubscription?: FunctionReference<"action">;
   syncProducts?: FunctionReference<"action">;

@@ -45,6 +45,8 @@
   const billingUiModelRef = api.getBillingUiModel;
   const checkoutLinkRef = api.generateCheckoutLink;
   const portalUrlRef = api.generateCustomerPortalUrl;
+  const changeSubRef = api.changeCurrentSubscription;
+  const updateSeatsRef = api.updateSubscriptionSeats;
   const cancelRef = api.cancelCurrentSubscription;
   const resumeRef = api.resumeCurrentSubscription;
   const syncProductsRef = api.syncProducts;
@@ -181,6 +183,7 @@
   const localCancelAtPeriodEnd = $derived(matchedSubscription?.cancelAtPeriodEnd ?? false);
   const localCurrentPeriodEnd = $derived(matchedSubscription?.currentPeriodEnd ?? null);
   const localSubscriptionState = $derived(matchedSubscription?.status ?? null);
+  const localSubscribedSeats = $derived(matchedSubscription?.seats ?? null);
 
   const hasMissingProducts = $derived.by(() => {
     if (!model) return false;
@@ -223,6 +226,36 @@
     units?: number;
   }) => {
     await startCheckout(payload.productId, payload.units);
+  };
+
+  const handleSwitchPlan = async (payload: {
+    plan: PlanCatalogEntry;
+    productId: string;
+    units?: number;
+  }) => {
+    if (!changeSubRef) return;
+    isActionLoading = true;
+    actionError = null;
+    try {
+      await client.action(changeSubRef, { productId: payload.productId });
+    } catch (error) {
+      actionError = error instanceof Error ? error.message : "Switch failed";
+    } finally {
+      isActionLoading = false;
+    }
+  };
+
+  const handleUpdateSeats = async (payload: { units: number }) => {
+    if (!updateSeatsRef) return;
+    isActionLoading = true;
+    actionError = null;
+    try {
+      await client.action(updateSeatsRef, { units: payload.units });
+    } catch (error) {
+      actionError = error instanceof Error ? error.message : "Seat update failed";
+    } finally {
+      isActionLoading = false;
+    }
   };
 
   const confirmCancelSubscription = async () => {
@@ -371,10 +404,14 @@
       subscriptionProductId={localSubscriptionProductId}
       {units}
       {showSeatPicker}
+      subscribedSeats={localSubscribedSeats}
+      isGroupSubscribed={ownsActiveSubscription}
       onCycleChange={(cycle) => {
         selectedCycle = cycle;
       }}
       onCheckout={handlePricingCheckout}
+      onSwitchPlan={changeSubRef ? handleSwitchPlan : undefined}
+      onUpdateSeats={updateSeatsRef ? handleUpdateSeats : undefined}
     />
 
     <Ark as="div" class="flex flex-wrap items-center gap-3">

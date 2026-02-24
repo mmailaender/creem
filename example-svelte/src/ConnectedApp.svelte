@@ -21,6 +21,8 @@
     getBillingUiModel: api.billing.getBillingUiModel,
     generateCheckoutLink: api.billing.generateCheckoutLink,
     generateCustomerPortalUrl: api.billing.generateCustomerPortalUrl,
+    changeCurrentSubscription: api.billing.changeCurrentSubscription,
+    updateSubscriptionSeats: api.billing.updateSubscriptionSeats,
     cancelCurrentSubscription: api.billing.cancelCurrentSubscription,
     resumeCurrentSubscription: api.billing.resumeCurrentSubscription,
     syncProducts: api.billing.syncBillingProducts,
@@ -162,13 +164,13 @@
     <Subscription api={connectedApi} className="space-y-4" units={5}>
       <Subscription.Plan
         type="seat-based"
-        displayName="Basic (5 seats)"
+        displayName="Basic"
         description="Per-seat monthly subscription"
         productIds={{ "every-month": "prod_1c6ZGcxekHKrVYuWriHs68" }}
       />
       <Subscription.Plan
         type="seat-based"
-        displayName="Premium (5 seats)"
+        displayName="Premium"
         description="Per-seat monthly subscription"
         productIds={{ "every-month": "prod_3861b06bJDnvpEBcs2uxYv" }}
       />

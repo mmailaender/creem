@@ -328,6 +328,33 @@ export class Creem<
     return updatedSubscription;
   }
 
+  async updateSubscriptionSeats(
+    ctx: GenericActionCtx<DataModel>,
+    { units }: { units: number },
+  ) {
+    if (units < 1) {
+      throw new Error("Units must be at least 1");
+    }
+    const { userId } = await this.config.getUserInfo(ctx);
+    const subscription = await this.getCurrentSubscription(ctx, { userId });
+    if (!subscription) {
+      throw new Error("Subscription not found");
+    }
+    // Fetch live subscription from Creem to get item IDs
+    const live = await this.creem.subscriptions.get(subscription.id);
+    const item = live.items?.[0];
+    if (!item) {
+      throw new Error("Subscription has no items");
+    }
+    const updatedSubscription = await this.creem.subscriptions.update(
+      subscription.id,
+      {
+        items: [{ id: item.id, units }],
+      },
+    );
+    return updatedSubscription;
+  }
+
   private toSubscriptionSnapshot(subscription: Subscription): SubscriptionSnapshot {
     return {
       id: subscription.id,
@@ -668,6 +695,16 @@ export class Creem<
         handler: async (ctx, args) => {
           await this.changeSubscription(ctx, {
             productId: args.productId,
+          });
+        },
+      }),
+      updateSubscriptionSeats: actionGeneric({
+        args: {
+          units: v.number(),
+        },
+        handler: async (ctx, args) => {
+          await this.updateSubscriptionSeats(ctx, {
+            units: args.units,
           });
         },
       }),

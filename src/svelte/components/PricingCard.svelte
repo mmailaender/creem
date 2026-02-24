@@ -3,7 +3,7 @@
   import CheckoutButton from "./CheckoutButton.svelte";
   import type { PlanCatalogEntry, RecurringCycle } from "../../core/types.js";
   import type { ConnectedProduct } from "../connected/types.js";
-  import { resolveProductIdForPlan, formatPriceWithInterval } from "./shared.js";
+  import { resolveProductIdForPlan, formatPriceWithInterval, formatSeatPrice } from "./shared.js";
 
   interface Props {
     plan: PlanCatalogEntry;
@@ -13,12 +13,20 @@
     products?: ConnectedProduct[];
     units?: number;
     showSeatPicker?: boolean;
+    subscribedSeats?: number | null;
+    isGroupSubscribed?: boolean;
     className?: string;
     onCheckout?: (payload: {
       plan: PlanCatalogEntry;
       productId: string;
       units?: number;
     }) => Promise<void> | void;
+    onSwitchPlan?: (payload: {
+      plan: PlanCatalogEntry;
+      productId: string;
+      units?: number;
+    }) => Promise<void> | void;
+    onUpdateSeats?: (payload: { units: number }) => Promise<void> | void;
     onContactSales?: (payload: { plan: PlanCatalogEntry }) => Promise<void> | void;
   }
 
@@ -30,13 +38,26 @@
     products = [],
     units = undefined,
     showSeatPicker = false,
+    subscribedSeats = null,
+    isGroupSubscribed = false,
     className = "",
     onCheckout,
+    onSwitchPlan,
+    onUpdateSeats,
     onContactSales,
   }: Props = $props();
 
   const isSeatPlan = $derived(plan.pricingModel === "seat");
-  let seatCount = $derived(units ?? 1);
+  let seatCount = $state(1);
+  let seatAdjustCount = $state(1);
+  let editingSeats = $state(false);
+  $effect(() => {
+    seatCount = units ?? 1;
+  });
+  $effect(() => {
+    seatAdjustCount = subscribedSeats ?? units ?? 1;
+    editingSeats = false;
+  });
   const effectiveUnits = $derived(
     isSeatPlan ? (showSeatPicker ? seatCount : units) : undefined,
   );
@@ -52,15 +73,36 @@
   const isActivePlanOtherCycle = $derived(
     !isActiveProduct && activePlanId === plan.planId && productId != null,
   );
+  // Sibling plan in the same <Subscription> group that already has a subscription
+  const isSiblingPlan = $derived(
+    !isActiveProduct && !isActivePlanOtherCycle && isGroupSubscribed && productId != null && plan.category !== "free" && plan.category !== "enterprise",
+  );
+
+  const seatPriceLabel = $derived(
+    isActiveProduct && isSeatPlan && subscribedSeats
+      ? formatSeatPrice(productId, products, subscribedSeats)
+      : null,
+  );
+  const seatsChanged = $derived(
+    isActiveProduct && isSeatPlan && subscribedSeats != null && seatAdjustCount !== subscribedSeats,
+  );
+
   const checkoutLabel = $derived(
     isActivePlanOtherCycle
       ? "Switch interval"
-      : plan.billingType === "onetime"
-        ? "Buy now"
-        : "Subscribe",
+      : isSiblingPlan
+        ? "Switch plan"
+        : plan.billingType === "onetime"
+          ? "Buy now"
+          : "Subscribe",
   );
-  const handleCheckout = (payload: { productId: string }) =>
-    onCheckout?.({ plan, productId: payload.productId, units: effectiveUnits });
+  const handleCheckout = (payload: { productId: string }) => {
+    if (isSiblingPlan && onSwitchPlan) {
+      onSwitchPlan({ plan, productId: payload.productId, units: isSeatPlan ? (subscribedSeats ?? effectiveUnits) : effectiveUnits });
+    } else {
+      onCheckout?.({ plan, productId: payload.productId, units: effectiveUnits });
+    }
+  };
 </script>
 
 <Ark
@@ -95,12 +137,14 @@
       <Ark as="span" class="text-3xl font-bold text-zinc-900 dark:text-zinc-100">Free</Ark>
     {:else if plan.category === "enterprise"}
       <Ark as="span" class="text-lg font-medium text-zinc-600 dark:text-zinc-300">Custom pricing</Ark>
+    {:else if seatPriceLabel}
+      <Ark as="span" class="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{seatPriceLabel}</Ark>
     {:else if priceLabel}
       <Ark as="span" class="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{priceLabel}</Ark>
     {/if}
   </Ark>
 
-  {#if isSeatPlan && showSeatPicker && !isActiveProduct}
+  {#if isSeatPlan && showSeatPicker && !isActiveProduct && !isSiblingPlan}
     <Ark as="div" class="mb-4 flex items-center gap-2">
       <Ark as="label" class="text-sm text-zinc-600 dark:text-zinc-300">Seats</Ark>
       <Ark
@@ -117,6 +161,52 @@
     </Ark>
   {/if}
 
+  {#if isActiveProduct && isSeatPlan && showSeatPicker && onUpdateSeats}
+    {#if editingSeats}
+      <Ark as="div" class="mb-4 flex items-center gap-2">
+        <Ark as="label" class="text-sm text-zinc-600 dark:text-zinc-300">Seats</Ark>
+        <Ark
+          as="input"
+          type="number"
+          min="1"
+          value={seatAdjustCount}
+          oninput={(e: Event) => {
+            const val = parseInt((e.target as HTMLInputElement).value, 10);
+            if (val > 0) seatAdjustCount = val;
+          }}
+          class="w-20 rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+        />
+        {#if seatsChanged}
+          <Ark
+            as="button"
+            type="button"
+            class="rounded-md bg-indigo-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+            onclick={() => onUpdateSeats?.({ units: seatAdjustCount })}
+          >
+            Update
+          </Ark>
+        {/if}
+        <Ark
+          as="button"
+          type="button"
+          class="text-xs text-zinc-500 transition hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+          onclick={() => { seatAdjustCount = subscribedSeats ?? 1; editingSeats = false; }}
+        >
+          Cancel
+        </Ark>
+      </Ark>
+    {:else}
+      <Ark
+        as="button"
+        type="button"
+        class="mb-4 text-sm text-indigo-600 transition hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+        onclick={() => { editingSeats = true; }}
+      >
+        Change seats
+      </Ark>
+    {/if}
+  {/if}
+
   <Ark as="div" class="mt-auto">
     {#if isActiveProduct}
       <Ark
@@ -125,6 +215,10 @@
       >
         Current plan
       </Ark>
+    {:else if isSiblingPlan && productId}
+      <CheckoutButton {productId} onCheckout={handleCheckout}>
+        {checkoutLabel}
+      </CheckoutButton>
     {:else if plan.category === "enterprise"}
       {#if plan.contactUrl}
         <Ark

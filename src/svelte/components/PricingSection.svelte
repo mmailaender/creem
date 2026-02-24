@@ -13,6 +13,8 @@
     subscriptionProductId?: string | null;
     units?: number;
     showSeatPicker?: boolean;
+    subscribedSeats?: number | null;
+    isGroupSubscribed?: boolean;
     className?: string;
     onCycleChange?: (cycle: RecurringCycle) => void;
     onCheckout?: (payload: {
@@ -20,6 +22,12 @@
       productId: string;
       units?: number;
     }) => Promise<void> | void;
+    onSwitchPlan?: (payload: {
+      plan: PlanCatalogEntry;
+      productId: string;
+      units?: number;
+    }) => Promise<void> | void;
+    onUpdateSeats?: (payload: { units: number }) => Promise<void> | void;
     onContactSales?: (payload: { plan: PlanCatalogEntry }) => Promise<void> | void;
   }
 
@@ -31,9 +39,13 @@
     subscriptionProductId = null,
     units = undefined,
     showSeatPicker = false,
+    subscribedSeats = null,
+    isGroupSubscribed = false,
     className = "",
     onCycleChange,
     onCheckout,
+    onSwitchPlan,
+    onUpdateSeats,
     onContactSales,
   }: Props = $props();
 
@@ -78,7 +90,11 @@
         {products}
         {units}
         {showSeatPicker}
+        {subscribedSeats}
+        {isGroupSubscribed}
         {onCheckout}
+        {onSwitchPlan}
+        {onUpdateSeats}
         {onContactSales}
       />
     {/each}

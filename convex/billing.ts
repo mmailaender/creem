@@ -223,6 +223,9 @@ export const {
   // Changes the current subscription to the given product ID.
   changeCurrentSubscription,
 
+  // Updates the seat count on the current subscription.
+  updateSubscriptionSeats,
+
   // Cancels the current subscription.
   cancelCurrentSubscription,
 
