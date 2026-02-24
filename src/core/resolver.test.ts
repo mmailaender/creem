@@ -10,7 +10,6 @@ describe("resolveBillingSnapshot", () => {
           {
             planId: "pro",
             category: "paid",
-            displayName: "Pro",
             billingType: "recurring",
             billingCycles: ["every-month", "every-year"],
             pricingModel: "seat",
@@ -44,7 +43,6 @@ describe("resolveBillingSnapshot", () => {
             planId: "credits",
             category: "paid",
             billingType: "onetime",
-            displayName: "Credits",
             creemProductIds: { default: "prod_credits" },
           },
         ],

@@ -1,12 +1,12 @@
 <script lang="ts">
   import { Ark } from "@ark-ui/svelte/factory";
   import CheckoutButton from "./CheckoutButton.svelte";
-  import type { PlanCatalogEntry, RecurringCycle } from "../../core/types.js";
+  import type { UIPlanEntry, RecurringCycle } from "../../core/types.js";
   import type { ConnectedProduct } from "../connected/types.js";
   import { resolveProductIdForPlan, formatPriceWithInterval, formatSeatPrice } from "./shared.js";
 
   interface Props {
-    plan: PlanCatalogEntry;
+    plan: UIPlanEntry;
     selectedCycle?: RecurringCycle;
     activePlanId?: string | null;
     subscriptionProductId?: string | null;
@@ -17,17 +17,17 @@
     isGroupSubscribed?: boolean;
     className?: string;
     onCheckout?: (payload: {
-      plan: PlanCatalogEntry;
+      plan: UIPlanEntry;
       productId: string;
       units?: number;
     }) => Promise<void> | void;
     onSwitchPlan?: (payload: {
-      plan: PlanCatalogEntry;
+      plan: UIPlanEntry;
       productId: string;
       units?: number;
     }) => Promise<void> | void;
     onUpdateSeats?: (payload: { units: number }) => Promise<void> | void;
-    onContactSales?: (payload: { plan: PlanCatalogEntry }) => Promise<void> | void;
+    onContactSales?: (payload: { plan: UIPlanEntry }) => Promise<void> | void;
   }
 
   let {
@@ -123,7 +123,7 @@
   {/if}
 
   <Ark as="h3" class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-    {plan.displayName}
+    {plan.title ?? plan.planId}
   </Ark>
 
   {#if plan.description}

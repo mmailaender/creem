@@ -9,8 +9,6 @@ export type ConnectedBillingApi = {
   updateSubscriptionSeats?: FunctionReference<"action">;
   cancelCurrentSubscription?: FunctionReference<"action">;
   resumeCurrentSubscription?: FunctionReference<"action">;
-  syncProducts?: FunctionReference<"action">;
-  createDemoUser?: FunctionReference<"mutation">;
 };
 
 export type ConnectedProductPrice = {
@@ -62,8 +60,6 @@ export type ConnectedBillingModel = {
       category: string;
       billingType?: string;
       pricingModel?: string;
-      displayName: string;
-      description?: string;
       creemProductIds?: Record<string, string>;
       billingCycles?: string[];
       contactUrl?: string;
@@ -82,7 +78,7 @@ export type SubscriptionPlanType =
 export type SubscriptionPlanRegistration = {
   planId: string;
   type: SubscriptionPlanType;
-  displayName?: string;
+  title?: string;
   description?: string;
   contactUrl?: string;
   recommended?: boolean;

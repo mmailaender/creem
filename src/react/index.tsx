@@ -18,8 +18,8 @@ import {
   type CheckoutSuccessParams,
   type OneTimePaymentStatus,
   type PaymentSnapshot,
-  type PlanCatalogEntry,
   type RecurringCycle,
+  type UIPlanEntry,
 } from "../core/index.js";
 
 const ONE_TIME_PAYMENT_STATUS_LABELS: Record<OneTimePaymentStatus, string> = {
@@ -58,7 +58,7 @@ const formatRecurringCycle = (cycle: RecurringCycle) => {
 };
 
 const resolveProductIdForPlan = (
-  plan: PlanCatalogEntry,
+  plan: UIPlanEntry,
   selectedCycle: RecurringCycle | undefined,
 ) => {
   const productIds = plan.creemProductIds;
@@ -238,13 +238,13 @@ export const PricingCard = ({
   onContactSales,
   className,
 }: {
-  plan: PlanCatalogEntry;
+  plan: UIPlanEntry;
   selectedCycle?: RecurringCycle;
   activePlanId?: string | null;
   checkoutApi?: CheckoutApi;
   units?: number;
   metadata?: Record<string, string>;
-  onContactSales?: (plan: PlanCatalogEntry) => void;
+  onContactSales?: (plan: UIPlanEntry) => void;
   className?: string;
 }) => {
   const isActive = activePlanId === plan.planId;
@@ -254,7 +254,7 @@ export const PricingCard = ({
     <ark.section className={cx(CARD_CLASS, className)}>
       <ark.div className="mb-2 flex items-center justify-between gap-2">
         <ark.h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-          {plan.displayName}
+          {plan.title ?? plan.planId}
         </ark.h3>
         <ark.span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
           {plan.category}
@@ -322,14 +322,14 @@ export const PricingSection = ({
   onContactSales,
   className,
 }: {
-  plans: PlanCatalogEntry[];
+  plans: UIPlanEntry[];
   snapshot?: BillingSnapshot;
   selectedCycle?: RecurringCycle;
   onCycleChange?: (cycle: RecurringCycle) => void;
   checkoutApi?: CheckoutApi;
   units?: number;
   metadata?: Record<string, string>;
-  onContactSales?: (plan: PlanCatalogEntry) => void;
+  onContactSales?: (plan: UIPlanEntry) => void;
   className?: string;
 }) => {
   const cycleSet = new Set<RecurringCycle>();

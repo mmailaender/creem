@@ -2,11 +2,11 @@
   import { Ark } from "@ark-ui/svelte/factory";
   import BillingToggle from "./BillingToggle.svelte";
   import PricingCard from "./PricingCard.svelte";
-  import type { BillingSnapshot, PlanCatalogEntry, RecurringCycle } from "../../core/types.js";
+  import type { BillingSnapshot, UIPlanEntry, RecurringCycle } from "../../core/types.js";
   import type { ConnectedProduct } from "../connected/types.js";
 
   interface Props {
-    plans?: PlanCatalogEntry[];
+    plans?: UIPlanEntry[];
     snapshot?: BillingSnapshot | null;
     selectedCycle?: RecurringCycle;
     products?: ConnectedProduct[];
@@ -18,17 +18,17 @@
     className?: string;
     onCycleChange?: (cycle: RecurringCycle) => void;
     onCheckout?: (payload: {
-      plan: PlanCatalogEntry;
+      plan: UIPlanEntry;
       productId: string;
       units?: number;
     }) => Promise<void> | void;
     onSwitchPlan?: (payload: {
-      plan: PlanCatalogEntry;
+      plan: UIPlanEntry;
       productId: string;
       units?: number;
     }) => Promise<void> | void;
     onUpdateSeats?: (payload: { units: number }) => Promise<void> | void;
-    onContactSales?: (payload: { plan: PlanCatalogEntry }) => Promise<void> | void;
+    onContactSales?: (payload: { plan: UIPlanEntry }) => Promise<void> | void;
   }
 
   let {
@@ -49,7 +49,7 @@
     onContactSales,
   }: Props = $props();
 
-  const toUniqueCycles = (entries: PlanCatalogEntry[]) => {
+  const toUniqueCycles = (entries: UIPlanEntry[]) => {
     const set = new Set<RecurringCycle>();
     for (const plan of entries) {
       for (const cycle of plan.billingCycles ?? []) {

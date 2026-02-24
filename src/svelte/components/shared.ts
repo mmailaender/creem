@@ -1,7 +1,7 @@
 import type {
   AvailableAction,
   BillingSnapshot,
-  PlanCatalogEntry,
+  UIPlanEntry,
   RecurringCycle,
 } from "../../core/types.js";
 import type { ConnectedProduct } from "../connected/types.js";
@@ -23,7 +23,7 @@ export const formatRecurringCycle = (cycle: RecurringCycle) => {
 };
 
 export const resolveProductIdForPlan = (
-  plan: PlanCatalogEntry,
+  plan: UIPlanEntry,
   selectedCycle: RecurringCycle | undefined,
 ) => {
   const productIds = plan.creemProductIds;

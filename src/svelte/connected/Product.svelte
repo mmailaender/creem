@@ -37,8 +37,12 @@
 
   const model = $derived((billingModelQuery.data ?? null) as ConnectedBillingModel | null);
   const owned = $derived(model?.ownedProductIds?.includes(productId) ?? false);
+  const matchedProduct = $derived(model?.allProducts.find((product) => product.id === productId));
   const resolvedTitle = $derived(
-    title ?? model?.allProducts.find((product) => product.id === productId)?.name ?? productId,
+    title ?? matchedProduct?.name ?? productId,
+  );
+  const resolvedDescription = $derived(
+    description ?? matchedProduct?.description ?? (type === "one-time" ? "Buy once and own it." : "Purchase any time."),
   );
 
   const getSuccessUrl = () => {
@@ -79,7 +83,7 @@
     {resolvedTitle}
   </Ark>
   <Ark as="p" class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
-    {description ?? (type === "one-time" ? "Buy once and own it." : "Purchase any time.")}
+    {resolvedDescription}
   </Ark>
 
   {#if error}

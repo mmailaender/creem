@@ -59,6 +59,7 @@
   setContext(PRODUCT_GROUP_CONTEXT_KEY, contextValue);
 
   const model = $derived((billingModelQuery.data ?? null) as ConnectedBillingModel | null);
+  const allProducts = $derived(model?.allProducts ?? []);
   const ownedProductIds = $derived(model?.ownedProductIds ?? []);
   const activeOwnedProductId = $derived(
     registeredItems.find((item) => ownedProductIds.includes(item.productId))?.productId ?? null,
@@ -125,16 +126,19 @@
     {#each registeredItems as item (item.productId)}
       {@const isOwned = ownedProductIds.includes(item.productId)}
       {@const checkoutProductId = resolveCheckoutProductId(item.productId)}
+      {@const matchedProduct = allProducts.find((p) => p.id === item.productId)}
+      {@const resolvedTitle = item.title ?? matchedProduct?.name ?? item.productId}
+      {@const resolvedDescription = item.description ?? matchedProduct?.description}
       <Ark
         as="article"
         class="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950"
       >
         <Ark as="h3" class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
-          {item.title ?? item.productId}
+          {resolvedTitle}
         </Ark>
-        {#if item.description}
+        {#if resolvedDescription}
           <Ark as="p" class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
-            {item.description}
+            {resolvedDescription}
           </Ark>
         {/if}
 

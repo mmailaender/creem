@@ -1,30 +1,8 @@
 import { Creem } from "@mmailaender/creem";
 import type { PlanCatalog } from "@mmailaender/creem";
 import { api, components } from "./_generated/api";
-import { action, query } from "./_generated/server";
+import { internalAction, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
-
-export type Transition =
-  | { from: string; to: string; kind: "direct" }
-  | {
-      from: string;
-      to: string;
-      kind: "via_product";
-      viaProductId: string;
-    };
-
-type BillingPolicy = {
-  productGroups: Array<{
-    groupId: string;
-    exclusive: boolean;
-    items: Array<{
-      productId: string;
-      type: "one-time" | "recurring";
-      displayName?: string;
-    }>;
-    transitions: Transition[];
-  }>;
-};
 
 const configuredProductIds = {
   // Subscriptions with trial (4 cycles)
@@ -61,16 +39,11 @@ const planCatalog: PlanCatalog = {
     {
       planId: "free",
       category: "free",
-      displayName: "Free",
-      description: "Free plan with limited features.",
     },
     {
       planId: "basic",
       category: "paid",
       billingType: "recurring",
-      pricingModel: "flat",
-      displayName: "Basic",
-      description: "Starter subscription plan.",
       creemProductIds: {
         "every-month": configuredProductIds.basicTrialMonthly,
         "every-three-months": configuredProductIds.basicTrialQuarterly,
@@ -88,9 +61,7 @@ const planCatalog: PlanCatalog = {
       planId: "premium",
       category: "paid",
       billingType: "recurring",
-      pricingModel: "flat",
-      displayName: "Premium",
-      description: "Advanced subscription plan.",
+      recommended: true,
       creemProductIds: {
         "every-month": configuredProductIds.premiumTrialMonthly,
         "every-three-months": configuredProductIds.premiumTrialQuarterly,
@@ -107,37 +78,6 @@ const planCatalog: PlanCatalog = {
     {
       planId: "enterprise",
       category: "enterprise",
-      displayName: "Enterprise",
-      description: "Custom enterprise contracts.",
-    },
-  ],
-};
-
-export const billingPolicy: BillingPolicy = {
-  productGroups: [
-    {
-      groupId: "exclusive-upgrade",
-      exclusive: true,
-      items: [
-        {
-          productId: configuredProductIds.groupBasic,
-          type: "one-time",
-          displayName: "Basic",
-        },
-        {
-          productId: configuredProductIds.groupPremium,
-          type: "one-time",
-          displayName: "Premium",
-        },
-      ],
-      transitions: [
-        {
-          from: configuredProductIds.groupBasic,
-          to: configuredProductIds.groupPremium,
-          kind: "via_product" as const,
-          viaProductId: configuredProductIds.groupBasicToPremium,
-        },
-      ],
     },
   ],
 };
@@ -212,11 +152,10 @@ export const {
   getBillingUiModel,
 } = creem.api();
 
-export const syncBillingProducts = action({
+export const syncBillingProducts = internalAction({
   args: {},
   handler: async (ctx) => {
     await creem.syncProducts(ctx);
     return { synced: true };
   },
 });
-

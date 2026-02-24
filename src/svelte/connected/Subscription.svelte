@@ -7,7 +7,7 @@
   import ScheduledChangeBanner from "../components/ScheduledChangeBanner.svelte";
   import TrialLimitBanner from "../components/TrialLimitBanner.svelte";
   import CancelConfirmDialog from "../components/CancelConfirmDialog.svelte";
-  import type { PlanCatalogEntry, RecurringCycle } from "../../core/types.js";
+  import type { UIPlanEntry, RecurringCycle } from "../../core/types.js";
   import {
     SUBSCRIPTION_CONTEXT_KEY,
     type SubscriptionContextValue,
@@ -45,8 +45,6 @@
   const updateSeatsRef = api.updateSubscriptionSeats;
   const cancelRef = api.cancelCurrentSubscription;
   const resumeRef = api.resumeCurrentSubscription;
-  const syncProductsRef = api.syncProducts;
-  const createDemoUserRef = api.createDemoUser;
 
   const billingModelQuery = useQuery(billingUiModelRef, {});
 
@@ -91,7 +89,7 @@
 
   const allProducts = $derived(model?.allProducts ?? []);
 
-  const plansFromRegistered = $derived.by<PlanCatalogEntry[]>(() => {
+  const plansFromRegistered = $derived.by<UIPlanEntry[]>(() => {
     return registeredPlans.map((plan) => {
       const productIds = plan.productIds ?? {};
       const firstProductId = Object.values(productIds)[0];
@@ -103,7 +101,7 @@
         (k): k is RecurringCycle => k !== "custom",
       );
 
-      const entry: PlanCatalogEntry = {
+      const entry: UIPlanEntry = {
         planId: plan.planId,
         category:
           plan.type === "free"
@@ -114,7 +112,7 @@
         billingType:
           plan.type === "free" || plan.type === "enterprise" ? "custom" : "recurring",
         pricingModel: plan.type === "seat-based" ? "seat" : "flat",
-        displayName: plan.displayName ?? firstProduct?.name ?? plan.planId.charAt(0).toUpperCase() + plan.planId.slice(1),
+        title: plan.title ?? firstProduct?.name ?? plan.planId.charAt(0).toUpperCase() + plan.planId.slice(1),
         description: plan.description ?? firstProduct?.description ?? undefined,
         contactUrl: plan.contactUrl,
         recommended: plan.recommended,
@@ -131,21 +129,27 @@
   });
 
   // Auto-derive plans from the planCatalog when no <Subscription.Plan> children are registered.
-  const plansFromCatalog = $derived.by<PlanCatalogEntry[]>(() => {
+  const plansFromCatalog = $derived.by<UIPlanEntry[]>(() => {
     const catalog = model?.planCatalog;
     if (!catalog?.plans) return [];
-    return catalog.plans.map((p) => ({
-      planId: p.planId,
-      category: (p.category ?? "custom") as PlanCatalogEntry["category"],
-      billingType: (p.billingType ?? "custom") as PlanCatalogEntry["billingType"],
-      pricingModel: (p.pricingModel ?? "flat") as PlanCatalogEntry["pricingModel"],
-      displayName: p.displayName,
-      description: p.description,
-      contactUrl: p.contactUrl,
-      recommended: p.recommended,
-      creemProductIds: p.creemProductIds,
-      billingCycles: p.billingCycles as RecurringCycle[] | undefined,
-    }));
+    return catalog.plans.map((p) => {
+      const firstProductId = Object.values(p.creemProductIds ?? {})[0];
+      const firstProduct = firstProductId
+        ? allProducts.find((prod) => prod.id === firstProductId)
+        : undefined;
+      return {
+        planId: p.planId,
+        category: (p.category ?? "custom") as UIPlanEntry["category"],
+        billingType: (p.billingType ?? "custom") as UIPlanEntry["billingType"],
+        pricingModel: (p.pricingModel ?? "flat") as UIPlanEntry["pricingModel"],
+        title: firstProduct?.name ?? p.planId.charAt(0).toUpperCase() + p.planId.slice(1),
+        description: firstProduct?.description ?? undefined,
+        contactUrl: p.contactUrl,
+        recommended: p.recommended,
+        creemProductIds: p.creemProductIds,
+        billingCycles: p.billingCycles as RecurringCycle[] | undefined,
+      };
+    });
   });
 
   // Explicit <Subscription.Plan> children take priority; otherwise auto-render from catalog
@@ -180,12 +184,6 @@
   const localSubscriptionState = $derived(matchedSubscription?.status ?? null);
   const localSubscribedSeats = $derived(matchedSubscription?.seats ?? null);
 
-  const hasMissingProducts = $derived.by(() => {
-    if (!model) return false;
-    const configured = Object.values(model.configuredProducts ?? {});
-    return configured.length > 0 && configured.every((product) => product == null);
-  });
-
   const getSuccessUrl = () => {
     if (successUrl) return successUrl;
     if (typeof window === "undefined") return "";
@@ -216,7 +214,7 @@
   };
 
   const handlePricingCheckout = async (payload: {
-    plan: PlanCatalogEntry;
+    plan: UIPlanEntry;
     productId: string;
     units?: number;
   }) => {
@@ -224,7 +222,7 @@
   };
 
   const handleSwitchPlan = async (payload: {
-    plan: PlanCatalogEntry;
+    plan: UIPlanEntry;
     productId: string;
     units?: number;
   }) => {
@@ -281,31 +279,6 @@
     }
   };
 
-  const syncProducts = async () => {
-    if (!syncProductsRef) return;
-    isActionLoading = true;
-    actionError = null;
-    try {
-      await client.action(syncProductsRef, {});
-    } catch (error) {
-      actionError = error instanceof Error ? error.message : "Product sync failed";
-    } finally {
-      isActionLoading = false;
-    }
-  };
-
-  const createDemoUser = async () => {
-    if (!createDemoUserRef) return;
-    isActionLoading = true;
-    actionError = null;
-    try {
-      await client.mutation(createDemoUserRef, {});
-    } catch (error) {
-      actionError = error instanceof Error ? error.message : "Could not create demo user";
-    } finally {
-      isActionLoading = false;
-    }
-  };
 </script>
 
 <div class="hidden" aria-hidden="true">
@@ -325,38 +298,6 @@
   {#if !model}
     <Ark as="p" class="text-sm text-zinc-500">Loading billing model…</Ark>
   {:else}
-    {#if !model.user && createDemoUserRef}
-      <Ark as="div" class="flex items-center gap-3 rounded-lg border px-3 py-2">
-        <Ark as="p" class="text-sm text-zinc-600">No demo user found yet.</Ark>
-        <Ark
-          as="button"
-          type="button"
-          class="rounded-md bg-zinc-900 px-3 py-2 text-sm font-medium text-white"
-          disabled={isActionLoading}
-          onclick={createDemoUser}
-        >
-          Create demo user
-        </Ark>
-      </Ark>
-    {/if}
-
-    {#if hasMissingProducts && syncProductsRef}
-      <Ark as="div" class="flex items-center gap-3 rounded-lg border px-3 py-2">
-        <Ark as="p" class="text-sm text-zinc-600">
-          Products are not synced to Convex yet.
-        </Ark>
-        <Ark
-          as="button"
-          type="button"
-          class="rounded-md cursor-pointer border px-3 py-2 text-sm hover:bg-zinc-100 dark:hover:bg-zinc-800"
-          disabled={isActionLoading}
-          onclick={syncProducts}
-        >
-          Sync products
-        </Ark>
-      </Ark>
-    {/if}
-
     {#if isCancelInFlight && ownsActiveSubscription}
       <Ark
         as="div"

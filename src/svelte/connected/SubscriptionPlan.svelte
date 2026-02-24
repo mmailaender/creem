@@ -10,7 +10,7 @@
   interface Props {
     planId?: string;
     type: SubscriptionPlanType;
-    displayName?: string;
+    title?: string;
     description?: string;
     contactUrl?: string;
     recommended?: boolean;
@@ -20,7 +20,7 @@
   let {
     planId = undefined,
     type,
-    displayName = undefined,
+    title = undefined,
     description = undefined,
     contactUrl = undefined,
     recommended = undefined,
@@ -40,7 +40,7 @@
     const registration = {
       planId: resolvedPlanId,
       type,
-      displayName,
+      title,
       description,
       contactUrl,
       recommended,

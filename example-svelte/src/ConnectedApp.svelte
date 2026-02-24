@@ -26,8 +26,6 @@
     updateSubscriptionSeats: api.billing.updateSubscriptionSeats,
     cancelCurrentSubscription: api.billing.cancelCurrentSubscription,
     resumeCurrentSubscription: api.billing.resumeCurrentSubscription,
-    syncProducts: api.billing.syncBillingProducts,
-    createDemoUser: api.example.createDemoUser,
   };
 
   const upgradeTransitions: Transition[] = [
@@ -55,6 +53,25 @@
     className="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900"
   />
 
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!--  SIMPLE SETUP — auto-renders plans from planCatalog, zero config  -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+
+  <section class="space-y-3">
+    <h2 class="text-xl font-semibold">0. Simple Setup (Auto-Render from planCatalog)</h2>
+    <p class="text-sm text-zinc-600 dark:text-zinc-300">
+      No <code>&lt;Subscription.Plan&gt;</code> children needed — plans, titles,
+      and descriptions are resolved automatically from the <code>planCatalog</code>
+      config and the Creem product table.
+    </p>
+    <Subscription api={connectedApi} className="space-y-4" />
+    <ConnectedBillingPortal api={connectedApi} />
+  </section>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!--  ADVANCED / FLEXIBLE — explicit <Subscription.Plan> children      -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+
   <!-- ─── Section 1: Subscriptions with trial (all 4 billing cycles) ─── -->
   <section class="space-y-3">
     <h2 class="text-xl font-semibold">1. Subscription — With Trial (4 Cycles)</h2>
@@ -63,7 +80,7 @@
       registered plans automatically.
     </p>
     <Subscription api={connectedApi} className="space-y-4">
-      <Subscription.Plan type="free" displayName="Free" description="Start here with limited access" />
+      <Subscription.Plan type="free" title="Free" description="Start here with limited access" />
       <Subscription.Plan
         planId="basic"
         type="single"
@@ -77,7 +94,7 @@
       <Subscription.Plan
         planId="premium"
         type="single"
-        displayName="Premium"
+        title="Premium"
         description="Advanced subscription plan."
         recommended
         productIds={{
@@ -87,9 +104,9 @@
           "every-year": "prod_6ytx0cFhBvgXLp1jA6CQqH",
         }}
       />
-      <Subscription.Plan type="enterprise" displayName="Enterprise" contactUrl="https://creem.io" />
-      <ConnectedBillingPortal api={connectedApi} />
+      <Subscription.Plan type="enterprise" title="Enterprise" contactUrl="https://creem.io" />
     </Subscription>
+    <ConnectedBillingPortal api={connectedApi} />
   </section>
 
   <!-- ─── Section 2: Subscriptions without trial (monthly only) ─── -->
@@ -99,22 +116,22 @@
       Only monthly products registered. The billing toggle should not appear.
     </p>
     <Subscription api={connectedApi} className="space-y-4">
-      <Subscription.Plan type="free" displayName="Free" description="No-cost tier" />
+      <Subscription.Plan type="free" title="Free" description="No-cost tier" />
       <Subscription.Plan
         type="single"
-        displayName="Basic"
+        title="Basic"
         description="Monthly subscription, no trial"
         productIds={{ "every-month": "prod_53CU7duHB58lGTUqKlRroI" }}
       />
       <Subscription.Plan
         type="single"
-        displayName="Premium"
+        title="Premium"
         description="Monthly subscription, no trial"
         productIds={{ "every-month": "prod_3ymOe55fDzKgmPoZnPEOBq" }}
       />
-      <Subscription.Plan type="enterprise" displayName="Enterprise" contactUrl="https://creem.io" />
-      <ConnectedBillingPortal api={connectedApi} />
+      <Subscription.Plan type="enterprise" title="Enterprise" contactUrl="https://creem.io" />
     </Subscription>
+    <ConnectedBillingPortal api={connectedApi} />
   </section>
 
   <!-- ─── Section 3: Seat-based subscriptions ─── -->
@@ -127,18 +144,18 @@
     <Subscription api={connectedApi} className="space-y-4" showSeatPicker>
       <Subscription.Plan
         type="seat-based"
-        displayName="Basic (per seat)"
+        title="Basic (per seat)"
         description="Per-seat monthly subscription"
         productIds={{ "every-month": "prod_1c6ZGcxekHKrVYuWriHs68" }}
       />
       <Subscription.Plan
         type="seat-based"
-        displayName="Premium (per seat)"
+        title="Premium (per seat)"
         description="Per-seat monthly subscription"
         productIds={{ "every-month": "prod_3861b06bJDnvpEBcs2uxYv" }}
       />
-      <ConnectedBillingPortal api={connectedApi} />
     </Subscription>
+    <ConnectedBillingPortal api={connectedApi} />
   </section>
 
   <!-- ─── Section 3b: Seat-based with auto-derived units ─── -->
@@ -151,13 +168,13 @@
     <Subscription api={connectedApi} className="space-y-4" units={5}>
       <Subscription.Plan
         type="seat-based"
-        displayName="Basic"
+        title="Basic"
         description="Per-seat monthly subscription"
         productIds={{ "every-month": "prod_1c6ZGcxekHKrVYuWriHs68" }}
       />
       <Subscription.Plan
         type="seat-based"
-        displayName="Premium"
+        title="Premium"
         description="Per-seat monthly subscription"
         productIds={{ "every-month": "prod_3861b06bJDnvpEBcs2uxYv" }}
       />
@@ -184,7 +201,7 @@
     <h2 class="text-xl font-semibold">5. Mutually Exclusive Product Group</h2>
     <p class="text-sm text-zinc-600 dark:text-zinc-300">
       Transition graph decides available upgrade paths. Upgrading from Basic to
-      Premium uses a dedicated delta product.
+      Premium uses a dedicated delta product. Buy first the Basic Product and then upgrade to Premium.
     </p>
 
     <Product.Group api={connectedApi} transition={upgradeTransitions}>

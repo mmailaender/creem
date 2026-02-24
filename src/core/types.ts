@@ -37,6 +37,12 @@ export type PlanCatalogEntry = {
   metadata?: Record<string, unknown>;
 };
 
+/** PlanCatalogEntry + resolved UI display fields (title, description). */
+export type UIPlanEntry = PlanCatalogEntry & {
+  title?: string;
+  description?: string;
+};
+
 export type PlanCatalog = {
   version: string;
   plans: PlanCatalogEntry[];
