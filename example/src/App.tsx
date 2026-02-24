@@ -143,8 +143,6 @@ export default function TodoList() {
       planId: "premium",
       category: "paid",
       billingType: "recurring",
-      displayName: "Premium",
-      description: "Up to 6 todos with subscription benefits.",
       billingCycles: ["every-month", "every-year"],
       creemProductIds: {
         default: premiumMonthly.id,
@@ -158,8 +156,6 @@ export default function TodoList() {
       planId: "premium-plus",
       category: "paid",
       billingType: "recurring",
-      displayName: "Premium Plus",
-      description: "Unlimited todos and top-tier features.",
       billingCycles: ["every-month", "every-year"],
       creemProductIds: {
         default: premiumPlusMonthly.id,
@@ -172,8 +168,6 @@ export default function TodoList() {
     planId: "enterprise",
     category: "enterprise",
     billingType: "custom",
-    displayName: "Enterprise",
-    description: "Custom pricing and onboarding support.",
     contactUrl: "https://creem.io",
   });
 
