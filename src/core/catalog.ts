@@ -30,7 +30,8 @@ const RECURRING_CYCLE_SET = new Set(SUPPORTED_RECURRING_CYCLES);
 
 export const isSupportedRecurringCycle = (
   value: string,
-): value is SupportedRecurringCycle => RECURRING_CYCLE_SET.has(value as SupportedRecurringCycle);
+): value is SupportedRecurringCycle =>
+  RECURRING_CYCLE_SET.has(value as SupportedRecurringCycle);
 
 export const normalizeRecurringCycle = (
   value: string | null | undefined,

@@ -41,9 +41,7 @@ function createTestSubscription(
 }
 
 // Helper to create a minimal valid product for testing
-function createTestProduct(
-  overrides: Partial<DbProduct> = {},
-): DbProduct {
+function createTestProduct(overrides: Partial<DbProduct> = {}): DbProduct {
   return {
     id: "prod_123",
     organizationId: "org_456",
@@ -63,9 +61,7 @@ function createTestProduct(
 }
 
 // Helper to create a minimal valid customer for testing
-function createTestCustomer(
-  overrides: Partial<DbCustomer> = {},
-): DbCustomer {
+function createTestCustomer(overrides: Partial<DbCustomer> = {}): DbCustomer {
   return {
     id: "cust_123",
     userId: "user_456",
@@ -74,7 +70,9 @@ function createTestCustomer(
 }
 
 // Helper to create Creem SDK-shaped Product objects.
-function createSdkProduct(overrides: Partial<ProductEntity> = {}): ProductEntity {
+function createSdkProduct(
+  overrides: Partial<ProductEntity> = {},
+): ProductEntity {
   return {
     id: "prod_123",
     mode: "test_mode",

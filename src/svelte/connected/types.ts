@@ -74,7 +74,11 @@ export type ConnectedBillingModel = {
   policy?: unknown;
 };
 
-export type SubscriptionPlanType = "free" | "single" | "seat-based" | "enterprise";
+export type SubscriptionPlanType =
+  | "free"
+  | "single"
+  | "seat-based"
+  | "enterprise";
 
 export type SubscriptionPlanRegistration = {
   planId: string;

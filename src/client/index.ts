@@ -198,7 +198,7 @@ export class Creem<
       successUrl: string;
       units?: number;
       metadata?: Record<string, string>;
-    }
+    },
   ): Promise<CheckoutEntity> {
     const dbCustomer = await ctx.runQuery(
       this.component.lib.getCustomerByUserId,
@@ -287,19 +287,13 @@ export class Creem<
     };
   }
   /** Return active subscriptions for a user, excluding ended and expired trials. */
-  listUserSubscriptions(
-    ctx: RunQueryCtx,
-    { userId }: { userId: string },
-  ) {
+  listUserSubscriptions(ctx: RunQueryCtx, { userId }: { userId: string }) {
     return ctx.runQuery(this.component.lib.listUserSubscriptions, {
       userId,
     });
   }
   /** Return all subscriptions for a user, including ended and expired trials. */
-  listAllUserSubscriptions(
-    ctx: RunQueryCtx,
-    { userId }: { userId: string },
-  ) {
+  listAllUserSubscriptions(ctx: RunQueryCtx, { userId }: { userId: string }) {
     return ctx.runQuery(this.component.lib.listAllUserSubscriptions, {
       userId,
     });
@@ -355,7 +349,9 @@ export class Creem<
     return updatedSubscription;
   }
 
-  private toSubscriptionSnapshot(subscription: Subscription): SubscriptionSnapshot {
+  private toSubscriptionSnapshot(
+    subscription: Subscription,
+  ): SubscriptionSnapshot {
     return {
       id: subscription.id,
       productId: subscription.productId,
@@ -417,12 +413,16 @@ export class Creem<
     if (!subscription) {
       throw new Error("Subscription not found");
     }
-    if (subscription.status !== "active" && subscription.status !== "trialing") {
+    if (
+      subscription.status !== "active" &&
+      subscription.status !== "trialing"
+    ) {
       throw new Error("Subscription is not active");
     }
     // Resolve cancel mode: explicit arg > config default > omit (Creem decides)
     const immediate =
-      revokeImmediately ?? (this.config.cancelMode === "immediate" ? true : undefined);
+      revokeImmediately ??
+      (this.config.cancelMode === "immediate" ? true : undefined);
     const cancelParams =
       immediate === true
         ? { mode: "immediate" as const }
@@ -458,10 +458,7 @@ export class Creem<
     return await this.creem.subscriptions.resume(subscription.id);
   }
 
-  private async verifyWebhook(
-    body: string,
-    headers: Record<string, string>,
-  ) {
+  private async verifyWebhook(body: string, headers: Record<string, string>) {
     if (!this.webhookSecret) {
       throw new Error("Missing CREEM_WEBHOOK_SECRET");
     }
@@ -517,12 +514,17 @@ export class Creem<
    * using the SDK's built-in parser (handles snake_case → camelCase + date parsing).
    * Falls back to manual conversion if SDK parsing fails (e.g. unknown status like `incomplete`).
    */
-  private parseSubscription(obj: Record<string, unknown>): SubscriptionEntity | null {
+  private parseSubscription(
+    obj: Record<string, unknown>,
+  ): SubscriptionEntity | null {
     const result = subscriptionEntityFromJSON(JSON.stringify(obj));
     if (result.ok) {
       return result.value;
     }
-    console.warn("SDK subscription parsing failed, attempting manual fallback:", result.error);
+    console.warn(
+      "SDK subscription parsing failed, attempting manual fallback:",
+      result.error,
+    );
     return this.manualParseSubscription(obj);
   }
 
@@ -531,7 +533,9 @@ export class Creem<
    * (e.g. unknown status like `incomplete`). Converts snake_case keys
    * to the camelCase SubscriptionEntity shape that convertToDatabaseSubscription expects.
    */
-  private manualParseSubscription(raw: Record<string, unknown>): SubscriptionEntity | null {
+  private manualParseSubscription(
+    raw: Record<string, unknown>,
+  ): SubscriptionEntity | null {
     try {
       const parseDate = (v: unknown): Date | undefined =>
         typeof v === "string" ? new Date(v) : undefined;
@@ -569,12 +573,17 @@ export class Creem<
               mode: (item.mode as "test" | "live") ?? "test",
             }))
           : undefined,
-        collectionMethod: (raw.collection_method as SubscriptionEntity["collectionMethod"]) ?? "charge_automatically",
+        collectionMethod:
+          (raw.collection_method as SubscriptionEntity["collectionMethod"]) ??
+          "charge_automatically",
         // Pass through the raw status even if the SDK doesn't know it
         status: raw.status as SubscriptionEntity["status"],
         currentPeriodStartDate: parseDate(raw.current_period_start_date),
         currentPeriodEndDate: parseDate(raw.current_period_end_date),
-        canceledAt: raw.canceled_at != null ? (parseDate(raw.canceled_at as string) ?? null) : null,
+        canceledAt:
+          raw.canceled_at != null
+            ? (parseDate(raw.canceled_at as string) ?? null)
+            : null,
         createdAt: parseDate(raw.created_at) ?? new Date(),
         updatedAt: parseDate(raw.updated_at) ?? new Date(),
       } as SubscriptionEntity;
@@ -611,7 +620,9 @@ export class Creem<
   }
 
   /** Extract customer ID from a CustomerEntity | string union. */
-  private getCustomerId(customer: CustomerEntity | string | undefined | null): string | null {
+  private getCustomerId(
+    customer: CustomerEntity | string | undefined | null,
+  ): string | null {
     if (!customer) return null;
     if (typeof customer === "string") return customer;
     return customer.id ?? null;
@@ -619,7 +630,11 @@ export class Creem<
 
   /** Extract convexUserId from webhook metadata. */
   private getConvexUserId(metadata: unknown): string | null {
-    if (metadata && typeof metadata === "object" && "convexUserId" in metadata) {
+    if (
+      metadata &&
+      typeof metadata === "object" &&
+      "convexUserId" in metadata
+    ) {
       const val = (metadata as Record<string, unknown>).convexUserId;
       return typeof val === "string" ? val : null;
     }
@@ -648,10 +663,7 @@ export class Creem<
    * Returns all data the connected widgets need minus app-specific fields.
    * Use this in your own query if you need to add app-specific fields (e.g. ownedProductIds).
    */
-  async buildBillingUiModel(
-    ctx: RunQueryCtx,
-    { userId }: { userId: string },
-  ) {
+  async buildBillingUiModel(ctx: RunQueryCtx, { userId }: { userId: string }) {
     const products = await this.listProducts(ctx);
     const configuredProducts = Object.fromEntries(
       Object.entries(this.products).map(([key, productId]) => [
@@ -659,13 +671,17 @@ export class Creem<
         products.find((p) => p.id === productId) ?? null,
       ]),
     );
-    const [billingSnapshot, subscription, activeSubscriptions, customer] = await Promise.all([
-      this.getBillingSnapshot(ctx, { userId }),
-      this.getCurrentSubscription(ctx, { userId }),
-      this.listUserSubscriptions(ctx, { userId }),
-      this.getCustomerByUserId(ctx, userId),
-    ]);
-    const catalog = await this.config.getPlanCatalog?.(ctx) ?? this.config.planCatalog ?? null;
+    const [billingSnapshot, subscription, activeSubscriptions, customer] =
+      await Promise.all([
+        this.getBillingSnapshot(ctx, { userId }),
+        this.getCurrentSubscription(ctx, { userId }),
+        this.listUserSubscriptions(ctx, { userId }),
+        this.getCustomerByUserId(ctx, userId),
+      ]);
+    const catalog =
+      (await this.config.getPlanCatalog?.(ctx)) ??
+      this.config.planCatalog ??
+      null;
     return {
       billingSnapshot,
       configuredProducts,
@@ -904,7 +920,9 @@ export class Creem<
             if (checkout && eventType === "checkout.completed") {
               // Auto-create customer record from checkout metadata
               const customerId = this.getCustomerId(
-                typeof checkout.customer === "object" ? checkout.customer : undefined,
+                typeof checkout.customer === "object"
+                  ? checkout.customer
+                  : undefined,
               );
               const userId = this.getConvexUserId(checkout.metadata);
               await this.upsertCustomerFromWebhook(ctx, customerId, userId);
@@ -912,13 +930,24 @@ export class Creem<
               // Process embedded subscription if present (recurring checkout).
               // checkoutEntityFromJSON already parsed it into a typed SubscriptionEntity,
               // so use it directly — do NOT re-parse through subscriptionEntityFromJSON.
-              if (checkout.subscription && typeof checkout.subscription === "object") {
+              if (
+                checkout.subscription &&
+                typeof checkout.subscription === "object"
+              ) {
                 const embeddedSub = checkout.subscription as SubscriptionEntity;
                 // Recover metadata: SDK strips it from SubscriptionEntity.
                 // Use checkout-level metadata as fallback (same convexUserId).
-                const embeddedRaw = (raw.subscription ?? {}) as Record<string, unknown>;
-                const rawMeta = (embeddedRaw.metadata ?? checkout.metadata ?? {}) as Record<string, unknown>;
-                const subscription = convertToDatabaseSubscription(embeddedSub, { rawMetadata: rawMeta });
+                const embeddedRaw = (raw.subscription ?? {}) as Record<
+                  string,
+                  unknown
+                >;
+                const rawMeta = (embeddedRaw.metadata ??
+                  checkout.metadata ??
+                  {}) as Record<string, unknown>;
+                const subscription = convertToDatabaseSubscription(
+                  embeddedSub,
+                  { rawMetadata: rawMeta },
+                );
                 await ctx.runMutation(this.component.lib.createSubscription, {
                   subscription,
                 });
@@ -936,7 +965,9 @@ export class Creem<
             if (parsed) {
               // Pass raw metadata since SDK's SubscriptionEntity type strips it
               const rawMeta = (raw.metadata ?? {}) as Record<string, unknown>;
-              const subscription = convertToDatabaseSubscription(parsed, { rawMetadata: rawMeta });
+              const subscription = convertToDatabaseSubscription(parsed, {
+                rawMetadata: rawMeta,
+              });
               if (eventType === "subscription.created") {
                 await ctx.runMutation(this.component.lib.createSubscription, {
                   subscription,
@@ -950,7 +981,8 @@ export class Creem<
               // Auto-create customer record from subscription metadata
               const customerId = this.getCustomerId(parsed.customer);
               const userId = this.getConvexUserId(
-                raw.metadata ?? (parsed as unknown as Record<string, unknown>).metadata,
+                raw.metadata ??
+                  (parsed as unknown as Record<string, unknown>).metadata,
               );
               await this.upsertCustomerFromWebhook(ctx, customerId, userId);
             } else {

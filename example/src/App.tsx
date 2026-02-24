@@ -64,14 +64,18 @@ function PriceDisplay({ price }: { price: any }) {
           <span className="font-medium">Per-seat pricing:</span>
           {price.seatTiers?.map(
             (
-              tier: { minSeats: number; maxSeats: number | null; pricePerSeat: number },
+              tier: {
+                minSeats: number;
+                maxSeats: number | null;
+                pricePerSeat: number;
+              },
               i: number,
             ) => (
               <div key={i}>
                 {tier.minSeats}
                 {tier.maxSeats ? `–${tier.maxSeats}` : "+"} seats: $
                 {tier.pricePerSeat / 100}/seat
-                  </div>
+              </div>
             ),
           )}
         </div>
@@ -81,7 +85,9 @@ function PriceDisplay({ price }: { price: any }) {
         <span>
           ${price.unitAmount ?? "?"}/unit
           {price.meter?.name && <> ({price.meter.name})</>}
-          {price.capAmount != null && <> &middot; cap ${price.capAmount / 100}</>}
+          {price.capAmount != null && (
+            <> &middot; cap ${price.capAmount / 100}</>
+          )}
         </span>
       );
     default:
@@ -95,20 +101,21 @@ export default function TodoList() {
   const products = useQuery(api.billing.getConfiguredProducts);
   const allProducts = useQuery(api.billing.listAllProducts);
   const insertTodo = useMutation(api.example.insertTodo).withOptimisticUpdate(
-    insertTodoOptimistic
+    insertTodoOptimistic,
   );
   const completeTodo = useMutation(
-    api.example.completeTodo
+    api.example.completeTodo,
   ).withOptimisticUpdate(completeTodoOptimistic);
   const deleteTodo = useMutation(api.example.deleteTodo).withOptimisticUpdate(
-    deleteTodoOptimistic
+    deleteTodoOptimistic,
   );
   const createDemoUser = useMutation(api.example.createDemoUser);
   const cancelSubscription = useAction(api.billing.cancelCurrentSubscription);
   const changeSubscription = useAction(api.billing.changeCurrentSubscription);
   const [newTodo, setNewTodo] = useState("");
   const [isCreatingDemoUser, setIsCreatingDemoUser] = useState(false);
-  const [selectedCycle, setSelectedCycle] = useState<RecurringCycle>("every-month");
+  const [selectedCycle, setSelectedCycle] =
+    useState<RecurringCycle>("every-month");
 
   const todosLength = todos?.length ?? 0;
   const isAtMaxTodos = user?.maxTodos && todosLength >= user.maxTodos;
@@ -203,7 +210,9 @@ export default function TodoList() {
         metadata: {
           ...(baseSnapshot.metadata ?? {}),
           cancelAtPeriodEnd: true,
-          currentPeriodEnd: new Date(Date.now() + 1000 * 60 * 60 * 24 * 14).toISOString(),
+          currentPeriodEnd: new Date(
+            Date.now() + 1000 * 60 * 60 * 24 * 14,
+          ).toISOString(),
         },
       }
     : null;
@@ -226,7 +235,8 @@ export default function TodoList() {
         metadata: {
           ...(baseSnapshot.metadata ?? {}),
           trialEnd:
-            user?.trialEnd ?? new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString(),
+            user?.trialEnd ??
+            new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString(),
         },
       }
     : null;
@@ -260,7 +270,7 @@ export default function TodoList() {
     const action = getButtonText(productId);
     if (
       confirm(
-        `Are you sure you want to ${action.toLowerCase()} your subscription? Any price difference will be prorated.`
+        `Are you sure you want to ${action.toLowerCase()} your subscription? Any price difference will be prorated.`,
       )
     ) {
       await changeSubscription({ productId });
@@ -270,7 +280,7 @@ export default function TodoList() {
   const handleCancelSubscription = async () => {
     if (
       confirm(
-        "Are you sure you want to cancel your subscription? This will immediately end your subscription and any remaining time will be prorated and refunded."
+        "Are you sure you want to cancel your subscription? This will immediately end your subscription and any remaining time will be prorated and refunded.",
       )
     ) {
       await cancelSubscription({ revokeImmediately: true });
@@ -287,7 +297,7 @@ export default function TodoList() {
       }
       if (isAtMaxTodos) {
         alert(
-          "You've reached the maximum number of todos for your current plan. Please upgrade to add more!"
+          "You've reached the maximum number of todos for your current plan. Please upgrade to add more!",
         );
         return;
       }
@@ -305,9 +315,9 @@ export default function TodoList() {
             Creem Subscription Example
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
-            This example demonstrates Creem subscription management
-            capabilities including trial support, multiple price types, and
-            product benefits. Test it out by:
+            This example demonstrates Creem subscription management capabilities
+            including trial support, multiple price types, and product benefits.
+            Test it out by:
           </p>
           <ol className="list-decimal list-inside space-y-2 text-gray-600 dark:text-gray-400 mb-4">
             <li>
@@ -326,10 +336,16 @@ export default function TodoList() {
               Create demo data
             </h2>
             <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-              This example is auth-free. Create a demo user to continue testing todos and Creem checkout flows.
+              This example is auth-free. Create a demo user to continue testing
+              todos and Creem checkout flows.
             </p>
-            <Button onClick={handleCreateDemoUser} disabled={isCreatingDemoUser}>
-              {isCreatingDemoUser ? "Creating demo user..." : "Create demo user"}
+            <Button
+              onClick={handleCreateDemoUser}
+              disabled={isCreatingDemoUser}
+            >
+              {isCreatingDemoUser
+                ? "Creating demo user..."
+                : "Create demo user"}
             </Button>
           </div>
         ) : (
@@ -352,8 +368,8 @@ export default function TodoList() {
                 <div className="flex items-center text-yellow-600 dark:text-yellow-400 mb-4">
                   <AlertCircle className="mr-2" />
                   <span>
-                    You've reached the limit for your current plan. Upgrade to add
-                    more!
+                    You've reached the limit for your current plan. Upgrade to
+                    add more!
                   </span>
                 </div>
               )}
@@ -393,63 +409,67 @@ export default function TodoList() {
 
             {/* Current Subscription */}
             <div className="mt-8 p-6 bg-white dark:bg-gray-950 border border-transparent dark:border-gray-900 rounded-lg shadow-lg dark:shadow-gray-800/30">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-light text-gray-800 dark:text-gray-100">
-              Subscription
-            </h2>
-            {user?.subscription && (
-              <CustomerPortalLink
-                creemApi={{
-                  generateCustomerPortalUrl:
-                    api.billing.generateCustomerPortalUrl,
-                }}
-                className="text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                Manage Subscription
-              </CustomerPortalLink>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
-              {user?.subscription?.product.name || "Free"}
-            </span>
-            {user?.isTrialing && (
-              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
-                Trial
-                {user.trialEnd && (
-                  <> &middot; ends {new Date(user.trialEnd).toLocaleDateString()}</>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-light text-gray-800 dark:text-gray-100">
+                  Subscription
+                </h2>
+                {user?.subscription && (
+                  <CustomerPortalLink
+                    creemApi={{
+                      generateCustomerPortalUrl:
+                        api.billing.generateCustomerPortalUrl,
+                    }}
+                    className="text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+                  >
+                    Manage Subscription
+                  </CustomerPortalLink>
                 )}
-              </span>
-            )}
-            {user?.subscription?.amount && (
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                ${user.subscription.amount / 100}/
-                {user.subscription.recurringInterval}
-              </span>
-            )}
-            <span className="text-sm text-gray-600 dark:text-gray-400">
-              •{" "}
-              {user?.isPremium
-                ? "Unlimited todos"
-                : user?.isBasic
-                  ? "Up to 6 todos"
-                  : "Up to 3 todos"}
-            </span>
-          </div>
+              </div>
 
-          {user?.subscription && (
-            <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800">
-              <Button
-                variant="ghost"
-                className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
-                onClick={handleCancelSubscription}
-              >
-                Cancel Subscription
-              </Button>
+              <div className="flex items-center gap-2">
+                <span className="px-3 py-1 rounded-full text-sm font-medium bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200">
+                  {user?.subscription?.product.name || "Free"}
+                </span>
+                {user?.isTrialing && (
+                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+                    Trial
+                    {user.trialEnd && (
+                      <>
+                        {" "}
+                        &middot; ends{" "}
+                        {new Date(user.trialEnd).toLocaleDateString()}
+                      </>
+                    )}
+                  </span>
+                )}
+                {user?.subscription?.amount && (
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    ${user.subscription.amount / 100}/
+                    {user.subscription.recurringInterval}
+                  </span>
+                )}
+                <span className="text-sm text-gray-600 dark:text-gray-400">
+                  •{" "}
+                  {user?.isPremium
+                    ? "Unlimited todos"
+                    : user?.isBasic
+                      ? "Up to 6 todos"
+                      : "Up to 3 todos"}
+                </span>
+              </div>
+
+              {user?.subscription && (
+                <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-800">
+                  <Button
+                    variant="ghost"
+                    className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                    onClick={handleCancelSubscription}
+                  >
+                    Cancel Subscription
+                  </Button>
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
             {/* React Billing UI Showcase */}
             <div className="mt-8 p-6 bg-white dark:bg-gray-950 border border-transparent dark:border-gray-900 rounded-lg shadow-lg dark:shadow-gray-800/30 space-y-5">
@@ -514,7 +534,8 @@ export default function TodoList() {
                   </>
                 ) : (
                   <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Product IDs unavailable. Sync products to test checkout buttons.
+                    Product IDs unavailable. Sync products to test checkout
+                    buttons.
                   </p>
                 )}
 
@@ -553,203 +574,230 @@ export default function TodoList() {
             {/* Configured Products */}
             {premiumMonthly && !user?.isTrialing && (
               <div className="mt-8 p-6 bg-white dark:bg-gray-950 border border-transparent dark:border-gray-900 rounded-lg shadow-lg dark:shadow-gray-800/30">
-            <h2 className="text-2xl font-light mb-2 text-gray-800 dark:text-gray-100">
-              Configured Products
-            </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-              Uses <code className="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs">getConfiguredProducts</code> — products are mapped by key with hardcoded Creem product IDs.
-            </p>
-            <div className="space-y-2">
-              {/* Premium */}
-              {premiumMonthly && (
-                <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-800 rounded-lg">
-                  <div>
-                    <h4 className="font-medium">Premium</h4>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        ${(premiumMonthly.prices[0].priceAmount ?? 0) / 100}/month
-                      </span>
-                      {premiumYearly && (
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          or ${(premiumYearly.prices[0].priceAmount ?? 0) / 100}/year
-                        </span>
-                      )}
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        • Up to 6 todos
-                      </span>
+                <h2 className="text-2xl font-light mb-2 text-gray-800 dark:text-gray-100">
+                  Configured Products
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                  Uses{" "}
+                  <code className="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs">
+                    getConfiguredProducts
+                  </code>{" "}
+                  — products are mapped by key with hardcoded Creem product IDs.
+                </p>
+                <div className="space-y-2">
+                  {/* Premium */}
+                  {premiumMonthly && (
+                    <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-800 rounded-lg">
+                      <div>
+                        <h4 className="font-medium">Premium</h4>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            ${(premiumMonthly.prices[0].priceAmount ?? 0) / 100}
+                            /month
+                          </span>
+                          {premiumYearly && (
+                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                              or $
+                              {(premiumYearly.prices[0].priceAmount ?? 0) / 100}
+                              /year
+                            </span>
+                          )}
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            • Up to 6 todos
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        {user?.subscription?.productId !== premiumMonthly.id &&
+                          user?.subscription?.productId !== premiumYearly?.id &&
+                          (user?.isFree ? (
+                            <div className="flex items-center gap-3">
+                              <CheckoutLink
+                                creemApi={{
+                                  generateCheckoutLink:
+                                    api.billing.generateCheckoutLink,
+                                }}
+                                productId={premiumMonthly.id}
+                                className="text-sm text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
+                              >
+                                Start checkout
+                              </CheckoutLink>
+                              <CheckoutLink
+                                creemApi={{
+                                  generateCheckoutLink:
+                                    api.billing.generateCheckoutLink,
+                                }}
+                                productId={premiumMonthly.id}
+                                className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+                              >
+                                Upgrade to Premium
+                              </CheckoutLink>
+                            </div>
+                          ) : (
+                            <Button
+                              variant="link"
+                              className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 p-0 h-auto"
+                              onClick={() =>
+                                handlePlanChange(premiumMonthly.id)
+                              }
+                            >
+                              {getButtonText(premiumMonthly.id)} to Premium
+                            </Button>
+                          ))}
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {user?.subscription?.productId !== premiumMonthly.id &&
-                      user?.subscription?.productId !== premiumYearly?.id &&
-                      (user?.isFree ? (
-                        <div className="flex items-center gap-3">
+                  )}
+
+                  {/* Premium Plus */}
+                  {premiumPlusMonthly && (
+                    <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-800 rounded-lg">
+                      <div>
+                        <h4 className="font-medium">Premium Plus</h4>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            $
+                            {(premiumPlusMonthly.prices[0].priceAmount ?? 0) /
+                              100}
+                            /month
+                          </span>
+                          {premiumPlusYearly && (
+                            <span className="text-sm text-gray-600 dark:text-gray-400">
+                              or $
+                              {(premiumPlusYearly.prices[0].priceAmount ?? 0) /
+                                100}
+                              /year
+                            </span>
+                          )}
+                          <span className="text-sm text-gray-600 dark:text-gray-400">
+                            • Unlimited todos
+                          </span>
+                        </div>
+                      </div>
+                      {user?.subscription?.productId !==
+                        premiumPlusMonthly.id &&
+                        user?.subscription?.productId !==
+                          premiumPlusYearly?.id &&
+                        (user?.isFree ? (
                           <CheckoutLink
                             creemApi={{
                               generateCheckoutLink:
                                 api.billing.generateCheckoutLink,
                             }}
-                            productId={premiumMonthly.id}
-                            className="text-sm text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
-                          >
-                            Start checkout
-                          </CheckoutLink>
-                          <CheckoutLink
-                            creemApi={{
-                              generateCheckoutLink:
-                                api.billing.generateCheckoutLink,
-                            }}
-                            productId={premiumMonthly.id}
+                            productId={premiumPlusMonthly.id}
                             className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
                           >
-                            Upgrade to Premium
+                            Upgrade to Premium Plus
                           </CheckoutLink>
-                        </div>
-                      ) : (
-                        <Button
-                          variant="link"
-                          className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 p-0 h-auto"
-                          onClick={() => handlePlanChange(premiumMonthly.id)}
-                        >
-                          {getButtonText(premiumMonthly.id)} to Premium
-                        </Button>
-                      ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Premium Plus */}
-              {premiumPlusMonthly && (
-                <div className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-800 rounded-lg">
-                  <div>
-                    <h4 className="font-medium">Premium Plus</h4>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        ${(premiumPlusMonthly.prices[0].priceAmount ?? 0) / 100}/month
-                      </span>
-                      {premiumPlusYearly && (
-                        <span className="text-sm text-gray-600 dark:text-gray-400">
-                          or ${(premiumPlusYearly.prices[0].priceAmount ?? 0) / 100}/year
-                        </span>
-                      )}
-                      <span className="text-sm text-gray-600 dark:text-gray-400">
-                        • Unlimited todos
-                      </span>
+                        ) : (
+                          <Button
+                            variant="link"
+                            className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 p-0 h-auto"
+                            onClick={() =>
+                              handlePlanChange(premiumPlusMonthly.id)
+                            }
+                          >
+                            {getButtonText(premiumPlusMonthly.id)} to Premium
+                            Plus
+                          </Button>
+                        ))}
                     </div>
-                  </div>
-                  {user?.subscription?.productId !== premiumPlusMonthly.id &&
-                    user?.subscription?.productId !== premiumPlusYearly?.id &&
-                    (user?.isFree ? (
-                      <CheckoutLink
-                        creemApi={{
-                          generateCheckoutLink:
-                            api.billing.generateCheckoutLink,
-                        }}
-                        productId={premiumPlusMonthly.id}
-                        className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
-                      >
-                        Upgrade to Premium Plus
-                      </CheckoutLink>
-                    ) : (
-                      <Button
-                        variant="link"
-                        className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300 p-0 h-auto"
-                        onClick={() =>
-                          handlePlanChange(premiumPlusMonthly.id)
-                        }
-                      >
-                        {getButtonText(premiumPlusMonthly.id)} to Premium Plus
-                      </Button>
-                    ))}
+                  )}
                 </div>
-              )}
-            </div>
               </div>
             )}
 
             {/* Products Showcase */}
             <div className="mt-8 p-6 bg-white dark:bg-gray-950 border border-transparent dark:border-gray-900 rounded-lg shadow-lg dark:shadow-gray-800/30">
-          <h2 className="text-2xl font-light mb-2 text-gray-800 dark:text-gray-100">
-            All Products
-          </h2>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
-            Uses <code className="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs">listAllProducts</code> — dynamically lists all synced products from Creem, demonstrating different price types and benefits.
-          </p>
-          {allProducts && allProducts.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {allProducts.map((product: any) => (
-                <div
-                  key={product.id}
-                  className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg space-y-3"
-                >
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-medium text-gray-800 dark:text-gray-100">
-                      {product.name}
-                    </h3>
-                    {product.trialInterval && product.trialIntervalCount && (
-                      <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300">
-                        {product.trialIntervalCount} {product.trialInterval} free trial
-                      </span>
-                    )}
-                  </div>
-                  {product.description && (
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {product.description}
-                    </p>
-                  )}
-
-                  {/* Prices */}
-                  <div className="space-y-1">
-                    {product.prices.map((price: any, i: number) => (
-                      <div
-                        key={price.id ?? i}
-                        className="text-sm text-gray-700 dark:text-gray-300"
-                      >
-                        <PriceDisplay price={price} />
+              <h2 className="text-2xl font-light mb-2 text-gray-800 dark:text-gray-100">
+                All Products
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                Uses{" "}
+                <code className="px-1 py-0.5 bg-gray-100 dark:bg-gray-800 rounded text-xs">
+                  listAllProducts
+                </code>{" "}
+                — dynamically lists all synced products from Creem,
+                demonstrating different price types and benefits.
+              </p>
+              {allProducts && allProducts.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {allProducts.map((product: any) => (
+                    <div
+                      key={product.id}
+                      className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg space-y-3"
+                    >
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="font-medium text-gray-800 dark:text-gray-100">
+                          {product.name}
+                        </h3>
+                        {product.trialInterval &&
+                          product.trialIntervalCount && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300">
+                              {product.trialIntervalCount}{" "}
+                              {product.trialInterval} free trial
+                            </span>
+                          )}
                       </div>
-                    ))}
-                  </div>
+                      {product.description && (
+                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                          {product.description}
+                        </p>
+                      )}
 
-                  {/* Benefits */}
-                  {product.benefits && product.benefits.length > 0 && (
-                    <ul className="space-y-1 pt-2 border-t border-gray-100 dark:border-gray-800">
-                      {product.benefits.map((benefit: any) => (
-                        <li
-                          key={benefit.id}
-                          className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400"
-                        >
-                          <span className="text-green-500 mt-0.5">&#10003;</span>
-                          <span>{benefit.description}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
+                      {/* Prices */}
+                      <div className="space-y-1">
+                        {product.prices.map((price: any, i: number) => (
+                          <div
+                            key={price.id ?? i}
+                            className="text-sm text-gray-700 dark:text-gray-300"
+                          >
+                            <PriceDisplay price={price} />
+                          </div>
+                        ))}
+                      </div>
 
-                  {/* Checkout — lazy to avoid rate limits from eager fetching */}
-                  {user?.subscription?.productId !== product.id && (
-                    <div className="pt-2">
-                      <OneTimeCheckoutLink
-                        creemApi={{
-                          generateCheckoutLink:
-                            api.billing.generateCheckoutLink,
-                        }}
-                        productId={product.id}
-                        lazy
-                        className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
-                      >
-                        Buy/Subscribe to {product.name}
-                      </OneTimeCheckoutLink>
+                      {/* Benefits */}
+                      {product.benefits && product.benefits.length > 0 && (
+                        <ul className="space-y-1 pt-2 border-t border-gray-100 dark:border-gray-800">
+                          {product.benefits.map((benefit: any) => (
+                            <li
+                              key={benefit.id}
+                              className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400"
+                            >
+                              <span className="text-green-500 mt-0.5">
+                                &#10003;
+                              </span>
+                              <span>{benefit.description}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+
+                      {/* Checkout — lazy to avoid rate limits from eager fetching */}
+                      {user?.subscription?.productId !== product.id && (
+                        <div className="pt-2">
+                          <OneTimeCheckoutLink
+                            creemApi={{
+                              generateCheckoutLink:
+                                api.billing.generateCheckoutLink,
+                            }}
+                            productId={product.id}
+                            lazy
+                            className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+                          >
+                            Buy/Subscribe to {product.name}
+                          </OneTimeCheckoutLink>
+                        </div>
+                      )}
                     </div>
-                  )}
+                  ))}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-sm text-gray-400 dark:text-gray-500">
-              No products synced yet. Run the seed script and sync products from
-              Creem.
-            </p>
-          )}
+              ) : (
+                <p className="text-sm text-gray-400 dark:text-gray-500">
+                  No products synced yet. Run the seed script and sync products
+                  from Creem.
+                </p>
+              )}
             </div>
           </>
         )}

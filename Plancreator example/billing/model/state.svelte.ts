@@ -7,5 +7,5 @@
 
 // Shared state object - exported as object so it stays reactive across modules
 export const billingState = $state({
-	isReadOnly: false
+  isReadOnly: false,
 });

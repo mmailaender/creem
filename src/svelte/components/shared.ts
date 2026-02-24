@@ -1,4 +1,9 @@
-import type { AvailableAction, BillingSnapshot, PlanCatalogEntry, RecurringCycle } from "../../core/types.js";
+import type {
+  AvailableAction,
+  BillingSnapshot,
+  PlanCatalogEntry,
+  RecurringCycle,
+} from "../../core/types.js";
 import type { ConnectedProduct } from "../connected/types.js";
 
 const CYCLE_KEY_ALIASES: Record<RecurringCycle, string[]> = {
@@ -87,7 +92,9 @@ export const formatSeatPrice = (
 ): string | null => {
   const resolved = resolveProductPrice(productId, products);
   if (!resolved) return null;
-  const suffix = resolved.interval ? (INTERVAL_LABELS[resolved.interval] ?? "") : "";
+  const suffix = resolved.interval
+    ? (INTERVAL_LABELS[resolved.interval] ?? "")
+    : "";
   if (seats <= 1) {
     return `${resolved.formatted}${suffix}`;
   }
@@ -100,6 +107,8 @@ export const formatPriceWithInterval = (
 ): string | null => {
   const resolved = resolveProductPrice(productId, products);
   if (!resolved) return null;
-  const suffix = resolved.interval ? (INTERVAL_LABELS[resolved.interval] ?? "") : "";
+  const suffix = resolved.interval
+    ? (INTERVAL_LABELS[resolved.interval] ?? "")
+    : "";
   return `${resolved.formatted}${suffix}`;
 };

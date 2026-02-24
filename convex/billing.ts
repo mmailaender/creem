@@ -188,7 +188,7 @@ export const creem = new Creem(components.creem, {
   products: configuredProductIds,
   getUserInfo: async (ctx) => {
     const user: { _id: Id<"users">; email: string } = await ctx.runQuery(
-      api.billing.getUserInfo
+      api.billing.getUserInfo,
     );
     return {
       userId: user._id,
@@ -196,7 +196,7 @@ export const creem = new Creem(components.creem, {
     };
   },
   planCatalog,
-  cancelMode: "scheduled"
+  cancelMode: "scheduled",
 
   // These can be configured in code or via environment variables
   // Uncomment and replace with actual values to configure in code:

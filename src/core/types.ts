@@ -1,9 +1,4 @@
-export type PlanCategory =
-  | "free"
-  | "trial"
-  | "paid"
-  | "enterprise"
-  | "custom";
+export type PlanCategory = "free" | "trial" | "paid" | "enterprise" | "custom";
 
 export type BillingType = "recurring" | "onetime" | "custom";
 

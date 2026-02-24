@@ -20,5 +20,5 @@ body {
   }
   @media (prefers-color-scheme: dark) {
     background-color: var(--color-gray-950);
-  };
+  }
 }

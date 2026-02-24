@@ -153,7 +153,8 @@ export const convertToDatabaseProduct = (
     isArchived: product.status !== "active",
     createdAt: toIsoStringOrNow(product.createdAt),
     modifiedAt: toIsoString(product.updatedAt),
-    recurringInterval: product.billingType === "recurring" ? product.billingPeriod : null,
+    recurringInterval:
+      product.billingType === "recurring" ? product.billingPeriod : null,
     metadata: {},
     trialInterval: null,
     trialIntervalCount: null,

@@ -11,8 +11,14 @@ export default defineConfig({
     conditions: ["svelte", "browser", "module", "import", "default"],
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "@mmailaender/creem/svelte": path.resolve(__dirname, "../src/svelte/index.ts"),
-      "@mmailaender/creem/react": path.resolve(__dirname, "../src/react/index.tsx"),
+      "@mmailaender/creem/svelte": path.resolve(
+        __dirname,
+        "../src/svelte/index.ts",
+      ),
+      "@mmailaender/creem/react": path.resolve(
+        __dirname,
+        "../src/react/index.tsx",
+      ),
       "@mmailaender/creem": path.resolve(__dirname, "../src/client/index.ts"),
     },
   },

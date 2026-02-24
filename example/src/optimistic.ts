@@ -37,8 +37,8 @@ export const completeTodoOptimistic: OptimisticUpdate<
     api.example.listTodos,
     {},
     todos.map((todo) =>
-      todo._id === args.todoId ? { ...todo, completed: !todo.completed } : todo
-    )
+      todo._id === args.todoId ? { ...todo, completed: !todo.completed } : todo,
+    ),
   );
 };
 
@@ -52,6 +52,6 @@ export const deleteTodoOptimistic: OptimisticUpdate<
   localStore.setQuery(
     api.example.listTodos,
     {},
-    todos.filter((todo) => todo._id !== args.todoId)
+    todos.filter((todo) => todo._id !== args.todoId),
   );
 };

@@ -29,6 +29,7 @@
     "clean": "rm -rf dist *.tsbuildinfo",
     "build": "tsc --project ./tsconfig.build.json",
     "typecheck": "tsc --noEmit && tsc -p example && tsc -p example-svelte",
+    "format": "prettier --write .",
     "lint": "eslint .",
     "all": "concurrently --kill-others --prefix-colors 'blue,yellow,magenta,cyan' --names 'frontend,backend,build,test' 'pnpm dev:frontend' 'pnpm dev:backend' 'pnpm dev:build' 'pnpm test:watch'",
     "test": "vitest run --typecheck",

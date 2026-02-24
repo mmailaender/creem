@@ -21,11 +21,11 @@ creem.registerRoutes(http, {
       if (data?.customerCancellationReason) {
         console.log(
           "Customer cancellation reason",
-          data.customerCancellationReason
+          data.customerCancellationReason,
         );
         console.log(
           "Customer cancellation comment",
-          data.customerCancellationComment
+          data.customerCancellationComment,
         );
       }
     },

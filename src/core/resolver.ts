@@ -81,7 +81,10 @@ const buildActions = (
     actions.add("cancel");
   }
 
-  if (subscription.status === "canceled" || subscription.status === "scheduled_cancel") {
+  if (
+    subscription.status === "canceled" ||
+    subscription.status === "scheduled_cancel"
+  ) {
     actions.add("reactivate");
   }
 
@@ -89,7 +92,10 @@ const buildActions = (
     actions.add("switch_interval");
   }
 
-  if ((plan?.pricingModel === "seat" || subscription.seats != null) && billingType === "recurring") {
+  if (
+    (plan?.pricingModel === "seat" || subscription.seats != null) &&
+    billingType === "recurring"
+  ) {
     actions.add("update_seats");
   }
 
@@ -101,14 +107,19 @@ export const resolveBillingSnapshot = (
 ): BillingSnapshot => {
   const catalog = normalizePlanCatalog(input.catalog);
   const subscription = input.currentSubscription ?? null;
-  const planFromSubscription = findPlanByProductId(catalog, subscription?.productId);
+  const planFromSubscription = findPlanByProductId(
+    catalog,
+    subscription?.productId,
+  );
   const fallbackPlan = catalog?.defaultPlanId
     ? findPlanById(catalog, catalog.defaultPlanId)
     : undefined;
   const activePlan = planFromSubscription ?? fallbackPlan;
 
   const billingType = toBillingType(activePlan, input);
-  const recurringCycle = normalizeRecurringCycle(subscription?.recurringInterval);
+  const recurringCycle = normalizeRecurringCycle(
+    subscription?.recurringInterval,
+  );
   const availableBillingCycles =
     activePlan?.billingCycles && activePlan.billingCycles.length > 0
       ? activePlan.billingCycles
@@ -120,7 +131,8 @@ export const resolveBillingSnapshot = (
     resolvedAt: input.now ?? new Date().toISOString(),
     catalogVersion: catalog?.version,
     activePlanId: activePlan?.planId ?? null,
-    activeCategory: activePlan?.category ?? toCategoryFromSubscription(subscription),
+    activeCategory:
+      activePlan?.category ?? toCategoryFromSubscription(subscription),
     billingType,
     recurringCycle,
     availableBillingCycles,

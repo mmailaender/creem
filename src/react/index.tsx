@@ -172,7 +172,10 @@ export const CustomerPortalButton = ({
   creemApi: Pick<CreemComponentApi, "generateCustomerPortalUrl">;
   className?: string;
 }>) => (
-  <CustomerPortalLink {...props} className={cx(TERTIARY_BUTTON_CLASS, className)}>
+  <CustomerPortalLink
+    {...props}
+    className={cx(TERTIARY_BUTTON_CLASS, className)}
+  >
     {children ?? "Manage billing"}
   </CustomerPortalLink>
 );
@@ -266,7 +269,8 @@ export const PricingCard = ({
 
       {plan.billingCycles && plan.billingCycles.length > 0 && (
         <ark.p className="mb-4 text-xs text-zinc-500 dark:text-zinc-400">
-          Available cycles: {plan.billingCycles.map(formatRecurringCycle).join(" · ")}
+          Available cycles:{" "}
+          {plan.billingCycles.map(formatRecurringCycle).join(" · ")}
         </ark.p>
       )}
 
@@ -334,10 +338,9 @@ export const PricingSection = ({
       cycleSet.add(cycle);
     }
   }
-  const availableCycles =
-    snapshot?.availableBillingCycles?.length
-      ? snapshot.availableBillingCycles
-      : Array.from(cycleSet);
+  const availableCycles = snapshot?.availableBillingCycles?.length
+    ? snapshot.availableBillingCycles
+    : Array.from(cycleSet);
   const effectiveCycle =
     selectedCycle ?? snapshot?.recurringCycle ?? availableCycles[0];
   const showToggle = snapshot
@@ -389,7 +392,9 @@ export const BillingGate = ({
   const actions = Array.isArray(requiredActions)
     ? requiredActions
     : [requiredActions];
-  const canRender = actions.every((action) => hasBillingAction(snapshot, action));
+  const canRender = actions.every((action) =>
+    hasBillingAction(snapshot, action),
+  );
   return <>{canRender ? children : fallback}</>;
 };
 
@@ -505,7 +510,9 @@ export const OneTimePaymentStatusBadge = ({
   status: OneTimePaymentStatus;
   className?: string;
 }) => {
-  return <span className={className}>{ONE_TIME_PAYMENT_STATUS_LABELS[status]}</span>;
+  return (
+    <span className={className}>{ONE_TIME_PAYMENT_STATUS_LABELS[status]}</span>
+  );
 };
 
 export const CheckoutSuccessSummary = ({
