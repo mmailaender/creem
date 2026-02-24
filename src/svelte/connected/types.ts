@@ -42,6 +42,16 @@ export type ConnectedBillingModel = {
   allProducts: ConnectedProduct[];
   ownedProductIds: string[];
   subscriptionProductId: string | null;
+  activeSubscriptions?: Array<{
+    id: string;
+    productId: string;
+    status: string;
+    cancelAtPeriodEnd: boolean;
+    currentPeriodEnd: string | null;
+    currentPeriodStart: string;
+    seats: number | null;
+    recurringInterval: string | null;
+  }>;
   hasCreemCustomer?: boolean;
   planCatalog?: {
     version?: string;

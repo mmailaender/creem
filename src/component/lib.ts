@@ -93,7 +93,7 @@ export const getCurrentSubscription = query({
       .withIndex("customerId_endedAt", (q) =>
         q.eq("customerId", customer.id).eq("endedAt", null),
       )
-      .unique();
+      .first();
     if (!subscription) {
       return null;
     }

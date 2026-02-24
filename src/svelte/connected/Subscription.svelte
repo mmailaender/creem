@@ -81,15 +81,13 @@
 
   const activePlanId = $derived.by<string | null>(() => {
     if (!model) return null;
-    if (snapshot?.activePlanId) {
-      return snapshot.activePlanId;
-    }
-    const subscriptionProductId = model.subscriptionProductId;
-    if (!subscriptionProductId) return null;
+    // Use this component's matched subscription product ID, not the global one
+    const subProductId = localSubscriptionProductId;
+    if (!subProductId) return null;
 
     const matchedPlan = registeredPlans.find((plan) => {
       const values = Object.values(plan.productIds ?? {}).filter(Boolean) as string[];
-      return values.includes(subscriptionProductId);
+      return values.includes(subProductId);
     });
     return matchedPlan?.planId ?? null;
   });
@@ -158,17 +156,31 @@
     plansFromRegistered.length > 0 ? plansFromRegistered : plansFromCatalog,
   );
 
-  // Check if the user's active subscription belongs to a plan in THIS component instance.
-  // Used to scope cancel/resume buttons to only the owning <Subscription> block.
-  const ownsActiveSubscription = $derived.by(() => {
-    const subProductId = model?.subscriptionProductId;
-    if (!subProductId) return false;
-    return plans.some((plan) => {
-      const ids = plan.creemProductIds;
-      if (!ids) return false;
-      return Object.values(ids).includes(subProductId);
-    });
+  // Collect all product IDs that belong to plans in THIS component instance.
+  const ownProductIds = $derived.by<Set<string>>(() => {
+    const ids = new Set<string>();
+    for (const plan of plans) {
+      if (plan.creemProductIds) {
+        for (const pid of Object.values(plan.creemProductIds)) {
+          if (pid) ids.add(pid);
+        }
+      }
+    }
+    return ids;
   });
+
+  // Find the subscription from activeSubscriptions that belongs to THIS component.
+  const matchedSubscription = $derived.by(() => {
+    const subs = model?.activeSubscriptions;
+    if (!subs || ownProductIds.size === 0) return null;
+    return subs.find((s) => ownProductIds.has(s.productId)) ?? null;
+  });
+
+  const ownsActiveSubscription = $derived(matchedSubscription != null);
+  const localSubscriptionProductId = $derived(matchedSubscription?.productId ?? null);
+  const localCancelAtPeriodEnd = $derived(matchedSubscription?.cancelAtPeriodEnd ?? false);
+  const localCurrentPeriodEnd = $derived(matchedSubscription?.currentPeriodEnd ?? null);
+  const localSubscriptionState = $derived(matchedSubscription?.status ?? null);
 
   const hasMissingProducts = $derived.by(() => {
     if (!model) return false;
@@ -342,8 +354,12 @@
     {/if}
 
     <TrialLimitBanner snapshot={snapshot} />
-    {#if ownsActiveSubscription}
-      <ScheduledChangeBanner snapshot={snapshot} isLoading={isActionLoading} onResume={resumeRef ? resumeSubscription : undefined} />
+    {#if ownsActiveSubscription && snapshot}
+      <ScheduledChangeBanner
+        snapshot={{ ...snapshot, metadata: { ...snapshot.metadata, cancelAtPeriodEnd: localCancelAtPeriodEnd, currentPeriodEnd: localCurrentPeriodEnd } }}
+        isLoading={isActionLoading}
+        onResume={resumeRef ? resumeSubscription : undefined}
+      />
     {/if}
     <PaymentWarningBanner snapshot={snapshot} />
 
@@ -352,7 +368,7 @@
       snapshot={snapshot ? { ...snapshot, activePlanId } : null}
       {selectedCycle}
       products={allProducts}
-      subscriptionProductId={model?.subscriptionProductId ?? null}
+      subscriptionProductId={localSubscriptionProductId}
       {units}
       {showSeatPicker}
       onCycleChange={(cycle) => {
@@ -371,7 +387,7 @@
         </CustomerPortalButton>
       {/if}
 
-      {#if cancelRef && ownsActiveSubscription && snapshot?.availableActions?.includes("cancel") && snapshot?.subscriptionState !== "scheduled_cancel"}
+      {#if cancelRef && ownsActiveSubscription && localSubscriptionState !== "scheduled_cancel" && localSubscriptionState !== "canceled"}
         <Ark
           as="button"
           type="button"

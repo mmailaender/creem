@@ -286,6 +286,15 @@ export class Creem<
       product,
     };
   }
+  /** Return active subscriptions for a user, excluding ended and expired trials. */
+  listUserSubscriptions(
+    ctx: RunQueryCtx,
+    { userId }: { userId: string },
+  ) {
+    return ctx.runQuery(this.component.lib.listUserSubscriptions, {
+      userId,
+    });
+  }
   /** Return all subscriptions for a user, including ended and expired trials. */
   listAllUserSubscriptions(
     ctx: RunQueryCtx,
@@ -623,9 +632,10 @@ export class Creem<
         products.find((p) => p.id === productId) ?? null,
       ]),
     );
-    const [billingSnapshot, subscription, customer] = await Promise.all([
+    const [billingSnapshot, subscription, activeSubscriptions, customer] = await Promise.all([
       this.getBillingSnapshot(ctx, { userId }),
       this.getCurrentSubscription(ctx, { userId }),
+      this.listUserSubscriptions(ctx, { userId }),
       this.getCustomerByUserId(ctx, userId),
     ]);
     const catalog = await this.config.getPlanCatalog?.(ctx) ?? this.config.planCatalog ?? null;
@@ -634,6 +644,16 @@ export class Creem<
       configuredProducts,
       allProducts: products,
       subscriptionProductId: subscription?.productId ?? null,
+      activeSubscriptions: activeSubscriptions.map((s) => ({
+        id: s.id,
+        productId: s.productId,
+        status: s.status,
+        cancelAtPeriodEnd: s.cancelAtPeriodEnd,
+        currentPeriodEnd: s.currentPeriodEnd,
+        currentPeriodStart: s.currentPeriodStart,
+        seats: s.seats,
+        recurringInterval: s.recurringInterval,
+      })),
       hasCreemCustomer: customer != null,
       planCatalog: catalog,
     };
