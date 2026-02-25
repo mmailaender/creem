@@ -1,7 +1,10 @@
 @import "tailwindcss";
+@import './etesie-design-system/index.css';
 @source "./**/*.{svelte,ts}";
 @source "../../src/svelte/primitives/**/*.{svelte,ts}";
 @source "../../src/svelte/widgets/**/*.{svelte,ts}";
+
+
 
 :root {
   font-family: "IBM Plex Sans", "Segoe UI", sans-serif;

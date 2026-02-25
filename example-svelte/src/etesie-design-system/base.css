@@ -1,0 +1,16 @@
+@layer base {
+	body {
+		background-color: var(--et-color-surface-base);
+		color: var(--et-color-foreground-default);
+		font-family: var(--et-typeface-plain);
+		font-weight: var(--et-font-weight-plain);
+		font-size: var(--et-type-body-l-size-desktop);
+		line-height: var(--et-type-body-l-line-height-desktop);
+		letter-spacing: var(--et-type-body-l-tracking-desktop);
+
+		@variant dark {
+			background-color: var(--et-color-surface-base-dark);
+			color: var(--et-color-foreground-default-dark);
+		}
+	}
+}
