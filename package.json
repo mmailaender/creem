@@ -1,17 +1,18 @@
 {
-  "name": "@mmailaender/creem",
+  "name": "@mmailaender/convex-creem",
   "description": "A Creem component for Convex.",
-  "repository": "github:mmailaender/creem",
-  "homepage": "https://github.com/mmailaender/creem#readme",
+  "repository": "github:mmailaender/convex-creem",
+  "homepage": "https://github.com/mmailaender/convex-creem#readme",
   "bugs": {
-    "url": "https://github.com/mmailaender/creem/issues"
+    "url": "https://github.com/mmailaender/convex-creem/issues"
   },
-  "version": "0.8.1",
-  "license": "Apache-2.0",
+  "version": "0.0.1",
+  "license": "MIT",
   "keywords": [
     "convex",
     "component",
     "creem",
+    "stripe",
     "subscription",
     "billing",
     "payments",
