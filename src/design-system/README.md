@@ -1,4 +1,4 @@
-# Etesie Design System
+# Design System
 
 Foundation-first design system structure.
 
@@ -13,7 +13,7 @@ Foundation-first design system structure.
 - `base.css` - global defaults (`surface.base` page background + `foreground.default` + Body L text styles).
 - `rounded/config.ts` - semantic border radius roles, component defaults, and component naming helpers.
 - `rounded/utilities.css` - semantic radius utility classes (`radius-s`, `radius-m`, etc.).
-- `index.css` - aggregate stylesheet entry for the Etesie design system.
+- `index.css` - aggregate stylesheet entry for the design system.
 
 ## Notes
 
