@@ -38,9 +38,8 @@
 
   const client = useConvexClient();
 
-  // Capture static function references (these never change at runtime)
-  const billingUiModelRef = api.getBillingUiModel;
-  const checkoutLinkRef = api.generateCheckoutLink;
+  // svelte-ignore state_referenced_locally — api is a static prop (Convex API reference)
+  const { getBillingUiModel: billingUiModelRef, generateCheckoutLink: checkoutLinkRef } = api;
 
   const billingModelQuery = useQuery(billingUiModelRef, {});
 

@@ -46,13 +46,15 @@
 
   const client = useConvexClient();
 
-  // Capture static function references (these never change at runtime)
-  const billingUiModelRef = api.getBillingUiModel;
-  const checkoutLinkRef = api.generateCheckoutLink;
-  const changeSubRef = api.changeCurrentSubscription;
-  const updateSeatsRef = api.updateSubscriptionSeats;
-  const cancelRef = api.cancelCurrentSubscription;
-  const resumeRef = api.resumeCurrentSubscription;
+  // svelte-ignore state_referenced_locally — api is a static prop (Convex API reference)
+  const {
+    getBillingUiModel: billingUiModelRef,
+    generateCheckoutLink: checkoutLinkRef,
+    changeCurrentSubscription: changeSubRef,
+    updateSubscriptionSeats: updateSeatsRef,
+    cancelCurrentSubscription: cancelRef,
+    resumeCurrentSubscription: resumeRef,
+  } = api;
 
   const billingModelQuery = useQuery(billingUiModelRef, {});
 
