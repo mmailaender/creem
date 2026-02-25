@@ -3,7 +3,7 @@
 Add subscriptions, one-time purchases, and billing to your Convex app with
 [Creem](https://www.creem.io).
 
-**Check out the [React example](example) and [Svelte example](example-svelte)
+**Check out the [React example](example-react) and [Svelte example](example-svelte)
 for complete integrations.**
 
 ## Installation
@@ -400,7 +400,7 @@ import {
 } from "@mmailaender/creem/react";
 ```
 
-See the [React example](example) for a complete integration.
+See the [React example](example-react) for a complete integration.
 
 ---
 

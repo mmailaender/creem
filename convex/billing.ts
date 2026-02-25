@@ -1,5 +1,5 @@
-import { Creem } from "@mmailaender/creem";
-import type { PlanCatalog } from "@mmailaender/creem";
+import { Creem } from "@mmailaender/convex-creem";
+import type { PlanCatalog } from "@mmailaender/convex-creem";
 import { api, components } from "./_generated/api";
 import { internalAction, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";

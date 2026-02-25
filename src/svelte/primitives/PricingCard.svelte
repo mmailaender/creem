@@ -57,7 +57,7 @@
   }: Props = $props();
 
   const isSeatPlan = $derived(plan.pricingModel === "seat");
-  let seatCount = $state(1);
+  let seatCount = $derived(1);
   let seatAdjustCount = $state(1);
   let editingSeats = $state(false);
   $effect(() => {

@@ -7,7 +7,7 @@
     Subscription,
     type ConnectedBillingApi,
     type Transition,
-  } from "@mmailaender/creem/svelte";
+  } from "@mmailaender/convex-creem/svelte";
   import { api } from "../../convex/_generated/api.js";
 
   const convexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined;

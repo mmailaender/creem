@@ -20,12 +20,12 @@ import {
   PricingSection,
   ScheduledChangeBanner,
   TrialLimitBanner,
-} from "@mmailaender/creem/react";
+} from "@mmailaender/convex-creem/react";
 import type {
   BillingSnapshot,
   PlanCatalogEntry,
   RecurringCycle,
-} from "@mmailaender/creem";
+} from "@mmailaender/convex-creem";
 import {
   insertTodoOptimistic,
   completeTodoOptimistic,
