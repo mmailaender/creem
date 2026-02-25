@@ -70,6 +70,9 @@ function resolveRole(role: RoleDefinition): ResolvedRoleToken {
 		tablet: trackingFromSize(sizeByViewport.tablet),
 		mobile: trackingFromSize(sizeByViewport.mobile)
 	};
+	if (role.id === 'display-s') {
+		trackingByViewport.desktop = -3;
+	}
 
 	return {
 		id: role.id,

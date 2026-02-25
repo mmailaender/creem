@@ -3,6 +3,7 @@ export {
   hasCheckoutSuccessParams,
 } from "../core/payments.js";
 export { default as BillingToggle } from "./primitives/BillingToggle.svelte";
+export { default as SegmentControl } from "./primitives/SegmentControl.svelte";
 export { default as CheckoutButton } from "./primitives/CheckoutButton.svelte";
 export { default as CustomerPortalButton } from "./primitives/CustomerPortalButton.svelte";
 export { default as PricingCard } from "./primitives/PricingCard.svelte";
