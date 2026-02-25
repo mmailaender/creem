@@ -3,6 +3,7 @@
   import PricingCard from "./PricingCard.svelte";
   import type { BillingSnapshot, UIPlanEntry, RecurringCycle } from "../../core/types.js";
   import type { ConnectedProduct } from "../widgets/types.js";
+    import { SvelteSet } from "svelte/reactivity";
 
   interface Props {
     plans?: UIPlanEntry[];
@@ -59,7 +60,7 @@
   }: Props = $props();
 
   const toUniqueCycles = (entries: UIPlanEntry[]) => {
-    const set = new Set<RecurringCycle>();
+    const set = new SvelteSet<RecurringCycle>();
     for (const plan of entries) {
       for (const cycle of plan.billingCycles ?? []) {
         set.add(cycle);

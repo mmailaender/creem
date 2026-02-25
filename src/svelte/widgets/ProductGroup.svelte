@@ -14,6 +14,7 @@
     ProductItemRegistration,
     Transition,
   } from "./types.js";
+    import { SvelteSet } from "svelte/reactivity";
 
   interface Props {
     api: ConnectedBillingApi;
@@ -71,7 +72,7 @@
   // If the user purchased a "via_product" (upgrade delta), they effectively
   // own the transition target ('to') and no longer just the source ('from').
   const effectiveOwnedProductIds = $derived.by<string[]>(() => {
-    const effective = new Set(rawOwnedProductIds);
+    const effective = new SvelteSet(rawOwnedProductIds);
     for (const rule of transition) {
       if (rule.kind === "via_product" && effective.has(rule.viaProductId)) {
         effective.add(rule.to);
@@ -89,7 +90,7 @@
   // transition graph (from → to edges). Returns true if there is a path from
   // `productId` to `targetId`, meaning `productId` is a lower tier.
   const isLowerTierThan = (productId: string, targetId: string): boolean => {
-    const visited = new Set<string>();
+    const visited = new SvelteSet<string>();
     const queue = [productId];
     while (queue.length > 0) {
       const current = queue.shift()!;

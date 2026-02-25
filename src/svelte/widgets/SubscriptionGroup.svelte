@@ -16,6 +16,7 @@
     ConnectedBillingModel,
     SubscriptionPlanRegistration,
   } from "./types.js";
+    import { SvelteSet } from "svelte/reactivity";
 
   interface Props {
     api: ConnectedBillingApi;
@@ -166,7 +167,7 @@
 
   // Collect all product IDs that belong to plans in THIS component instance.
   const ownProductIds = $derived.by<Set<string>>(() => {
-    const ids = new Set<string>();
+    const ids = new SvelteSet<string>();
     for (const plan of plans) {
       if (plan.creemProductIds) {
         for (const pid of Object.values(plan.creemProductIds)) {

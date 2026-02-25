@@ -255,9 +255,9 @@
       {showSeatPicker}
       subscribedSeats={localSubscribedSeats}
       isGroupSubscribed={ownsActiveSubscription}
-      disableCheckout={!canCheckout}
-      disableSwitch={!canChange}
-      disableSeats={!canUpdateSeats}
+      disableCheckout={!canCheckout || isActionLoading}
+      disableSwitch={!canChange || isActionLoading}
+      disableSeats={!canUpdateSeats || isActionLoading}
       onCheckout={canCheckout ? handleCheckout : undefined}
       onSwitchPlan={standalone?.refs.changeSub && canChange ? handleSwitchPlan : undefined}
       onUpdateSeats={standalone?.refs.updateSeats && canUpdateSeats ? handleUpdateSeats : undefined}
