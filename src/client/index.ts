@@ -222,9 +222,15 @@ export class Creem<
     if (!dbCustomer) {
       const customerId = getEntityId(checkout.customer);
       if (customerId) {
+        const customerObj =
+          typeof checkout.customer === "object" ? checkout.customer : undefined;
         await ctx.runMutation(this.component.lib.insertCustomer, {
           id: customerId,
           userId,
+          email: customerObj?.email,
+          name: customerObj?.name ?? undefined,
+          country: customerObj?.country,
+          mode: customerObj?.mode,
         });
       }
     }
@@ -367,6 +373,7 @@ export class Creem<
       seats: subscription.seats,
       cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
       currentPeriodEnd: subscription.currentPeriodEnd,
+      trialEnd: subscription.trialEnd ?? null,
     };
   }
 
@@ -447,6 +454,19 @@ export class Creem<
       `[creem-cancel] response status=${(updatedSubscription as unknown as Record<string, unknown>)?.status}`,
     );
     return updatedSubscription;
+  }
+
+  /** Pause an active subscription. */
+  async pauseSubscription(ctx: RunActionCtx) {
+    const { userId } = await this.config.getUserInfo(ctx);
+    const subscription = await this.getCurrentSubscription(ctx, { userId });
+    if (!subscription) {
+      throw new Error("Subscription not found");
+    }
+    if (subscription.status !== "active" && subscription.status !== "trialing") {
+      throw new Error("Subscription is not active");
+    }
+    return await this.creem.subscriptions.pause(subscription.id);
   }
 
   /** Resume a subscription that is in scheduled_cancel or paused state. */
@@ -653,12 +673,27 @@ export class Creem<
     ctx: RunMutationCtx,
     customerId: string | null,
     userId: string | null,
+    customerEntity?: CustomerEntity | null,
   ) {
     if (!customerId || !userId) return;
     try {
       await ctx.runMutation(this.component.lib.insertCustomer, {
         id: customerId,
         userId,
+        email: customerEntity?.email,
+        name: customerEntity?.name ?? undefined,
+        country: customerEntity?.country,
+        mode: customerEntity?.mode,
+        createdAt: customerEntity?.createdAt
+          ? (customerEntity.createdAt instanceof Date
+              ? customerEntity.createdAt.toISOString()
+              : String(customerEntity.createdAt))
+          : undefined,
+        updatedAt: customerEntity?.updatedAt
+          ? (customerEntity.updatedAt instanceof Date
+              ? customerEntity.updatedAt.toISOString()
+              : String(customerEntity.updatedAt))
+          : undefined,
       });
     } catch {
       // insertCustomer is idempotent; ignore duplicate errors
@@ -708,6 +743,7 @@ export class Creem<
         currentPeriodStart: s.currentPeriodStart,
         seats: s.seats,
         recurringInterval: s.recurringInterval,
+        trialEnd: s.trialEnd ?? null,
       })),
       hasCreemCustomer: customer != null,
       planCatalog: catalog,
@@ -879,6 +915,224 @@ export class Creem<
           return { url };
         },
       }),
+
+      // ── Primitive queries ──────────────────────────────
+      getProduct: queryGeneric({
+        args: { productId: v.string() },
+        returns: v.union(schema.tables.products.validator, v.null()),
+        handler: async (ctx, args) => {
+          return await this.getProduct(ctx, { productId: args.productId });
+        },
+      }),
+      getSubscription: queryGeneric({
+        args: { subscriptionId: v.string() },
+        returns: v.union(schema.tables.subscriptions.validator, v.null()),
+        handler: async (ctx, args) => {
+          return await ctx.runQuery(this.component.lib.getSubscription, {
+            id: args.subscriptionId,
+          });
+        },
+      }),
+      getCustomer: queryGeneric({
+        args: {},
+        returns: v.union(schema.tables.customers.validator, v.null()),
+        handler: async (ctx) => {
+          const { userId } = await this.config.getUserInfo(ctx);
+          return await this.getCustomerByUserId(ctx, userId);
+        },
+      }),
+      listSubscriptions: queryGeneric({
+        args: {},
+        returns: v.any(),
+        handler: async (ctx) => {
+          const { userId } = await this.config.getUserInfo(ctx);
+          return await this.listUserSubscriptions(ctx, { userId });
+        },
+      }),
+      listOrders: queryGeneric({
+        args: {},
+        returns: v.array(schema.tables.orders.validator),
+        handler: async (ctx) => {
+          const { userId } = await this.config.getUserInfo(ctx);
+          return await this.listUserOrders(ctx, { userId });
+        },
+      }),
+
+      // ── Phase 3: Full Creem API pass-through actions ────────────
+      pauseCurrentSubscription: actionGeneric({
+        args: {},
+        handler: async (ctx) => {
+          await this.pauseSubscription(ctx);
+        },
+      }),
+      createCreemProduct: actionGeneric({
+        args: {
+          name: v.string(),
+          price: v.number(),
+          currency: v.string(),
+          billingType: v.string(),
+          billingPeriod: v.optional(v.string()),
+          description: v.optional(v.string()),
+          taxMode: v.optional(v.string()),
+          taxCategory: v.optional(v.string()),
+        },
+        returns: v.any(),
+        handler: async (ctx, args) => {
+          const product = await this.creem.products.create({
+            name: args.name,
+            price: args.price,
+            currency: args.currency as "USD" | "EUR",
+            billingType: args.billingType as "recurring" | "onetime",
+            billingPeriod: args.billingPeriod as
+              | "once"
+              | "every-month"
+              | "every-three-months"
+              | "every-six-months"
+              | "every-year"
+              | undefined,
+            description: args.description,
+            taxMode: args.taxMode as "inclusive" | "exclusive" | undefined,
+            taxCategory: args.taxCategory as
+              | "saas"
+              | "digital-goods-service"
+              | "ebooks"
+              | undefined,
+          });
+          // Sync the product into the component DB
+          const dbProduct = convertToDatabaseProduct(
+            product as unknown as Parameters<typeof convertToDatabaseProduct>[0],
+          );
+          await ctx.runMutation(this.component.lib.createProduct, {
+            product: dbProduct,
+          });
+          return product;
+        },
+      }),
+      retrieveCheckout: actionGeneric({
+        args: { checkoutId: v.string() },
+        returns: v.any(),
+        handler: async (ctx, args) => {
+          return await this.creem.checkouts.retrieve(args.checkoutId);
+        },
+      }),
+      getTransaction: actionGeneric({
+        args: { transactionId: v.string() },
+        returns: v.any(),
+        handler: async (ctx, args) => {
+          return await this.creem.transactions.getById(args.transactionId);
+        },
+      }),
+      listTransactions: actionGeneric({
+        args: {
+          customerId: v.optional(v.string()),
+          orderId: v.optional(v.string()),
+          productId: v.optional(v.string()),
+          pageNumber: v.optional(v.number()),
+          pageSize: v.optional(v.number()),
+        },
+        returns: v.any(),
+        handler: async (ctx, args) => {
+          return await this.creem.transactions.search(
+            args.customerId,
+            args.orderId,
+            args.productId,
+            args.pageNumber,
+            args.pageSize,
+          );
+        },
+      }),
+      activateLicense: actionGeneric({
+        args: {
+          key: v.string(),
+          instanceName: v.string(),
+        },
+        returns: v.any(),
+        handler: async (ctx, args) => {
+          return await this.creem.licenses.activate({
+            key: args.key,
+            instanceName: args.instanceName,
+          });
+        },
+      }),
+      validateLicense: actionGeneric({
+        args: {
+          key: v.string(),
+          instanceId: v.string(),
+        },
+        returns: v.any(),
+        handler: async (ctx, args) => {
+          return await this.creem.licenses.validate({
+            key: args.key,
+            instanceId: args.instanceId,
+          });
+        },
+      }),
+      deactivateLicense: actionGeneric({
+        args: {
+          key: v.string(),
+          instanceId: v.string(),
+        },
+        returns: v.any(),
+        handler: async (ctx, args) => {
+          return await this.creem.licenses.deactivate({
+            key: args.key,
+            instanceId: args.instanceId,
+          });
+        },
+      }),
+      createDiscount: actionGeneric({
+        args: {
+          name: v.string(),
+          type: v.string(),
+          duration: v.string(),
+          appliesToProducts: v.array(v.string()),
+          code: v.optional(v.string()),
+          percentage: v.optional(v.number()),
+          amount: v.optional(v.number()),
+          currency: v.optional(v.string()),
+          maxRedemptions: v.optional(v.number()),
+          expiryDate: v.optional(v.string()),
+          durationInMonths: v.optional(v.number()),
+        },
+        returns: v.any(),
+        handler: async (ctx, args) => {
+          return await this.creem.discounts.create({
+            name: args.name,
+            type: args.type as "percentage" | "fixed",
+            duration: args.duration as "forever" | "once" | "repeating",
+            appliesToProducts: args.appliesToProducts,
+            code: args.code,
+            percentage: args.percentage,
+            amount: args.amount,
+            currency: args.currency,
+            maxRedemptions: args.maxRedemptions,
+            expiryDate: args.expiryDate
+              ? new Date(args.expiryDate)
+              : undefined,
+            durationInMonths: args.durationInMonths,
+          });
+        },
+      }),
+      getDiscount: actionGeneric({
+        args: {
+          discountId: v.optional(v.string()),
+          discountCode: v.optional(v.string()),
+        },
+        returns: v.any(),
+        handler: async (ctx, args) => {
+          return await this.creem.discounts.get(
+            args.discountId,
+            args.discountCode,
+          );
+        },
+      }),
+      deleteDiscount: actionGeneric({
+        args: { discountId: v.string() },
+        returns: v.any(),
+        handler: async (ctx, args) => {
+          return await this.creem.discounts.delete(args.discountId);
+        },
+      }),
     };
   }
 
@@ -930,13 +1184,18 @@ export class Creem<
             const checkout = this.parseCheckout(raw);
             if (checkout && eventType === "checkout.completed") {
               // Auto-create customer record from checkout metadata
-              const customerId = this.getCustomerId(
+              const customerObj =
                 typeof checkout.customer === "object"
                   ? checkout.customer
-                  : undefined,
-              );
+                  : undefined;
+              const customerId = this.getCustomerId(customerObj);
               const userId = this.getConvexUserId(checkout.metadata);
-              await this.upsertCustomerFromWebhook(ctx, customerId, userId);
+              await this.upsertCustomerFromWebhook(
+                ctx,
+                customerId,
+                userId,
+                customerObj as CustomerEntity | undefined,
+              );
 
               // Process embedded subscription if present (recurring checkout).
               // checkoutEntityFromJSON already parsed it into a typed SubscriptionEntity,
@@ -966,24 +1225,42 @@ export class Creem<
 
               // Store the order (present for both one-time and subscription checkouts)
               if (checkout.order && typeof checkout.order === "object") {
-                const orderRaw = checkout.order as {
-                  id: string;
-                  customer?: string | null;
-                  product: string;
-                  amount: number;
-                  currency: string;
-                  status: string;
-                  type: string;
-                  transaction?: string | null;
-                  createdAt?: Date | string | null;
-                  updatedAt?: Date | string | null;
-                };
-                const order = convertToOrder(orderRaw, {
-                  checkoutId: checkout.id,
-                  metadata: checkout.metadata as
-                    | Record<string, unknown>
-                    | undefined,
-                });
+                const o = checkout.order as Record<string, unknown>;
+                const order = convertToOrder(
+                  {
+                    id: o.id as string,
+                    customer: (o.customer as string) ?? null,
+                    product: o.product as string,
+                    amount: o.amount as number,
+                    currency: o.currency as string,
+                    status: o.status as string,
+                    type: o.type as string,
+                    transaction: (o.transaction as string) ?? null,
+                    subTotal: o.subTotal as number | undefined,
+                    sub_total: o.sub_total as number | undefined,
+                    taxAmount: o.taxAmount as number | undefined,
+                    tax_amount: o.tax_amount as number | undefined,
+                    discountAmount: o.discountAmount as number | undefined,
+                    discount_amount: o.discount_amount as number | undefined,
+                    amountDue: o.amountDue as number | undefined,
+                    amount_due: o.amount_due as number | undefined,
+                    amountPaid: o.amountPaid as number | undefined,
+                    amount_paid: o.amount_paid as number | undefined,
+                    discount: (o.discount as string) ?? null,
+                    affiliate: (o.affiliate as string) ?? null,
+                    mode: o.mode as string | undefined,
+                    createdAt: o.createdAt as Date | string | undefined,
+                    created_at: o.created_at as string | undefined,
+                    updatedAt: o.updatedAt as Date | string | undefined,
+                    updated_at: o.updated_at as string | undefined,
+                  },
+                  {
+                    checkoutId: checkout.id,
+                    metadata: checkout.metadata as
+                      | Record<string, unknown>
+                      | undefined,
+                  },
+                );
                 await ctx.runMutation(this.component.lib.createOrder, {
                   order,
                 });
@@ -1015,12 +1292,21 @@ export class Creem<
               }
 
               // Auto-create customer record from subscription metadata
+              const customerEntity =
+                typeof parsed.customer === "object"
+                  ? (parsed.customer as CustomerEntity)
+                  : undefined;
               const customerId = this.getCustomerId(parsed.customer);
               const userId = this.getConvexUserId(
                 raw.metadata ??
                   (parsed as unknown as Record<string, unknown>).metadata,
               );
-              await this.upsertCustomerFromWebhook(ctx, customerId, userId);
+              await this.upsertCustomerFromWebhook(
+                ctx,
+                customerId,
+                userId,
+                customerEntity,
+              );
             } else {
               // Fallback: SDK parsing failed (e.g., unknown status)
               // Still try to extract subscription ID for update events

@@ -30,13 +30,19 @@ export const insertCustomer = mutation({
       .withIndex("userId", (q) => q.eq("userId", args.userId))
       .unique();
     if (existingCustomer) {
+      // Enrich existing customer record with any new fields
+      const patch: Record<string, unknown> = {};
+      if (args.email && !existingCustomer.email) patch.email = args.email;
+      if (args.name && !existingCustomer.name) patch.name = args.name;
+      if (args.country && !existingCustomer.country) patch.country = args.country;
+      if (args.mode) patch.mode = args.mode;
+      if (args.updatedAt) patch.updatedAt = args.updatedAt;
+      if (Object.keys(patch).length > 0) {
+        await ctx.db.patch(existingCustomer._id, patch);
+      }
       return existingCustomer._id;
     }
-    return ctx.db.insert("customers", {
-      id: args.id,
-      userId: args.userId,
-      metadata: args.metadata,
-    });
+    return ctx.db.insert("customers", args);
   },
 });
 
@@ -215,18 +221,13 @@ export const listProducts = query({
   args: {
     includeArchived: v.optional(v.boolean()),
   },
-  returns: v.array(
-    v.object({
-      ...schema.tables.products.validator.fields,
-      priceAmount: v.optional(v.number()),
-    }),
-  ),
+  returns: v.array(schema.tables.products.validator),
   handler: async (ctx, args) => {
     const q = ctx.db.query("products");
     const products = args.includeArchived
       ? await q.collect()
       : await q
-          .withIndex("isArchived", (q) => q.lt("isArchived", true))
+          .withIndex("status", (q) => q.eq("status", "active"))
           .collect();
     return products.map((product) => omitSystemFields(product));
   },

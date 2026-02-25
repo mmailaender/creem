@@ -321,6 +321,8 @@
       {selectedCycle}
       products={allProducts}
       subscriptionProductId={localSubscriptionProductId}
+      subscriptionStatus={localSubscriptionState}
+      subscriptionTrialEnd={matchedSubscription?.trialEnd ?? null}
       {units}
       {showSeatPicker}
       subscribedSeats={localSubscribedSeats}

@@ -84,15 +84,41 @@ export const creem = new Creem(components.creem, {
 
 ```ts
 export const {
+  // Core queries
   getConfiguredProducts, // query  — keyed product map
-  listAllProducts, // query  — all non-archived products
+  listAllProducts, // query  — all active products
+  getCurrentBillingSnapshot, // query  — resolved billing state
   getBillingUiModel, // query  — full billing state for connected widgets
+
+  // Checkout & portal
   generateCheckoutLink, // action — creates a checkout URL
   generateCustomerPortalUrl, // action — customer billing portal
+
+  // Subscription management
   changeCurrentSubscription, // action — switch subscription product
+  updateSubscriptionSeats, // action — update seat count with proration
   cancelCurrentSubscription, // action — cancel subscription
-  resumeCurrentSubscription, // action — resume subscription, if in scheduled_cancel or paused state
-  getCurrentBillingSnapshot, // query  — resolved billing state
+  resumeCurrentSubscription, // action — resume scheduled_cancel or paused
+  pauseCurrentSubscription, // action — pause subscription
+
+  // Primitive queries (for custom UIs)
+  getProduct, // query  — single product by ID
+  getSubscription, // query  — single subscription by ID
+  getCustomer, // query  — customer record for current user
+  listSubscriptions, // query  — active subscriptions for current user
+  listOrders, // query  — orders for current user
+
+  // Full Creem API pass-through actions
+  createCreemProduct, // action — create a product on Creem
+  retrieveCheckout, // action — retrieve checkout session details
+  getTransaction, // action — get transaction by ID
+  listTransactions, // action — search transactions
+  activateLicense, // action — activate a license key
+  validateLicense, // action — validate a license key
+  deactivateLicense, // action — deactivate a license key
+  createDiscount, // action — create a discount code
+  getDiscount, // action — get discount by ID or code
+  deleteDiscount, // action — delete a discount
 } = creem.api();
 ```
 
@@ -382,7 +408,9 @@ See the [React example](example) for a complete integration.
 
 ## 6. API surface
 
-The `Creem` client provides:
+### Class methods
+
+The `Creem` client provides these methods for use in your own queries/mutations:
 
 - `getCurrentSubscription(ctx, { userId })`
 - `listUserSubscriptions(ctx, { userId })` — active subscriptions
@@ -391,24 +419,36 @@ The `Creem` client provides:
 - `listProducts(ctx)`
 - `getProduct(ctx, { productId })`
 - `getCustomerByUserId(ctx, userId)`
-- `syncProducts(ctx)`
+- `syncProducts(ctx)` — sync all Creem products to the component DB
 - `getBillingSnapshot(ctx, { userId, payment? })`
 - `buildBillingUiModel(ctx, { userId })` — aggregates all billing data for
   widgets (subscriptions, orders, products, snapshot)
 - `changeSubscription(ctx, { productId })`
 - `updateSubscriptionSeats(ctx, { units })` — update seat count with proration
 - `cancelSubscription(ctx, { revokeImmediately? })`
+- `pauseSubscription(ctx)` — pause an active subscription
 - `resumeSubscription(ctx)` — resume scheduled_cancel or paused
 - `registerRoutes(http, { path?, events? })` — auto-handles checkout,
   subscription, product, and order webhooks
 
-And action/query wrappers via `creem.api()`:
+### `creem.api()` exports
 
-- `getConfiguredProducts`, `listAllProducts`, `listAllSubscriptions`
-- `getCurrentBillingSnapshot`, `getBillingUiModel`
-- `generateCheckoutLink`, `generateCustomerPortalUrl`
-- `changeCurrentSubscription`, `updateSubscriptionSeats`
-- `cancelCurrentSubscription`, `resumeCurrentSubscription`
+Ready-to-use Convex function exports:
+
+**Core queries:**
+`getConfiguredProducts`, `listAllProducts`, `getCurrentBillingSnapshot`, `getBillingUiModel`
+
+**Checkout & portal actions:**
+`generateCheckoutLink`, `generateCustomerPortalUrl`
+
+**Subscription management actions:**
+`changeCurrentSubscription`, `updateSubscriptionSeats`, `cancelCurrentSubscription`, `resumeCurrentSubscription`, `pauseCurrentSubscription`
+
+**Primitive queries (for custom UIs):**
+`getProduct`, `getSubscription`, `getCustomer`, `listSubscriptions`, `listOrders`
+
+**Full Creem API pass-through actions:**
+`createCreemProduct`, `retrieveCheckout`, `getTransaction`, `listTransactions`, `activateLicense`, `validateLicense`, `deactivateLicense`, `createDiscount`, `getDiscount`, `deleteDiscount`
 
 ---
 

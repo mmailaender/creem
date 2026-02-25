@@ -9,6 +9,8 @@
     selectedCycle?: RecurringCycle;
     activePlanId?: string | null;
     subscriptionProductId?: string | null;
+    subscriptionStatus?: string | null;
+    subscriptionTrialEnd?: string | null;
     products?: ConnectedProduct[];
     units?: number;
     showSeatPicker?: boolean;
@@ -34,6 +36,8 @@
     selectedCycle = undefined,
     activePlanId = undefined,
     subscriptionProductId = null,
+    subscriptionStatus = null,
+    subscriptionTrialEnd = null,
     products = [],
     units = undefined,
     showSeatPicker = false,
@@ -68,6 +72,14 @@
   const isActiveProduct = $derived(
     subscriptionProductId != null && productId != null && productId === subscriptionProductId,
   );
+  const isTrialing = $derived(isActiveProduct && subscriptionStatus === "trialing");
+  const trialDaysLeft = $derived.by(() => {
+    if (!isTrialing || !subscriptionTrialEnd) return null;
+    const end = new Date(subscriptionTrialEnd).getTime();
+    const now = Date.now();
+    const days = Math.max(0, Math.ceil((end - now) / (1000 * 60 * 60 * 24)));
+    return days;
+  });
   // Same plan but different billing cycle — offer to switch interval
   const isActivePlanOtherCycle = $derived(
     !isActiveProduct && activePlanId === plan.planId && productId != null,
@@ -200,7 +212,15 @@
   {/if}
 
   <div class="mt-auto">
-    {#if isActiveProduct}
+    {#if isActiveProduct && isTrialing}
+      <div class="space-y-1">
+        <span
+          class="inline-flex rounded-md bg-sky-100 px-3 py-2 text-sm font-medium text-sky-700 dark:bg-sky-900/40 dark:text-sky-300"
+        >
+          Free trial{#if trialDaysLeft != null}&ensp;·&ensp;{trialDaysLeft} day{trialDaysLeft === 1 ? '' : 's'} left{/if}
+        </span>
+      </div>
+    {:else if isActiveProduct}
       <span
         class="inline-flex rounded-md bg-emerald-100 px-3 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
       >

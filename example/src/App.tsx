@@ -32,67 +32,26 @@ import {
   deleteTodoOptimistic,
 } from "@/optimistic";
 
-function PriceDisplay({ price }: { price: any }) {
-  switch (price.amountType) {
-    case "fixed":
-      return (
-        <span>
-          ${(price.priceAmount ?? 0) / 100}
-          {price.recurringInterval ? `/${price.recurringInterval}` : ""}
-        </span>
-      );
-    case "free":
-      return <span>Free</span>;
-    case "custom":
-      return (
-        <span>
-          Pay what you want
-          {price.minimumAmount != null && (
-            <> (min ${price.minimumAmount / 100})</>
-          )}
-          {price.maximumAmount != null && (
-            <> (max ${price.maximumAmount / 100})</>
-          )}
-          {price.presetAmount != null && (
-            <> &middot; suggested ${price.presetAmount / 100}</>
-          )}
-        </span>
-      );
-    case "seat_based":
-      return (
-        <div className="text-xs space-y-0.5">
-          <span className="font-medium">Per-seat pricing:</span>
-          {price.seatTiers?.map(
-            (
-              tier: {
-                minSeats: number;
-                maxSeats: number | null;
-                pricePerSeat: number;
-              },
-              i: number,
-            ) => (
-              <div key={i}>
-                {tier.minSeats}
-                {tier.maxSeats ? `–${tier.maxSeats}` : "+"} seats: $
-                {tier.pricePerSeat / 100}/seat
-              </div>
-            ),
-          )}
-        </div>
-      );
-    case "metered_unit":
-      return (
-        <span>
-          ${price.unitAmount ?? "?"}/unit
-          {price.meter?.name && <> ({price.meter.name})</>}
-          {price.capAmount != null && (
-            <> &middot; cap ${price.capAmount / 100}</>
-          )}
-        </span>
-      );
-    default:
-      return <span>{price.amountType ?? "Unknown"}</span>;
-  }
+function PriceDisplay({
+  price,
+  billingPeriod,
+}: {
+  price: number;
+  currency: string;
+  billingPeriod?: string;
+}) {
+  const intervalLabel: Record<string, string> = {
+    "every-month": "/mo",
+    "every-three-months": "/3mo",
+    "every-six-months": "/6mo",
+    "every-year": "/yr",
+  };
+  return (
+    <span>
+      ${price / 100}
+      {billingPeriod ? (intervalLabel[billingPeriod] ?? `/${billingPeriod}`) : ""}
+    </span>
+  );
 }
 
 export default function TodoList() {
@@ -310,7 +269,7 @@ export default function TodoList() {
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mb-4">
             This example demonstrates Creem subscription management capabilities
-            including trial support, multiple price types, and product benefits.
+            including trial support, multiple price types, and product features.
             Test it out by:
           </p>
           <ol className="list-decimal list-inside space-y-2 text-gray-600 dark:text-gray-400 mb-4">
@@ -586,13 +545,12 @@ export default function TodoList() {
                         <h4 className="font-medium">Premium</h4>
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-gray-600 dark:text-gray-400">
-                            ${(premiumMonthly.prices[0].priceAmount ?? 0) / 100}
+                            ${(premiumMonthly.price ?? 0) / 100}
                             /month
                           </span>
                           {premiumYearly && (
                             <span className="text-sm text-gray-600 dark:text-gray-400">
-                              or $
-                              {(premiumYearly.prices[0].priceAmount ?? 0) / 100}
+                              or ${(premiumYearly.price ?? 0) / 100}
                               /year
                             </span>
                           )}
@@ -649,16 +607,12 @@ export default function TodoList() {
                         <h4 className="font-medium">Premium Plus</h4>
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-gray-600 dark:text-gray-400">
-                            $
-                            {(premiumPlusMonthly.prices[0].priceAmount ?? 0) /
-                              100}
+                            ${(premiumPlusMonthly.price ?? 0) / 100}
                             /month
                           </span>
                           {premiumPlusYearly && (
                             <span className="text-sm text-gray-600 dark:text-gray-400">
-                              or $
-                              {(premiumPlusYearly.prices[0].priceAmount ?? 0) /
-                                100}
+                              or ${(premiumPlusYearly.price ?? 0) / 100}
                               /year
                             </span>
                           )}
@@ -711,7 +665,7 @@ export default function TodoList() {
                   listAllProducts
                 </code>{" "}
                 — dynamically lists all synced products from Creem,
-                demonstrating different price types and benefits.
+                demonstrating different price types and features.
               </p>
               {allProducts && allProducts.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -724,11 +678,9 @@ export default function TodoList() {
                         <h3 className="font-medium text-gray-800 dark:text-gray-100">
                           {product.name}
                         </h3>
-                        {product.trialInterval &&
-                          product.trialIntervalCount && (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300">
-                              {product.trialIntervalCount}{" "}
-                              {product.trialInterval} free trial
+                        {product.billingType && (
+                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+                              {product.billingType === "recurring" ? product.billingPeriod : "one-time"}
                             </span>
                           )}
                       </div>
@@ -738,30 +690,27 @@ export default function TodoList() {
                         </p>
                       )}
 
-                      {/* Prices */}
-                      <div className="space-y-1">
-                        {product.prices.map((price: any, i: number) => (
-                          <div
-                            key={price.id ?? i}
-                            className="text-sm text-gray-700 dark:text-gray-300"
-                          >
-                            <PriceDisplay price={price} />
-                          </div>
-                        ))}
+                      {/* Price */}
+                      <div className="text-sm text-gray-700 dark:text-gray-300">
+                        <PriceDisplay
+                          price={product.price}
+                          currency={product.currency}
+                          billingPeriod={product.billingPeriod}
+                        />
                       </div>
 
-                      {/* Benefits */}
-                      {product.benefits && product.benefits.length > 0 && (
+                      {/* Features */}
+                      {product.features && product.features.length > 0 && (
                         <ul className="space-y-1 pt-2 border-t border-gray-100 dark:border-gray-800">
-                          {product.benefits.map((benefit: any) => (
+                          {product.features.map((feature: any) => (
                             <li
-                              key={benefit.id}
+                              key={feature.id}
                               className="flex items-start gap-2 text-sm text-gray-600 dark:text-gray-400"
                             >
                               <span className="text-green-500 mt-0.5">
                                 &#10003;
                               </span>
-                              <span>{benefit.description}</span>
+                              <span>{feature.description}</span>
                             </li>
                           ))}
                         </ul>

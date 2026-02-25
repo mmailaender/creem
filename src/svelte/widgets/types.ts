@@ -11,21 +11,19 @@ export type ConnectedBillingApi = {
   resumeCurrentSubscription?: FunctionReference<"action">;
 };
 
-export type ConnectedProductPrice = {
-  priceAmount?: number;
-  priceCurrency?: string;
-  recurringInterval?: string | null;
-  amountType?: string;
-};
-
 export type ConnectedProduct = {
   id: string;
   name?: string;
   description?: string;
-  recurringInterval?: string | null;
-  trialInterval?: string | null;
-  trialIntervalCount?: number | null;
-  prices?: ConnectedProductPrice[];
+  price?: number;
+  currency?: string;
+  billingType?: string;
+  billingPeriod?: string;
+  status?: string;
+  taxMode?: string;
+  taxCategory?: string;
+  imageUrl?: string;
+  features?: Array<{ id: string; description: string }>;
 };
 
 export type ConnectedBillingModel = {
@@ -50,6 +48,7 @@ export type ConnectedBillingModel = {
     currentPeriodStart: string;
     seats: number | null;
     recurringInterval: string | null;
+    trialEnd?: string | null;
   }>;
   hasCreemCustomer?: boolean;
   planCatalog?: {

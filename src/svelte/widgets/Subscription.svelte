@@ -242,6 +242,8 @@
       {activePlanId}
       products={allProducts}
       subscriptionProductId={localSubscriptionProductId}
+      subscriptionStatus={matchedSubscription?.status ?? null}
+      subscriptionTrialEnd={matchedSubscription?.trialEnd ?? null}
       {units}
       {showSeatPicker}
       subscribedSeats={localSubscribedSeats}

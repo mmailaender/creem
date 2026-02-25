@@ -57,6 +57,7 @@ export type SubscriptionSnapshot = {
   seats?: number | null;
   cancelAtPeriodEnd?: boolean;
   currentPeriodEnd?: string | null;
+  trialEnd?: string | null;
 };
 
 export type PaymentSnapshot = {

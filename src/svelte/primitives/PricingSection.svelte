@@ -10,6 +10,8 @@
     selectedCycle?: RecurringCycle;
     products?: ConnectedProduct[];
     subscriptionProductId?: string | null;
+    subscriptionStatus?: string | null;
+    subscriptionTrialEnd?: string | null;
     units?: number;
     showSeatPicker?: boolean;
     subscribedSeats?: number | null;
@@ -36,6 +38,8 @@
     selectedCycle = undefined,
     products = [],
     subscriptionProductId = null,
+    subscriptionStatus = null,
+    subscriptionTrialEnd = null,
     units = undefined,
     showSeatPicker = false,
     subscribedSeats = null,
@@ -81,6 +85,8 @@
         selectedCycle={effectiveCycle}
         activePlanId={snapshot?.activePlanId}
         {subscriptionProductId}
+        {subscriptionStatus}
+        {subscriptionTrialEnd}
         {products}
         {units}
         {showSeatPicker}

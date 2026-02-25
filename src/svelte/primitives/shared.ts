@@ -69,11 +69,10 @@ export const resolveProductPrice = (
 ): { formatted: string; interval?: string } | null => {
   if (!productId || !products.length) return null;
   const product = products.find((p) => p.id === productId);
-  if (!product?.prices?.length) return null;
-  const price = product.prices[0];
-  if (price.priceAmount == null || !price.priceCurrency) return null;
-  const formatted = formatPrice(price.priceAmount, price.priceCurrency);
-  return { formatted, interval: product.recurringInterval ?? undefined };
+  if (!product) return null;
+  if (product.price == null || !product.currency) return null;
+  const formatted = formatPrice(product.price, product.currency);
+  return { formatted, interval: product.billingPeriod ?? undefined };
 };
 
 const INTERVAL_LABELS: Record<string, string> = {

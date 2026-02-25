@@ -44,18 +44,16 @@ function createTestSubscription(
 function createTestProduct(overrides: Partial<DbProduct> = {}): DbProduct {
   return {
     id: "prod_123",
-    organizationId: "org_456",
     name: "Test Product",
     description: "A test product",
-    isRecurring: true,
-    isArchived: false,
+    price: 1000,
+    currency: "USD",
+    billingType: "recurring",
+    billingPeriod: "every-month",
+    status: "active",
     createdAt: "2025-01-10T08:00:00.000Z",
     modifiedAt: "2025-01-12T09:00:00.000Z",
-    recurringInterval: "month",
     metadata: {},
-    prices: [],
-    medias: [],
-    benefits: [],
     ...overrides,
   };
 }
@@ -387,7 +385,7 @@ describe("product conversion (Creem SDK → DB)", () => {
     t = convexTest(schema, modules);
   });
 
-  it("converts recurring products into fixed recurring DB prices", async () => {
+  it("converts recurring products with Creem-native fields", async () => {
     const sdkProduct = createSdkProduct({
       price: 1500,
       currency: "USD",
@@ -399,15 +397,14 @@ describe("product conversion (Creem SDK → DB)", () => {
     await t.mutation(api.lib.createProduct, { product: dbProduct });
     const result = await t.query(api.lib.getProduct, { id: "prod_123" });
 
-    expect(result?.prices).toHaveLength(1);
-    expect(result?.prices[0].amountType).toBe("fixed");
-    expect(result?.prices[0].priceAmount).toBe(1500);
-    expect(result?.prices[0].priceCurrency).toBe("USD");
-    expect(result?.prices[0].type).toBe("recurring");
-    expect(result?.prices[0].recurringInterval).toBe("every-month");
+    expect(result?.price).toBe(1500);
+    expect(result?.currency).toBe("USD");
+    expect(result?.billingType).toBe("recurring");
+    expect(result?.billingPeriod).toBe("every-month");
+    expect(result?.status).toBe("active");
   });
 
-  it("converts one-time products into fixed one_time DB prices", async () => {
+  it("converts one-time products with Creem-native fields", async () => {
     const sdkProduct = createSdkProduct({
       billingType: "onetime",
       billingPeriod: "once",
@@ -418,13 +415,11 @@ describe("product conversion (Creem SDK → DB)", () => {
     await t.mutation(api.lib.createProduct, { product: dbProduct });
     const result = await t.query(api.lib.getProduct, { id: "prod_123" });
 
-    expect(result?.isRecurring).toBe(false);
-    expect(result?.recurringInterval).toBeNull();
-    expect(result?.prices[0].type).toBe("one_time");
-    expect(result?.prices[0].priceAmount).toBe(4900);
+    expect(result?.price).toBe(4900);
+    expect(result?.billingType).toBe("onetime");
   });
 
-  it("converts Creem features into benefits", async () => {
+  it("converts Creem features", async () => {
     const sdkProduct = createSdkProduct({
       features: [
         {
@@ -439,10 +434,9 @@ describe("product conversion (Creem SDK → DB)", () => {
     await t.mutation(api.lib.createProduct, { product: dbProduct });
     const result = await t.query(api.lib.getProduct, { id: "prod_123" });
 
-    expect(result?.benefits).toHaveLength(1);
-    expect(result?.benefits?.[0].id).toBe("feature_123");
-    expect(result?.benefits?.[0].description).toBe("Priority support");
-    expect(result?.benefits?.[0].organizationId).toBe("creem");
+    expect(result?.features).toHaveLength(1);
+    expect(result?.features?.[0].id).toBe("feature_123");
+    expect(result?.features?.[0].description).toBe("Priority support");
   });
 });
 
@@ -780,15 +774,15 @@ describe("listProducts query", () => {
     expect(result).toEqual([]);
   });
 
-  it("returns all non-archived products by default", async () => {
+  it("returns only active products by default", async () => {
     await t.mutation(api.lib.createProduct, {
-      product: createTestProduct({ id: "prod_1", isArchived: false }),
+      product: createTestProduct({ id: "prod_1", status: "active" }),
     });
     await t.mutation(api.lib.createProduct, {
-      product: createTestProduct({ id: "prod_2", isArchived: false }),
+      product: createTestProduct({ id: "prod_2", status: "active" }),
     });
     await t.mutation(api.lib.createProduct, {
-      product: createTestProduct({ id: "prod_archived", isArchived: true }),
+      product: createTestProduct({ id: "prod_inactive", status: "inactive" }),
     });
 
     const result = await t.query(api.lib.listProducts, {});
@@ -797,12 +791,12 @@ describe("listProducts query", () => {
     expect(result.map((p) => p.id).sort()).toEqual(["prod_1", "prod_2"]);
   });
 
-  it("includes archived products when includeArchived is true", async () => {
+  it("includes inactive products when includeArchived is true", async () => {
     await t.mutation(api.lib.createProduct, {
-      product: createTestProduct({ id: "prod_1", isArchived: false }),
+      product: createTestProduct({ id: "prod_1", status: "active" }),
     });
     await t.mutation(api.lib.createProduct, {
-      product: createTestProduct({ id: "prod_archived", isArchived: true }),
+      product: createTestProduct({ id: "prod_inactive", status: "inactive" }),
     });
 
     const result = await t.query(api.lib.listProducts, {
@@ -810,7 +804,7 @@ describe("listProducts query", () => {
     });
 
     expect(result).toHaveLength(2);
-    expect(result.map((p) => p.id).sort()).toEqual(["prod_1", "prod_archived"]);
+    expect(result.map((p) => p.id).sort()).toEqual(["prod_1", "prod_inactive"]);
   });
 });
 

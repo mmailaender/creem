@@ -1,8 +1,8 @@
 import { mount } from "svelte";
-import ConnectedApp from "./ConnectedApp.svelte";
+import App from "./App.svelte";
 import "./app.css";
 
-const app = mount(ConnectedApp, {
+const app = mount(App, {
   target: document.getElementById("app")!,
 });
 

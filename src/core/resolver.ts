@@ -132,7 +132,9 @@ export const resolveBillingSnapshot = (
     catalogVersion: catalog?.version,
     activePlanId: activePlan?.planId ?? null,
     activeCategory:
-      activePlan?.category ?? toCategoryFromSubscription(subscription),
+      subscription?.status === "trialing"
+        ? "trial"
+        : (activePlan?.category ?? toCategoryFromSubscription(subscription)),
     billingType,
     recurringCycle,
     availableBillingCycles,
@@ -143,6 +145,7 @@ export const resolveBillingSnapshot = (
     metadata: {
       cancelAtPeriodEnd: subscription?.cancelAtPeriodEnd ?? false,
       currentPeriodEnd: subscription?.currentPeriodEnd ?? null,
+      trialEnd: subscription?.trialEnd ?? null,
       userContext: input.userContext ?? {},
     },
   };

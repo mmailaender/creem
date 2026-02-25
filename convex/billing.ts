@@ -118,38 +118,45 @@ export const creem = new Creem(components.creem, {
 });
 
 export const {
-  // If you configure your products by key in the Creem constructor,
-  // this query provides a keyed object of the products.
+  // ── Core queries ─────────────────────────────────────────────
+  // Keyed product map (based on products configured in the constructor).
   getConfiguredProducts,
-
-  // Lists all non-archived products, useful if you don't configure products by key.
+  // All active products synced from Creem.
   listAllProducts,
+  // Resolved billing state for UI banners and gates.
+  getCurrentBillingSnapshot,
+  // Full billing UI model for connected widgets (subscriptions, products, snapshot, catalog).
+  getBillingUiModel,
 
-  // Generates a checkout link for the given product ID.
+  // ── Checkout & portal actions ────────────────────────────────
   generateCheckoutLink,
-
-  // Generates a customer portal URL for the current user.
   generateCustomerPortalUrl,
 
-  // Changes the current subscription to the given product ID.
+  // ── Subscription management actions ──────────────────────────
   changeCurrentSubscription,
-
-  // Updates the seat count on the current subscription.
   updateSubscriptionSeats,
-
-  // Cancels the current subscription.
   cancelCurrentSubscription,
-
-  // Resumes a subscription in scheduled_cancel or paused state.
   resumeCurrentSubscription,
+  pauseCurrentSubscription,
 
-  // Resolves the current billing snapshot from Convex + plan catalog.
-  getCurrentBillingSnapshot,
+  // ── Primitive queries (for custom UIs) ───────────────────────
+  getProduct,
+  getSubscription,
+  getCustomer,
+  listSubscriptions,
+  listOrders,
 
-  // Returns the full billing UI model for connected widgets.
-  // Override this with your own query using creem.buildBillingUiModel()
-  // if you need app-specific fields (ownedProductIds, policy, etc.).
-  getBillingUiModel,
+  // ── Full Creem API pass-through actions ──────────────────────
+  createCreemProduct,
+  retrieveCheckout,
+  getTransaction,
+  listTransactions,
+  activateLicense,
+  validateLicense,
+  deactivateLicense,
+  createDiscount,
+  getDiscount,
+  deleteDiscount,
 } = creem.api();
 
 export const syncBillingProducts = internalAction({

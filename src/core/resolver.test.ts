@@ -58,6 +58,33 @@ describe("resolveBillingSnapshot", () => {
     expect(snapshot.availableActions).toEqual(["checkout"]);
   });
 
+  it("maps trialing subscription to trial category with trialEnd in metadata", () => {
+    const snapshot = resolveBillingSnapshot({
+      catalog: {
+        version: "1",
+        plans: [
+          {
+            planId: "basic",
+            category: "paid",
+            billingType: "recurring",
+            creemProductIds: { "every-month": "prod_basic" },
+          },
+        ],
+      },
+      currentSubscription: {
+        productId: "prod_basic",
+        status: "trialing",
+        recurringInterval: "every-month",
+        trialEnd: "2026-03-04T08:23:39.000Z",
+      },
+    });
+
+    expect(snapshot.activeCategory).toBe("trial");
+    expect(snapshot.subscriptionState).toBe("trialing");
+    expect(snapshot.metadata?.trialEnd).toBe("2026-03-04T08:23:39.000Z");
+    expect(snapshot.availableActions).toContain("cancel");
+  });
+
   it("falls back to custom category when no catalog mapping exists", () => {
     const snapshot = resolveBillingSnapshot({
       currentSubscription: {

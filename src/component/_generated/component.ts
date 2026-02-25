@@ -29,15 +29,23 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "internal",
         {
           order: {
+            affiliate?: string | null;
             amount: number;
+            amountDue?: number;
+            amountPaid?: number;
             checkoutId?: string | null;
             createdAt: string;
             currency: string;
             customerId: string;
+            discountAmount?: number;
+            discountId?: string | null;
             id: string;
             metadata?: Record<string, any>;
+            mode?: string;
             productId: string;
             status: string;
+            subTotal?: number;
+            taxAmount?: number;
             transactionId?: string | null;
             type: string;
             updatedAt: string;
@@ -51,75 +59,24 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "internal",
         {
           product: {
-            benefits?: Array<{
-              createdAt: string;
-              deletable: boolean;
-              description: string;
-              id: string;
-              metadata?: Record<string, any>;
-              modifiedAt: string | null;
-              organizationId: string;
-              properties?: any;
-              selectable: boolean;
-              type: string;
-            }>;
+            billingPeriod?: string;
+            billingType: string;
             createdAt: string;
+            currency: string;
+            defaultSuccessUrl?: string | null;
             description: string | null;
+            features?: Array<{ description: string; id: string }>;
             id: string;
-            isArchived: boolean;
-            isRecurring: boolean;
-            medias: Array<{
-              checksumEtag: string | null;
-              checksumSha256Base64: string | null;
-              checksumSha256Hex: string | null;
-              createdAt: string;
-              id: string;
-              isUploaded: boolean;
-              lastModifiedAt: string | null;
-              mimeType: string;
-              name: string;
-              organizationId: string;
-              path: string;
-              publicUrl: string;
-              service?: string;
-              size: number;
-              sizeReadable: string;
-              storageVersion: string | null;
-              version: string | null;
-            }>;
+            imageUrl?: string;
             metadata?: Record<string, any>;
+            mode?: string;
             modifiedAt: string | null;
             name: string;
-            organizationId: string;
-            prices: Array<{
-              amountType?: string;
-              capAmount?: number | null;
-              createdAt: string;
-              id: string;
-              isArchived: boolean;
-              maximumAmount?: number | null;
-              meter?: { id: string; name: string };
-              meterId?: string;
-              minimumAmount?: number | null;
-              modifiedAt: string | null;
-              presetAmount?: number | null;
-              priceAmount?: number;
-              priceCurrency?: string;
-              productId: string;
-              recurringInterval?: string | null;
-              seatTiers?: Array<{
-                maxSeats: number | null;
-                minSeats: number;
-                pricePerSeat: number;
-              }>;
-              source?: string;
-              type?: string;
-              unitAmount?: string;
-            }>;
-            recurringInterval?: string | null;
-            recurringIntervalCount?: number | null;
-            trialInterval?: string | null;
-            trialIntervalCount?: number | null;
+            price: number;
+            productUrl?: string;
+            status: string;
+            taxCategory?: string;
+            taxMode?: string;
           };
         },
         any,
@@ -134,24 +91,24 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             cancelAtPeriodEnd: boolean;
             canceledAt?: string | null;
             checkoutId: string | null;
+            collectionMethod?: string;
             createdAt: string;
             currency: string | null;
             currentPeriodEnd: string | null;
             currentPeriodStart: string;
-            customFieldData?: Record<string, any>;
-            customerCancellationComment?: string | null;
-            customerCancellationReason?: string | null;
             customerId: string;
             discountId?: string | null;
             endedAt: string | null;
             endsAt?: string | null;
             id: string;
+            lastTransactionId?: string | null;
             metadata: Record<string, any>;
+            mode?: string;
             modifiedAt: string | null;
+            nextTransactionDate?: string | null;
             priceId?: string;
             productId: string;
             recurringInterval: string | null;
-            recurringIntervalCount?: number;
             seats?: number | null;
             startedAt: string | null;
             status: string;
@@ -171,95 +128,44 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           cancelAtPeriodEnd: boolean;
           canceledAt?: string | null;
           checkoutId: string | null;
+          collectionMethod?: string;
           createdAt: string;
           currency: string | null;
           currentPeriodEnd: string | null;
           currentPeriodStart: string;
-          customFieldData?: Record<string, any>;
-          customerCancellationComment?: string | null;
-          customerCancellationReason?: string | null;
           customerId: string;
           discountId?: string | null;
           endedAt: string | null;
           endsAt?: string | null;
           id: string;
+          lastTransactionId?: string | null;
           metadata: Record<string, any>;
+          mode?: string;
           modifiedAt: string | null;
+          nextTransactionDate?: string | null;
           priceId?: string;
           product: {
-            benefits?: Array<{
-              createdAt: string;
-              deletable: boolean;
-              description: string;
-              id: string;
-              metadata?: Record<string, any>;
-              modifiedAt: string | null;
-              organizationId: string;
-              properties?: any;
-              selectable: boolean;
-              type: string;
-            }>;
+            billingPeriod?: string;
+            billingType: string;
             createdAt: string;
+            currency: string;
+            defaultSuccessUrl?: string | null;
             description: string | null;
+            features?: Array<{ description: string; id: string }>;
             id: string;
-            isArchived: boolean;
-            isRecurring: boolean;
-            medias: Array<{
-              checksumEtag: string | null;
-              checksumSha256Base64: string | null;
-              checksumSha256Hex: string | null;
-              createdAt: string;
-              id: string;
-              isUploaded: boolean;
-              lastModifiedAt: string | null;
-              mimeType: string;
-              name: string;
-              organizationId: string;
-              path: string;
-              publicUrl: string;
-              service?: string;
-              size: number;
-              sizeReadable: string;
-              storageVersion: string | null;
-              version: string | null;
-            }>;
+            imageUrl?: string;
             metadata?: Record<string, any>;
+            mode?: string;
             modifiedAt: string | null;
             name: string;
-            organizationId: string;
-            prices: Array<{
-              amountType?: string;
-              capAmount?: number | null;
-              createdAt: string;
-              id: string;
-              isArchived: boolean;
-              maximumAmount?: number | null;
-              meter?: { id: string; name: string };
-              meterId?: string;
-              minimumAmount?: number | null;
-              modifiedAt: string | null;
-              presetAmount?: number | null;
-              priceAmount?: number;
-              priceCurrency?: string;
-              productId: string;
-              recurringInterval?: string | null;
-              seatTiers?: Array<{
-                maxSeats: number | null;
-                minSeats: number;
-                pricePerSeat: number;
-              }>;
-              source?: string;
-              type?: string;
-              unitAmount?: string;
-            }>;
-            recurringInterval?: string | null;
-            recurringIntervalCount?: number | null;
-            trialInterval?: string | null;
-            trialIntervalCount?: number | null;
+            price: number;
+            productUrl?: string;
+            status: string;
+            taxCategory?: string;
+            taxMode?: string;
           };
           productId: string;
           recurringInterval: string | null;
-          recurringIntervalCount?: number;
           seats?: number | null;
           startedAt: string | null;
           status: string;
@@ -272,7 +178,17 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "query",
         "internal",
         { userId: string },
-        { id: string; metadata?: Record<string, any>; userId: string } | null,
+        {
+          country?: string;
+          createdAt?: string;
+          email?: string;
+          id: string;
+          metadata?: Record<string, any>;
+          mode?: string;
+          name?: string | null;
+          updatedAt?: string;
+          userId: string;
+        } | null,
         Name
       >;
       getProduct: FunctionReference<
@@ -280,75 +196,24 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "internal",
         { id: string },
         {
-          benefits?: Array<{
-            createdAt: string;
-            deletable: boolean;
-            description: string;
-            id: string;
-            metadata?: Record<string, any>;
-            modifiedAt: string | null;
-            organizationId: string;
-            properties?: any;
-            selectable: boolean;
-            type: string;
-          }>;
+          billingPeriod?: string;
+          billingType: string;
           createdAt: string;
+          currency: string;
+          defaultSuccessUrl?: string | null;
           description: string | null;
+          features?: Array<{ description: string; id: string }>;
           id: string;
-          isArchived: boolean;
-          isRecurring: boolean;
-          medias: Array<{
-            checksumEtag: string | null;
-            checksumSha256Base64: string | null;
-            checksumSha256Hex: string | null;
-            createdAt: string;
-            id: string;
-            isUploaded: boolean;
-            lastModifiedAt: string | null;
-            mimeType: string;
-            name: string;
-            organizationId: string;
-            path: string;
-            publicUrl: string;
-            service?: string;
-            size: number;
-            sizeReadable: string;
-            storageVersion: string | null;
-            version: string | null;
-          }>;
+          imageUrl?: string;
           metadata?: Record<string, any>;
+          mode?: string;
           modifiedAt: string | null;
           name: string;
-          organizationId: string;
-          prices: Array<{
-            amountType?: string;
-            capAmount?: number | null;
-            createdAt: string;
-            id: string;
-            isArchived: boolean;
-            maximumAmount?: number | null;
-            meter?: { id: string; name: string };
-            meterId?: string;
-            minimumAmount?: number | null;
-            modifiedAt: string | null;
-            presetAmount?: number | null;
-            priceAmount?: number;
-            priceCurrency?: string;
-            productId: string;
-            recurringInterval?: string | null;
-            seatTiers?: Array<{
-              maxSeats: number | null;
-              minSeats: number;
-              pricePerSeat: number;
-            }>;
-            source?: string;
-            type?: string;
-            unitAmount?: string;
-          }>;
-          recurringInterval?: string | null;
-          recurringIntervalCount?: number | null;
-          trialInterval?: string | null;
-          trialIntervalCount?: number | null;
+          price: number;
+          productUrl?: string;
+          status: string;
+          taxCategory?: string;
+          taxMode?: string;
         } | null,
         Name
       >;
@@ -361,24 +226,24 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           cancelAtPeriodEnd: boolean;
           canceledAt?: string | null;
           checkoutId: string | null;
+          collectionMethod?: string;
           createdAt: string;
           currency: string | null;
           currentPeriodEnd: string | null;
           currentPeriodStart: string;
-          customFieldData?: Record<string, any>;
-          customerCancellationComment?: string | null;
-          customerCancellationReason?: string | null;
           customerId: string;
           discountId?: string | null;
           endedAt: string | null;
           endsAt?: string | null;
           id: string;
+          lastTransactionId?: string | null;
           metadata: Record<string, any>;
+          mode?: string;
           modifiedAt: string | null;
+          nextTransactionDate?: string | null;
           priceId?: string;
           productId: string;
           recurringInterval: string | null;
-          recurringIntervalCount?: number;
           seats?: number | null;
           startedAt: string | null;
           status: string;
@@ -390,7 +255,17 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
       insertCustomer: FunctionReference<
         "mutation",
         "internal",
-        { id: string; metadata?: Record<string, any>; userId: string },
+        {
+          country?: string;
+          createdAt?: string;
+          email?: string;
+          id: string;
+          metadata?: Record<string, any>;
+          mode?: string;
+          name?: string | null;
+          updatedAt?: string;
+          userId: string;
+        },
         string,
         Name
       >;
@@ -403,95 +278,44 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           cancelAtPeriodEnd: boolean;
           canceledAt?: string | null;
           checkoutId: string | null;
+          collectionMethod?: string;
           createdAt: string;
           currency: string | null;
           currentPeriodEnd: string | null;
           currentPeriodStart: string;
-          customFieldData?: Record<string, any>;
-          customerCancellationComment?: string | null;
-          customerCancellationReason?: string | null;
           customerId: string;
           discountId?: string | null;
           endedAt: string | null;
           endsAt?: string | null;
           id: string;
+          lastTransactionId?: string | null;
           metadata: Record<string, any>;
+          mode?: string;
           modifiedAt: string | null;
+          nextTransactionDate?: string | null;
           priceId?: string;
           product: {
-            benefits?: Array<{
-              createdAt: string;
-              deletable: boolean;
-              description: string;
-              id: string;
-              metadata?: Record<string, any>;
-              modifiedAt: string | null;
-              organizationId: string;
-              properties?: any;
-              selectable: boolean;
-              type: string;
-            }>;
+            billingPeriod?: string;
+            billingType: string;
             createdAt: string;
+            currency: string;
+            defaultSuccessUrl?: string | null;
             description: string | null;
+            features?: Array<{ description: string; id: string }>;
             id: string;
-            isArchived: boolean;
-            isRecurring: boolean;
-            medias: Array<{
-              checksumEtag: string | null;
-              checksumSha256Base64: string | null;
-              checksumSha256Hex: string | null;
-              createdAt: string;
-              id: string;
-              isUploaded: boolean;
-              lastModifiedAt: string | null;
-              mimeType: string;
-              name: string;
-              organizationId: string;
-              path: string;
-              publicUrl: string;
-              service?: string;
-              size: number;
-              sizeReadable: string;
-              storageVersion: string | null;
-              version: string | null;
-            }>;
+            imageUrl?: string;
             metadata?: Record<string, any>;
+            mode?: string;
             modifiedAt: string | null;
             name: string;
-            organizationId: string;
-            prices: Array<{
-              amountType?: string;
-              capAmount?: number | null;
-              createdAt: string;
-              id: string;
-              isArchived: boolean;
-              maximumAmount?: number | null;
-              meter?: { id: string; name: string };
-              meterId?: string;
-              minimumAmount?: number | null;
-              modifiedAt: string | null;
-              presetAmount?: number | null;
-              priceAmount?: number;
-              priceCurrency?: string;
-              productId: string;
-              recurringInterval?: string | null;
-              seatTiers?: Array<{
-                maxSeats: number | null;
-                minSeats: number;
-                pricePerSeat: number;
-              }>;
-              source?: string;
-              type?: string;
-              unitAmount?: string;
-            }>;
-            recurringInterval?: string | null;
-            recurringIntervalCount?: number | null;
-            trialInterval?: string | null;
-            trialIntervalCount?: number | null;
+            price: number;
+            productUrl?: string;
+            status: string;
+            taxCategory?: string;
+            taxMode?: string;
           } | null;
           productId: string;
           recurringInterval: string | null;
-          recurringIntervalCount?: number;
           seats?: number | null;
           startedAt: string | null;
           status: string;
@@ -509,24 +333,24 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           cancelAtPeriodEnd: boolean;
           canceledAt?: string | null;
           checkoutId: string | null;
+          collectionMethod?: string;
           createdAt: string;
           currency: string | null;
           currentPeriodEnd: string | null;
           currentPeriodStart: string;
-          customFieldData?: Record<string, any>;
-          customerCancellationComment?: string | null;
-          customerCancellationReason?: string | null;
           customerId: string;
           discountId?: string | null;
           endedAt: string | null;
           endsAt?: string | null;
           id: string;
+          lastTransactionId?: string | null;
           metadata: Record<string, any>;
+          mode?: string;
           modifiedAt: string | null;
+          nextTransactionDate?: string | null;
           priceId?: string;
           productId: string;
           recurringInterval: string | null;
-          recurringIntervalCount?: number;
           seats?: number | null;
           startedAt: string | null;
           status: string;
@@ -540,76 +364,24 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "internal",
         { includeArchived?: boolean },
         Array<{
-          benefits?: Array<{
-            createdAt: string;
-            deletable: boolean;
-            description: string;
-            id: string;
-            metadata?: Record<string, any>;
-            modifiedAt: string | null;
-            organizationId: string;
-            properties?: any;
-            selectable: boolean;
-            type: string;
-          }>;
+          billingPeriod?: string;
+          billingType: string;
           createdAt: string;
+          currency: string;
+          defaultSuccessUrl?: string | null;
           description: string | null;
+          features?: Array<{ description: string; id: string }>;
           id: string;
-          isArchived: boolean;
-          isRecurring: boolean;
-          medias: Array<{
-            checksumEtag: string | null;
-            checksumSha256Base64: string | null;
-            checksumSha256Hex: string | null;
-            createdAt: string;
-            id: string;
-            isUploaded: boolean;
-            lastModifiedAt: string | null;
-            mimeType: string;
-            name: string;
-            organizationId: string;
-            path: string;
-            publicUrl: string;
-            service?: string;
-            size: number;
-            sizeReadable: string;
-            storageVersion: string | null;
-            version: string | null;
-          }>;
+          imageUrl?: string;
           metadata?: Record<string, any>;
+          mode?: string;
           modifiedAt: string | null;
           name: string;
-          organizationId: string;
-          priceAmount?: number;
-          prices: Array<{
-            amountType?: string;
-            capAmount?: number | null;
-            createdAt: string;
-            id: string;
-            isArchived: boolean;
-            maximumAmount?: number | null;
-            meter?: { id: string; name: string };
-            meterId?: string;
-            minimumAmount?: number | null;
-            modifiedAt: string | null;
-            presetAmount?: number | null;
-            priceAmount?: number;
-            priceCurrency?: string;
-            productId: string;
-            recurringInterval?: string | null;
-            seatTiers?: Array<{
-              maxSeats: number | null;
-              minSeats: number;
-              pricePerSeat: number;
-            }>;
-            source?: string;
-            type?: string;
-            unitAmount?: string;
-          }>;
-          recurringInterval?: string | null;
-          recurringIntervalCount?: number | null;
-          trialInterval?: string | null;
-          trialIntervalCount?: number | null;
+          price: number;
+          productUrl?: string;
+          status: string;
+          taxCategory?: string;
+          taxMode?: string;
         }>,
         Name
       >;
@@ -618,15 +390,23 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "internal",
         { userId: string },
         Array<{
+          affiliate?: string | null;
           amount: number;
+          amountDue?: number;
+          amountPaid?: number;
           checkoutId?: string | null;
           createdAt: string;
           currency: string;
           customerId: string;
+          discountAmount?: number;
+          discountId?: string | null;
           id: string;
           metadata?: Record<string, any>;
+          mode?: string;
           productId: string;
           status: string;
+          subTotal?: number;
+          taxAmount?: number;
           transactionId?: string | null;
           type: string;
           updatedAt: string;
@@ -642,95 +422,44 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           cancelAtPeriodEnd: boolean;
           canceledAt?: string | null;
           checkoutId: string | null;
+          collectionMethod?: string;
           createdAt: string;
           currency: string | null;
           currentPeriodEnd: string | null;
           currentPeriodStart: string;
-          customFieldData?: Record<string, any>;
-          customerCancellationComment?: string | null;
-          customerCancellationReason?: string | null;
           customerId: string;
           discountId?: string | null;
           endedAt: string | null;
           endsAt?: string | null;
           id: string;
+          lastTransactionId?: string | null;
           metadata: Record<string, any>;
+          mode?: string;
           modifiedAt: string | null;
+          nextTransactionDate?: string | null;
           priceId?: string;
           product: {
-            benefits?: Array<{
-              createdAt: string;
-              deletable: boolean;
-              description: string;
-              id: string;
-              metadata?: Record<string, any>;
-              modifiedAt: string | null;
-              organizationId: string;
-              properties?: any;
-              selectable: boolean;
-              type: string;
-            }>;
+            billingPeriod?: string;
+            billingType: string;
             createdAt: string;
+            currency: string;
+            defaultSuccessUrl?: string | null;
             description: string | null;
+            features?: Array<{ description: string; id: string }>;
             id: string;
-            isArchived: boolean;
-            isRecurring: boolean;
-            medias: Array<{
-              checksumEtag: string | null;
-              checksumSha256Base64: string | null;
-              checksumSha256Hex: string | null;
-              createdAt: string;
-              id: string;
-              isUploaded: boolean;
-              lastModifiedAt: string | null;
-              mimeType: string;
-              name: string;
-              organizationId: string;
-              path: string;
-              publicUrl: string;
-              service?: string;
-              size: number;
-              sizeReadable: string;
-              storageVersion: string | null;
-              version: string | null;
-            }>;
+            imageUrl?: string;
             metadata?: Record<string, any>;
+            mode?: string;
             modifiedAt: string | null;
             name: string;
-            organizationId: string;
-            prices: Array<{
-              amountType?: string;
-              capAmount?: number | null;
-              createdAt: string;
-              id: string;
-              isArchived: boolean;
-              maximumAmount?: number | null;
-              meter?: { id: string; name: string };
-              meterId?: string;
-              minimumAmount?: number | null;
-              modifiedAt: string | null;
-              presetAmount?: number | null;
-              priceAmount?: number;
-              priceCurrency?: string;
-              productId: string;
-              recurringInterval?: string | null;
-              seatTiers?: Array<{
-                maxSeats: number | null;
-                minSeats: number;
-                pricePerSeat: number;
-              }>;
-              source?: string;
-              type?: string;
-              unitAmount?: string;
-            }>;
-            recurringInterval?: string | null;
-            recurringIntervalCount?: number | null;
-            trialInterval?: string | null;
-            trialIntervalCount?: number | null;
+            price: number;
+            productUrl?: string;
+            status: string;
+            taxCategory?: string;
+            taxMode?: string;
           } | null;
           productId: string;
           recurringInterval: string | null;
-          recurringIntervalCount?: number;
           seats?: number | null;
           startedAt: string | null;
           status: string;
@@ -751,75 +480,24 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "internal",
         {
           product: {
-            benefits?: Array<{
-              createdAt: string;
-              deletable: boolean;
-              description: string;
-              id: string;
-              metadata?: Record<string, any>;
-              modifiedAt: string | null;
-              organizationId: string;
-              properties?: any;
-              selectable: boolean;
-              type: string;
-            }>;
+            billingPeriod?: string;
+            billingType: string;
             createdAt: string;
+            currency: string;
+            defaultSuccessUrl?: string | null;
             description: string | null;
+            features?: Array<{ description: string; id: string }>;
             id: string;
-            isArchived: boolean;
-            isRecurring: boolean;
-            medias: Array<{
-              checksumEtag: string | null;
-              checksumSha256Base64: string | null;
-              checksumSha256Hex: string | null;
-              createdAt: string;
-              id: string;
-              isUploaded: boolean;
-              lastModifiedAt: string | null;
-              mimeType: string;
-              name: string;
-              organizationId: string;
-              path: string;
-              publicUrl: string;
-              service?: string;
-              size: number;
-              sizeReadable: string;
-              storageVersion: string | null;
-              version: string | null;
-            }>;
+            imageUrl?: string;
             metadata?: Record<string, any>;
+            mode?: string;
             modifiedAt: string | null;
             name: string;
-            organizationId: string;
-            prices: Array<{
-              amountType?: string;
-              capAmount?: number | null;
-              createdAt: string;
-              id: string;
-              isArchived: boolean;
-              maximumAmount?: number | null;
-              meter?: { id: string; name: string };
-              meterId?: string;
-              minimumAmount?: number | null;
-              modifiedAt: string | null;
-              presetAmount?: number | null;
-              priceAmount?: number;
-              priceCurrency?: string;
-              productId: string;
-              recurringInterval?: string | null;
-              seatTiers?: Array<{
-                maxSeats: number | null;
-                minSeats: number;
-                pricePerSeat: number;
-              }>;
-              source?: string;
-              type?: string;
-              unitAmount?: string;
-            }>;
-            recurringInterval?: string | null;
-            recurringIntervalCount?: number | null;
-            trialInterval?: string | null;
-            trialIntervalCount?: number | null;
+            price: number;
+            productUrl?: string;
+            status: string;
+            taxCategory?: string;
+            taxMode?: string;
           };
         },
         any,
@@ -830,75 +508,24 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         "internal",
         {
           products: Array<{
-            benefits?: Array<{
-              createdAt: string;
-              deletable: boolean;
-              description: string;
-              id: string;
-              metadata?: Record<string, any>;
-              modifiedAt: string | null;
-              organizationId: string;
-              properties?: any;
-              selectable: boolean;
-              type: string;
-            }>;
+            billingPeriod?: string;
+            billingType: string;
             createdAt: string;
+            currency: string;
+            defaultSuccessUrl?: string | null;
             description: string | null;
+            features?: Array<{ description: string; id: string }>;
             id: string;
-            isArchived: boolean;
-            isRecurring: boolean;
-            medias: Array<{
-              checksumEtag: string | null;
-              checksumSha256Base64: string | null;
-              checksumSha256Hex: string | null;
-              createdAt: string;
-              id: string;
-              isUploaded: boolean;
-              lastModifiedAt: string | null;
-              mimeType: string;
-              name: string;
-              organizationId: string;
-              path: string;
-              publicUrl: string;
-              service?: string;
-              size: number;
-              sizeReadable: string;
-              storageVersion: string | null;
-              version: string | null;
-            }>;
+            imageUrl?: string;
             metadata?: Record<string, any>;
+            mode?: string;
             modifiedAt: string | null;
             name: string;
-            organizationId: string;
-            prices: Array<{
-              amountType?: string;
-              capAmount?: number | null;
-              createdAt: string;
-              id: string;
-              isArchived: boolean;
-              maximumAmount?: number | null;
-              meter?: { id: string; name: string };
-              meterId?: string;
-              minimumAmount?: number | null;
-              modifiedAt: string | null;
-              presetAmount?: number | null;
-              priceAmount?: number;
-              priceCurrency?: string;
-              productId: string;
-              recurringInterval?: string | null;
-              seatTiers?: Array<{
-                maxSeats: number | null;
-                minSeats: number;
-                pricePerSeat: number;
-              }>;
-              source?: string;
-              type?: string;
-              unitAmount?: string;
-            }>;
-            recurringInterval?: string | null;
-            recurringIntervalCount?: number | null;
-            trialInterval?: string | null;
-            trialIntervalCount?: number | null;
+            price: number;
+            productUrl?: string;
+            status: string;
+            taxCategory?: string;
+            taxMode?: string;
           }>;
         },
         any,
@@ -913,24 +540,24 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
             cancelAtPeriodEnd: boolean;
             canceledAt?: string | null;
             checkoutId: string | null;
+            collectionMethod?: string;
             createdAt: string;
             currency: string | null;
             currentPeriodEnd: string | null;
             currentPeriodStart: string;
-            customFieldData?: Record<string, any>;
-            customerCancellationComment?: string | null;
-            customerCancellationReason?: string | null;
             customerId: string;
             discountId?: string | null;
             endedAt: string | null;
             endsAt?: string | null;
             id: string;
+            lastTransactionId?: string | null;
             metadata: Record<string, any>;
+            mode?: string;
             modifiedAt: string | null;
+            nextTransactionDate?: string | null;
             priceId?: string;
             productId: string;
             recurringInterval: string | null;
-            recurringIntervalCount?: number;
             seats?: number | null;
             startedAt: string | null;
             status: string;

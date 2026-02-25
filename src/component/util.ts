@@ -7,7 +7,6 @@ import type {
 import type {
   ProductEntity as CreemProduct,
   SubscriptionEntity as CreemSubscription,
-  FeatureEntity,
 } from "creem/models/components";
 import type { Infer } from "convex/values";
 import type schema from "./schema.js";
@@ -55,19 +54,6 @@ const entityId = (value: unknown): string | null => {
   return null;
 };
 
-const convertCreemFeature = (feature: FeatureEntity) => ({
-  id: feature.id,
-  createdAt: new Date().toISOString(),
-  modifiedAt: null,
-  type: "feature",
-  description: feature.description,
-  selectable: false,
-  deletable: false,
-  organizationId: "creem",
-  metadata: {},
-  properties: undefined,
-});
-
 export const convertToDatabaseSubscription = (
   subscription: CreemSubscription,
   options?: { rawMetadata?: Record<string, unknown> },
@@ -89,11 +75,13 @@ export const convertToDatabaseSubscription = (
       : null;
   const now = new Date().toISOString();
 
+  const periodStartStr = toIsoString(subscription.currentPeriodStartDate);
   const periodEndStr = toIsoString(subscription.currentPeriodEndDate);
 
   // Only `scheduled_cancel` is the resumable cancel-at-period-end state.
   // `canceled` means truly ended (even if currentPeriodEnd is in the future).
   const isScheduledCancel = subscription.status === "scheduled_cancel";
+  const isTrialing = subscription.status === "trialing";
 
   // SDK's SubscriptionEntity type does not include `metadata` — zod strips it.
   // Accept rawMetadata from the caller (extracted from the raw webhook object).
@@ -105,39 +93,38 @@ export const convertToDatabaseSubscription = (
   return {
     id: subscription.id,
     customerId,
-    createdAt: toIsoStringOrNow(subscription.createdAt),
-    modifiedAt: toIsoString(subscription.updatedAt),
     productId,
-    checkoutId: null,
+    status: subscription.status,
     amount: product?.price ?? null,
     currency: product?.currency ?? null,
     recurringInterval: product?.billingPeriod ?? null,
-    status: subscription.status,
-    currentPeriodStart:
-      toIsoString(subscription.currentPeriodStartDate) ??
-      toIsoStringOrNow(subscription.createdAt),
+    currentPeriodStart: periodStartStr ?? toIsoStringOrNow(subscription.createdAt),
     currentPeriodEnd: periodEndStr,
     cancelAtPeriodEnd: isScheduledCancel,
-    customerCancellationReason: null,
-    customerCancellationComment: null,
-    startedAt:
-      toIsoString(subscription.currentPeriodStartDate) ??
-      toIsoString(subscription.createdAt),
+    startedAt: periodStartStr ?? toIsoString(subscription.createdAt),
     endedAt:
       subscription.status === "canceled"
         ? (toIsoString(subscription.canceledAt) ?? now)
         : null,
+    checkoutId: null,
     metadata,
+    collectionMethod:
+      (subscription as { collectionMethod?: string }).collectionMethod ??
+      "charge_automatically",
     discountId:
       (subscription.discount as { id?: string } | undefined)?.id ?? null,
     canceledAt: toIsoString(subscription.canceledAt),
     endsAt: isScheduledCancel ? periodEndStr : null,
-    recurringIntervalCount: undefined,
-    trialStart: null,
-    trialEnd: null,
+    // Fix: populate trial dates from period dates when status is trialing
+    trialStart: isTrialing ? periodStartStr : null,
+    trialEnd: isTrialing ? periodEndStr : null,
     seats: subscription.items?.[0]?.units ?? null,
-    customFieldData: undefined,
+    lastTransactionId: subscription.lastTransactionId ?? null,
+    nextTransactionDate: toIsoString(subscription.nextTransactionDate),
+    mode: subscription.mode,
     priceId: subscription.items?.[0]?.priceId,
+    createdAt: toIsoStringOrNow(subscription.createdAt),
+    modifiedAt: toIsoString(subscription.updatedAt),
   };
 };
 
@@ -151,8 +138,23 @@ export const convertToOrder = (
     status: string;
     type: string;
     transaction?: string | null;
+    sub_total?: number;
+    subTotal?: number;
+    tax_amount?: number;
+    taxAmount?: number;
+    discount_amount?: number;
+    discountAmount?: number;
+    amount_due?: number;
+    amountDue?: number;
+    amount_paid?: number;
+    amountPaid?: number;
+    discount?: string | null;
+    affiliate?: string | null;
+    mode?: string;
     createdAt?: Date | string | null;
     updatedAt?: Date | string | null;
+    created_at?: string | null;
+    updated_at?: string | null;
   },
   options?: {
     checkoutId?: string | null;
@@ -168,11 +170,19 @@ export const convertToOrder = (
     currency: order.currency,
     status: order.status,
     type: order.type,
+    subTotal: order.subTotal ?? order.sub_total,
+    taxAmount: order.taxAmount ?? order.tax_amount,
+    discountAmount: order.discountAmount ?? order.discount_amount,
+    amountDue: order.amountDue ?? order.amount_due,
+    amountPaid: order.amountPaid ?? order.amount_paid,
     transactionId: order.transaction ?? null,
     checkoutId: options?.checkoutId ?? null,
+    discountId: order.discount ?? null,
+    affiliate: order.affiliate ?? null,
+    mode: order.mode,
     metadata: (options?.metadata as Record<string, string>) ?? undefined,
-    createdAt: toIsoString(order.createdAt) ?? now,
-    updatedAt: toIsoString(order.updatedAt) ?? now,
+    createdAt: toIsoString(order.createdAt) ?? toIsoString(order.created_at) ?? now,
+    updatedAt: toIsoString(order.updatedAt) ?? toIsoString(order.updated_at) ?? now,
   };
 };
 
@@ -181,36 +191,25 @@ export const convertToDatabaseProduct = (
 ): Infer<typeof schema.tables.products.validator> => {
   return {
     id: product.id,
-    organizationId: "creem",
     name: product.name,
     description: product.description,
-    isRecurring: product.billingType === "recurring",
-    isArchived: product.status !== "active",
+    price: product.price,
+    currency: product.currency,
+    billingType: product.billingType,
+    billingPeriod: product.billingPeriod,
+    status: product.status,
+    taxMode: product.taxMode,
+    taxCategory: product.taxCategory,
+    imageUrl: (product as { imageUrl?: string }).imageUrl,
+    productUrl: (product as { productUrl?: string }).productUrl,
+    defaultSuccessUrl: product.defaultSuccessUrl,
+    mode: product.mode,
+    features: product.features?.map((f) => ({
+      id: f.id,
+      description: f.description,
+    })),
+    metadata: {},
     createdAt: toIsoStringOrNow(product.createdAt),
     modifiedAt: toIsoString(product.updatedAt),
-    recurringInterval:
-      product.billingType === "recurring" ? product.billingPeriod : null,
-    metadata: {},
-    trialInterval: null,
-    trialIntervalCount: null,
-    recurringIntervalCount: null,
-    prices: [
-      {
-        id: `${product.id}:default`,
-        productId: product.id,
-        amountType: "fixed",
-        isArchived: product.status !== "active",
-        createdAt: toIsoStringOrNow(product.createdAt),
-        modifiedAt: toIsoString(product.updatedAt),
-        recurringInterval:
-          product.billingType === "recurring" ? product.billingPeriod : null,
-        type: product.billingType === "recurring" ? "recurring" : "one_time",
-        source: "creem",
-        priceAmount: product.price,
-        priceCurrency: product.currency,
-      },
-    ],
-    benefits: product.features?.map(convertCreemFeature),
-    medias: [],
   };
 };
