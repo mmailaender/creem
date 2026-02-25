@@ -34,6 +34,30 @@ You can add a name, description, and price to your product. Optionally you can a
 
 After successfully creating your product, you can copy the payment link by clicking on the product Share button. Simply send this link to your users and they will be able to pay you instantly.
 
+## 3. Customize with URL parameters
+
+Payment links support query parameters that let you customize the checkout experience without any code. Append them to your payment link URL:
+
+```
+https://creem.io/payment/prod_xxxxx?discount_code=LAUNCH50&theme=dark
+```
+
+### Available parameters
+
+| Parameter | Example | Description |
+| --------- | ------- | ----------- |
+| `discount_code` | `?discount_code=LAUNCH50` | Pre-applies a discount code to the checkout. The discount is validated and applied server-side when the checkout session is created. |
+| `theme` | `?theme=dark` | Sets the checkout theme to `light` or `dark`, overriding your store's default branding theme. |
+| `metadata[key]` | `?metadata[source]=twitter&metadata[campaign]=launch` | Passes custom metadata key-value pairs to the checkout session. Metadata is included in webhook events and can be retrieved via the API. Use bracket notation for each key. |
+
+<Tip>
+  You can combine multiple parameters: `?discount_code=SAVE20&theme=dark&metadata[source]=email`
+</Tip>
+
+<Note>
+  Parameters like `discount_code` and `metadata` are processed server-side and won't appear in the final checkout URL. The `theme` parameter and any other unrecognized parameters are forwarded to the checkout page as query strings.
+</Note>
+
 ### More use cases
 
 If you are not planning to do a no-code integration, we strongly encourage you to check out our other guides.
