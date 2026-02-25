@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { Ark } from "@ark-ui/svelte/factory";
   import CheckoutButton from "./CheckoutButton.svelte";
   import type { UIPlanEntry, RecurringCycle } from "../../core/types.js";
   import type { ConnectedProduct } from "../widgets/types.js";
@@ -105,8 +104,7 @@
   };
 </script>
 
-<Ark
-  as="section"
+<section
   class={`relative flex flex-col rounded-xl border bg-white p-5 shadow-sm dark:bg-zinc-950 ${
     plan.recommended
       ? "border-indigo-500 ring-2 ring-indigo-500/20 dark:border-indigo-400 dark:ring-indigo-400/20"
@@ -114,41 +112,39 @@
   } ${className}`}
 >
   {#if plan.recommended}
-    <Ark
-      as="span"
+    <span
       class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-indigo-600 px-3 py-0.5 text-xs font-semibold text-white dark:bg-indigo-500"
     >
       Recommended
-    </Ark>
+    </span>
   {/if}
 
-  <Ark as="h3" class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+  <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
     {plan.title ?? plan.planId}
-  </Ark>
+  </h3>
 
   {#if plan.description}
-    <Ark as="p" class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
+    <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
       {plan.description}
-    </Ark>
+    </p>
   {/if}
 
-  <Ark as="div" class="mt-3 mb-4">
+  <div class="mt-3 mb-4">
     {#if plan.category === "free"}
-      <Ark as="span" class="text-3xl font-bold text-zinc-900 dark:text-zinc-100">Free</Ark>
+      <span class="text-3xl font-bold text-zinc-900 dark:text-zinc-100">Free</span>
     {:else if plan.category === "enterprise"}
-      <Ark as="span" class="text-lg font-medium text-zinc-600 dark:text-zinc-300">Custom pricing</Ark>
+      <span class="text-lg font-medium text-zinc-600 dark:text-zinc-300">Custom pricing</span>
     {:else if seatPriceLabel}
-      <Ark as="span" class="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{seatPriceLabel}</Ark>
+      <span class="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{seatPriceLabel}</span>
     {:else if priceLabel}
-      <Ark as="span" class="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{priceLabel}</Ark>
+      <span class="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{priceLabel}</span>
     {/if}
-  </Ark>
+  </div>
 
   {#if isSeatPlan && showSeatPicker && !isActiveProduct && !isSiblingPlan}
-    <Ark as="div" class="mb-4 flex items-center gap-2">
-      <Ark as="label" class="text-sm text-zinc-600 dark:text-zinc-300">Seats</Ark>
-      <Ark
-        as="input"
+    <div class="mb-4 flex items-center gap-2">
+      <label class="text-sm text-zinc-600 dark:text-zinc-300">Seats</label>
+      <input
         type="number"
         min="1"
         value={seatCount}
@@ -158,15 +154,14 @@
         }}
         class="w-20 rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
       />
-    </Ark>
+    </div>
   {/if}
 
   {#if isActiveProduct && isSeatPlan && showSeatPicker && onUpdateSeats}
     {#if editingSeats}
-      <Ark as="div" class="mb-4 flex items-center gap-2">
-        <Ark as="label" class="text-sm text-zinc-600 dark:text-zinc-300">Seats</Ark>
-        <Ark
-          as="input"
+      <div class="mb-4 flex items-center gap-2">
+        <label class="text-sm text-zinc-600 dark:text-zinc-300">Seats</label>
+        <input
           type="number"
           min="1"
           value={seatAdjustCount}
@@ -177,75 +172,69 @@
           class="w-20 rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
         />
         {#if seatsChanged}
-          <Ark
-            as="button"
+          <button
             type="button"
             class="rounded-md bg-indigo-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
             onclick={() => onUpdateSeats?.({ units: seatAdjustCount })}
           >
             Update
-          </Ark>
+          </button>
         {/if}
-        <Ark
-          as="button"
+        <button
           type="button"
           class="text-xs text-zinc-500 transition hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
           onclick={() => { seatAdjustCount = subscribedSeats ?? 1; editingSeats = false; }}
         >
           Cancel
-        </Ark>
-      </Ark>
+        </button>
+      </div>
     {:else}
-      <Ark
-        as="button"
+      <button
         type="button"
         class="mb-4 text-sm text-indigo-600 transition hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
         onclick={() => { editingSeats = true; }}
       >
         Change seats
-      </Ark>
+      </button>
     {/if}
   {/if}
 
-  <Ark as="div" class="mt-auto">
+  <div class="mt-auto">
     {#if isActiveProduct}
-      <Ark
-        as="span"
+      <span
         class="inline-flex rounded-md bg-emerald-100 px-3 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
       >
         Current plan
-      </Ark>
+      </span>
     {:else if isSiblingPlan && productId}
       <CheckoutButton {productId} onCheckout={handleCheckout}>
         {checkoutLabel}
       </CheckoutButton>
     {:else if plan.category === "enterprise"}
       {#if plan.contactUrl}
-        <Ark
-          as="a"
+        <a
           href={plan.contactUrl}
           class="inline-flex items-center justify-center rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100 dark:text-zinc-100 hover:dark:bg-zinc-800"
         >
           Contact sales
-        </Ark>
+        </a>
       {:else if onContactSales}
-        <Ark
-          as="button"
+        <button
           type="button"
           class="inline-flex items-center justify-center rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100"
           onclick={() => onContactSales?.({ plan })}
         >
           Contact sales
-        </Ark>
+        </button>
       {/if}
     {:else if productId}
       <CheckoutButton {productId} onCheckout={handleCheckout}>
         {checkoutLabel}
       </CheckoutButton>
     {:else if plan.category !== "free"}
-      <Ark as="span" class="text-sm text-zinc-500 dark:text-zinc-400">
+      <span class="text-sm text-zinc-500 dark:text-zinc-400">
         Configure a checkout handler to activate this plan.
-      </Ark>
+      </span>
     {/if}
-  </Ark>
-</Ark>
+  </div>
+</section>

@@ -1,6 +1,5 @@
 <script lang="ts">
   /* global $props */
-  import { Ark } from "@ark-ui/svelte/factory";
   import type { OneTimePaymentStatus } from "../../core/types.js";
 
   interface Props {
@@ -18,4 +17,4 @@
   };
 </script>
 
-<Ark as="span" class={className}>{labels[status]}</Ark>
+<span class={className}>{labels[status]}</span>

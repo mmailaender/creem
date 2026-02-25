@@ -1,6 +1,6 @@
 <script lang="ts">
   /* global $props */
-  import { Ark } from "@ark-ui/svelte/factory";
+  import { Tabs } from "@ark-ui/svelte/tabs";
   import type { RecurringCycle } from "../../core/types.js";
   import { formatRecurringCycle } from "./shared.js";
 
@@ -15,27 +15,26 @@
 </script>
 
 {#if cycles.length > 1}
-  <Ark
-    as="div"
-    role="tablist"
-    aria-label="Billing interval"
-    class={`inline-flex gap-1 rounded-lg border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-900 ${className}`}
+  <Tabs.Root
+    value={value}
+    onValueChange={(details: { value: string }) => onValueChange?.(details.value as RecurringCycle)}
+    class={`inline-flex ${className}`}
   >
-    {#each cycles as cycle (cycle)}
-      <Ark
-        as="button"
-        type="button"
-        role="tab"
-        aria-selected={cycle === value}
-        class={`rounded-md px-3 py-1.5 text-sm transition ${
-          cycle === value
-            ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-            : "text-zinc-600 hover:bg-zinc-200 dark:text-zinc-300 dark:hover:bg-zinc-800"
-        }`}
-        onclick={() => onValueChange?.(cycle)}
-      >
-        {formatRecurringCycle(cycle)}
-      </Ark>
-    {/each}
-  </Ark>
+    <Tabs.List
+      class="inline-flex gap-1 rounded-lg border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-900"
+    >
+      {#each cycles as cycle (cycle)}
+        <Tabs.Trigger
+          value={cycle}
+          class={`relative rounded-md px-3 py-1.5 text-sm transition cursor-pointer ${
+            cycle === value
+              ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
+              : "text-zinc-600 hover:bg-zinc-200 dark:text-zinc-300 dark:hover:bg-zinc-800"
+          }`}
+        >
+          {formatRecurringCycle(cycle)}
+        </Tabs.Trigger>
+      {/each}
+    </Tabs.List>
+  </Tabs.Root>
 {/if}

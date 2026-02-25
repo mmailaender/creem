@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { Ark } from "@ark-ui/svelte/factory";
   import BillingToggle from "./BillingToggle.svelte";
   import PricingCard from "./PricingCard.svelte";
   import type { BillingSnapshot, UIPlanEntry, RecurringCycle } from "../../core/types.js";
@@ -59,19 +58,14 @@
     return Array.from(set);
   };
 
-  const derivedCycles = $derived(toUniqueCycles(plans));
-  const availableCycles = $derived(
-    snapshot?.availableBillingCycles && snapshot.availableBillingCycles.length > 0
-      ? snapshot.availableBillingCycles
-      : derivedCycles,
-  );
+  const availableCycles = $derived(toUniqueCycles(plans));
   const effectiveCycle = $derived(
     selectedCycle ?? snapshot?.recurringCycle ?? availableCycles[0],
   );
   const showToggle = $derived(availableCycles.length > 1);
 </script>
 
-<Ark as="section" class={`space-y-4 ${className}`}>
+<section class={`space-y-4 ${className}`}>
   {#if showToggle}
     <BillingToggle
       cycles={availableCycles}
@@ -80,7 +74,7 @@
     />
   {/if}
 
-  <Ark as="div" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+  <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
     {#each plans as plan (plan.planId)}
       <PricingCard
         {plan}
@@ -98,5 +92,5 @@
         {onContactSales}
       />
     {/each}
-  </Ark>
-</Ark>
+  </div>
+</section>

@@ -1,7 +1,6 @@
 <script lang="ts">
   import { setContext } from "svelte";
   import { useConvexClient, useQuery } from "convex-svelte";
-  import { Ark } from "@ark-ui/svelte/factory";
   import PricingSection from "../primitives/PricingSection.svelte";
   import PaymentWarningBanner from "../primitives/PaymentWarningBanner.svelte";
   import ScheduledChangeBanner from "../primitives/ScheduledChangeBanner.svelte";
@@ -285,27 +284,25 @@
   {@render children?.()}
 </div>
 
-<Ark as="section" class={`space-y-4 ${className}`}>
+<section class={`space-y-4 ${className}`}>
   {#if actionError}
-    <Ark
-      as="div"
+    <div
       class="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700"
     >
       {actionError}
-    </Ark>
+    </div>
   {/if}
 
   {#if !model}
-    <Ark as="p" class="text-sm text-zinc-500">Loading billing model…</Ark>
+    <p class="text-sm text-zinc-500">Loading billing model…</p>
   {:else}
     {#if isCancelInFlight && ownsActiveSubscription}
-      <Ark
-        as="div"
+      <div
         class="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-200"
       >
-        <Ark as="span" class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+        <span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
         Processing cancellation…
-      </Ark>
+      </div>
     {/if}
 
     <TrialLimitBanner snapshot={snapshot} />
@@ -336,23 +333,22 @@
       onUpdateSeats={updateSeatsRef ? handleUpdateSeats : undefined}
     />
 
-    <Ark as="div" class="flex flex-wrap items-center gap-3">
+    <div class="flex flex-wrap items-center gap-3">
       {#if children}
         {@render children()}
       {/if}
 
       {#if cancelRef && ownsActiveSubscription && localSubscriptionState !== "scheduled_cancel" && localSubscriptionState !== "canceled"}
-        <Ark
-          as="button"
+        <button
           type="button"
           class="text-sm text-red-600 transition hover:text-red-700 disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300"
           disabled={isActionLoading}
           onclick={() => { cancelDialogOpen = true; }}
         >
           Cancel subscription
-        </Ark>
+        </button>
       {/if}
-    </Ark>
+    </div>
 
     <CancelConfirmDialog
       open={cancelDialogOpen}
@@ -361,4 +357,4 @@
       onConfirm={confirmCancelSubscription}
     />
   {/if}
-</Ark>
+</section>

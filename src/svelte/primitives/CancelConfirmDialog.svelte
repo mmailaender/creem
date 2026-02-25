@@ -1,7 +1,6 @@
 <script lang="ts">
   /* global $props */
   import { Dialog } from "@ark-ui/svelte/dialog";
-  import { Ark } from "@ark-ui/svelte/factory";
   import { Portal } from "@ark-ui/svelte/portal";
 
   interface Props {
@@ -41,23 +40,22 @@
           have access until the end of your current billing period.
         </Dialog.Description>
 
-        <Ark as="div" class="mt-6 flex justify-end gap-3">
+        <div class="mt-6 flex justify-end gap-3">
           <Dialog.CloseTrigger
             class="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
             disabled={isLoading}
           >
             Keep subscription
           </Dialog.CloseTrigger>
-          <Ark
-            as="button"
+          <button
             type="button"
             class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-600"
             disabled={isLoading}
             onclick={() => onConfirm?.()}
           >
             {isLoading ? "Canceling..." : "Yes, cancel"}
-          </Ark>
-        </Ark>
+          </button>
+        </div>
       </Dialog.Content>
     </Dialog.Positioner>
   </Portal>

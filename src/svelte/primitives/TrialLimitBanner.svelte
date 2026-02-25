@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { Ark } from "@ark-ui/svelte/factory";
   import type { BillingSnapshot } from "../../core/types.js";
 
   interface Props {
@@ -20,8 +19,7 @@
 </script>
 
 {#if show}
-  <Ark
-    as="div"
+  <div
     class={`rounded-lg border border-sky-300 bg-sky-50 px-4 py-3 text-sm text-sky-900 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-200 ${className}`}
   >
     Trial plan active
@@ -30,5 +28,5 @@
     {:else}
       . Upgrade before your trial ends to avoid interruptions.
     {/if}
-  </Ark>
+  </div>
 {/if}

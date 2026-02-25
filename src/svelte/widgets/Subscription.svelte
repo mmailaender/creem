@@ -1,6 +1,5 @@
 <script lang="ts">
   import { getContext, untrack } from "svelte";
-  import { Ark } from "@ark-ui/svelte/factory";
   import { useConvexClient, useQuery } from "convex-svelte";
   import PricingCard from "../primitives/PricingCard.svelte";
   import type { UIPlanEntry, RecurringCycle } from "../../core/types.js";
@@ -225,18 +224,17 @@
 
 <!-- Grouped mode: render nothing (registration only) -->
 {#if !isGrouped && plan}
-<Ark as="section" class={`space-y-4 ${className}`}>
+<section class={`space-y-4 ${className}`}>
   {#if actionError}
-    <Ark
-      as="div"
+    <div
       class="rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-700"
     >
       {actionError}
-    </Ark>
+    </div>
   {/if}
 
   {#if !model}
-    <Ark as="p" class="text-sm text-zinc-500">Loading billing model…</Ark>
+    <p class="text-sm text-zinc-500">Loading billing model…</p>
   {:else}
     <PricingCard
       {plan}
@@ -253,5 +251,5 @@
       onUpdateSeats={standalone?.refs.updateSeats ? handleUpdateSeats : undefined}
     />
   {/if}
-</Ark>
+</section>
 {/if}

@@ -1,6 +1,5 @@
 <script lang="ts">
   import { getContext, untrack } from "svelte";
-  import { Ark } from "@ark-ui/svelte/factory";
   import { useConvexClient, useQuery } from "convex-svelte";
   import CheckoutButton from "../primitives/CheckoutButton.svelte";
   import { formatPriceWithInterval } from "../primitives/shared.js";
@@ -118,35 +117,33 @@
 
 <!-- Grouped mode: render nothing (registration only) -->
 {#if !isGrouped}
-<Ark
-  as="section"
+<section
   class={`rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 ${className}`}
 >
-  <Ark as="h3" class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+  <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
     {resolvedTitle}
-  </Ark>
-  <Ark as="p" class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
+  </h3>
+  <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
     {resolvedDescription}
-  </Ark>
+  </p>
 
   {#if resolvedPrice}
-    <Ark as="p" class="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+    <p class="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
       {resolvedPrice}
-    </Ark>
+    </p>
   {/if}
 
   {#if error}
-    <Ark as="p" class="mt-2 text-sm text-red-600">{error}</Ark>
+    <p class="mt-2 text-sm text-red-600">{error}</p>
   {/if}
 
-  <Ark as="div" class="mt-4 flex items-center gap-2">
+  <div class="mt-4 flex items-center gap-2">
     {#if type === "one-time" && owned}
-      <Ark
-        as="span"
+      <span
         class="inline-flex rounded-md bg-emerald-100 px-3 py-2 text-sm font-medium text-emerald-700"
       >
         Owned
-      </Ark>
+      </span>
     {:else}
       <CheckoutButton
         {productId}
@@ -156,6 +153,6 @@
         {type === "one-time" ? "Buy now" : "Purchase"}
       </CheckoutButton>
     {/if}
-  </Ark>
-</Ark>
+  </div>
+</section>
 {/if}

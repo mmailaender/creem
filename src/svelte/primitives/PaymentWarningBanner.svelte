@@ -1,6 +1,5 @@
 <script lang="ts">
   /* global $props, $derived */
-  import { Ark } from "@ark-ui/svelte/factory";
   import type { BillingSnapshot, PaymentSnapshot } from "../../core/types.js";
 
   interface Props {
@@ -23,10 +22,9 @@
 </script>
 
 {#if show}
-  <Ark
-    as="div"
+  <div
     class={`rounded-lg border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-900 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200 ${className}`}
   >
     {message}
-  </Ark>
+  </div>
 {/if}

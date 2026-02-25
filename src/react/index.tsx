@@ -5,14 +5,12 @@ import {
   type MouseEvent,
   type ReactNode,
 } from "react";
-import { ark } from "@ark-ui/react/factory";
 import { useAction } from "convex/react";
 import type { CreemComponentApi } from "../client/index.js";
 import {
   hasBillingAction,
   hasCheckoutSuccessParams,
   parseCheckoutSuccessParams,
-  shouldShowBillingCycleToggle,
   type AvailableAction,
   type BillingSnapshot,
   type CheckoutSuccessParams,
@@ -196,7 +194,7 @@ export const BillingToggle = ({
   }
 
   return (
-    <ark.div
+    <div
       className={cx(
         "inline-flex gap-1 rounded-lg border border-zinc-200 bg-zinc-50 p-1 dark:border-zinc-800 dark:bg-zinc-900",
         className,
@@ -207,7 +205,7 @@ export const BillingToggle = ({
       {cycles.map((cycle) => {
         const isActive = cycle === value;
         return (
-          <ark.button
+          <button
             key={cycle}
             type="button"
             role="tab"
@@ -221,10 +219,10 @@ export const BillingToggle = ({
             onClick={() => onValueChange?.(cycle)}
           >
             {formatRecurringCycle(cycle)}
-          </ark.button>
+          </button>
         );
       })}
-    </ark.div>
+    </div>
   );
 };
 
@@ -251,46 +249,46 @@ export const PricingCard = ({
   const productId = resolveProductIdForPlan(plan, selectedCycle);
 
   return (
-    <ark.section className={cx(CARD_CLASS, className)}>
-      <ark.div className="mb-2 flex items-center justify-between gap-2">
-        <ark.h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+    <section className={cx(CARD_CLASS, className)}>
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
           {plan.title ?? plan.planId}
-        </ark.h3>
-        <ark.span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+        </h3>
+        <span className="rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium uppercase tracking-wide text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
           {plan.category}
-        </ark.span>
-      </ark.div>
+        </span>
+      </div>
 
       {plan.description && (
-        <ark.p className="mb-3 text-sm text-zinc-600 dark:text-zinc-300">
+        <p className="mb-3 text-sm text-zinc-600 dark:text-zinc-300">
           {plan.description}
-        </ark.p>
+        </p>
       )}
 
       {plan.billingCycles && plan.billingCycles.length > 0 && (
-        <ark.p className="mb-4 text-xs text-zinc-500 dark:text-zinc-400">
+        <p className="mb-4 text-xs text-zinc-500 dark:text-zinc-400">
           Available cycles:{" "}
           {plan.billingCycles.map(formatRecurringCycle).join(" · ")}
-        </ark.p>
+        </p>
       )}
 
       {isActive ? (
-        <ark.span className="inline-flex rounded-md bg-emerald-100 px-3 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
+        <span className="inline-flex rounded-md bg-emerald-100 px-3 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300">
           Current plan
-        </ark.span>
+        </span>
       ) : plan.category === "enterprise" ? (
         plan.contactUrl ? (
-          <ark.a className={cx(TERTIARY_BUTTON_CLASS)} href={plan.contactUrl}>
+          <a className={cx(TERTIARY_BUTTON_CLASS)} href={plan.contactUrl}>
             Contact sales
-          </ark.a>
+          </a>
         ) : (
-          <ark.button
+          <button
             type="button"
             className={cx(TERTIARY_BUTTON_CLASS)}
             onClick={() => onContactSales?.(plan)}
           >
             Contact sales
-          </ark.button>
+          </button>
         )
       ) : checkoutApi && productId ? (
         <CheckoutButton
@@ -303,11 +301,11 @@ export const PricingCard = ({
           {plan.billingType === "onetime" ? "Buy now" : "Start checkout"}
         </CheckoutButton>
       ) : (
-        <ark.span className="text-sm text-zinc-500 dark:text-zinc-400">
+        <span className="text-sm text-zinc-500 dark:text-zinc-400">
           Configure a checkout handler to activate this plan.
-        </ark.span>
+        </span>
       )}
-    </ark.section>
+    </section>
   );
 };
 
@@ -338,17 +336,13 @@ export const PricingSection = ({
       cycleSet.add(cycle);
     }
   }
-  const availableCycles = snapshot?.availableBillingCycles?.length
-    ? snapshot.availableBillingCycles
-    : Array.from(cycleSet);
+  const availableCycles = Array.from(cycleSet);
   const effectiveCycle =
     selectedCycle ?? snapshot?.recurringCycle ?? availableCycles[0];
-  const showToggle = snapshot
-    ? shouldShowBillingCycleToggle(snapshot) || availableCycles.length > 1
-    : availableCycles.length > 1;
+  const showToggle = availableCycles.length > 1;
 
   return (
-    <ark.section className={cx("space-y-4", className)}>
+    <section className={cx("space-y-4", className)}>
       {showToggle && (
         <BillingToggle
           cycles={availableCycles}
@@ -357,7 +351,7 @@ export const PricingSection = ({
         />
       )}
 
-      <ark.div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {plans.map((plan) => (
           <PricingCard
             key={plan.planId}
@@ -370,8 +364,8 @@ export const PricingSection = ({
             onContactSales={onContactSales}
           />
         ))}
-      </ark.div>
-    </ark.section>
+      </div>
+    </section>
   );
 };
 
@@ -415,7 +409,7 @@ export const ScheduledChangeBanner = ({
       : undefined;
 
   return (
-    <ark.div
+    <div
       className={cx(
         "rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200",
         className,
@@ -425,7 +419,7 @@ export const ScheduledChangeBanner = ({
       {currentPeriodEnd
         ? ` for ${new Date(currentPeriodEnd).toLocaleDateString()}.`
         : "."}
-    </ark.div>
+    </div>
   );
 };
 
@@ -451,14 +445,14 @@ export const PaymentWarningBanner = ({
         : "This payment was refunded. Access should generally be revoked or downgraded.";
 
   return (
-    <ark.div
+    <div
       className={cx(
         "rounded-lg border border-rose-300 bg-rose-50 px-4 py-3 text-sm text-rose-900 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-200",
         className,
       )}
     >
       {message}
-    </ark.div>
+    </div>
   );
 };
 
@@ -482,7 +476,7 @@ export const TrialLimitBanner = ({
       : null);
 
   return (
-    <ark.div
+    <div
       className={cx(
         "rounded-lg border border-sky-300 bg-sky-50 px-4 py-3 text-sm text-sky-900 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-200",
         className,
@@ -492,7 +486,7 @@ export const TrialLimitBanner = ({
       {resolvedTrialEnd
         ? ` until ${new Date(resolvedTrialEnd).toLocaleDateString()}.`
         : ". Upgrade before your trial ends to avoid interruptions."}
-    </ark.div>
+    </div>
   );
 };
 

@@ -1,6 +1,5 @@
 <script lang="ts">
   import { setContext } from "svelte";
-  import { Ark } from "@ark-ui/svelte/factory";
   import { useConvexClient, useQuery } from "convex-svelte";
   import CheckoutButton from "../primitives/CheckoutButton.svelte";
   import { formatPriceWithInterval } from "../primitives/shared.js";
@@ -153,12 +152,12 @@
   {@render children?.()}
 </div>
 
-<Ark as="section" class={`space-y-3 ${className}`}>
+<section class={`space-y-3 ${className}`}>
   {#if error}
-    <Ark as="p" class="text-sm text-red-600">{error}</Ark>
+    <p class="text-sm text-red-600">{error}</p>
   {/if}
 
-  <Ark as="div" class="grid gap-4 md:grid-cols-2">
+  <div class="grid gap-4 md:grid-cols-2">
     {#each registeredItems as item (item.productId)}
       {@const isOwned = effectiveOwnedProductIds.includes(item.productId)}
       {@const isIncluded = !isOwned && activeOwnedProductId != null && isLowerTierThan(item.productId, activeOwnedProductId)}
@@ -167,40 +166,37 @@
       {@const resolvedTitle = item.title ?? matchedProduct?.name ?? item.productId}
       {@const resolvedDescription = item.description ?? matchedProduct?.description}
       {@const resolvedPrice = formatPriceWithInterval(item.productId, allProducts)}
-      <Ark
-        as="article"
+      <article
         class={`rounded-xl border p-4 shadow-sm ${isIncluded ? "border-zinc-100 bg-zinc-50 opacity-60 dark:border-zinc-800 dark:bg-zinc-900" : "border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950"}`}
       >
-        <Ark as="h3" class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
+        <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
           {resolvedTitle}
-        </Ark>
+        </h3>
         {#if resolvedDescription}
-          <Ark as="p" class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
+          <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
             {resolvedDescription}
-          </Ark>
+          </p>
         {/if}
 
         {#if resolvedPrice}
-          <Ark as="p" class={`mt-2 text-2xl font-bold ${isIncluded ? "text-zinc-400 dark:text-zinc-500" : "text-zinc-900 dark:text-zinc-100"}`}>
+          <p class={`mt-2 text-2xl font-bold ${isIncluded ? "text-zinc-400 dark:text-zinc-500" : "text-zinc-900 dark:text-zinc-100"}`}>
             {resolvedPrice}
-          </Ark>
+          </p>
         {/if}
 
-        <Ark as="div" class="mt-4">
+        <div class="mt-4">
           {#if isOwned}
-            <Ark
-              as="span"
+            <span
               class="inline-flex rounded-md bg-emerald-100 px-3 py-2 text-sm font-medium text-emerald-700"
             >
               Owned
-            </Ark>
+            </span>
           {:else if isIncluded}
-            <Ark
-              as="span"
+            <span
               class="inline-flex rounded-md bg-zinc-100 px-3 py-2 text-sm font-medium text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
             >
               Included
-            </Ark>
+            </span>
           {:else if checkoutProductId}
             <CheckoutButton
               productId={checkoutProductId}
@@ -218,8 +214,8 @@
               Buy now
             </CheckoutButton>
           {/if}
-        </Ark>
-      </Ark>
+        </div>
+      </article>
     {/each}
-  </Ark>
-</Ark>
+  </div>
+</section>
