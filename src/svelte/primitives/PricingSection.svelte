@@ -16,6 +16,9 @@
     showSeatPicker?: boolean;
     subscribedSeats?: number | null;
     isGroupSubscribed?: boolean;
+    disableCheckout?: boolean;
+    disableSwitch?: boolean;
+    disableSeats?: boolean;
     className?: string;
     onCycleChange?: (cycle: RecurringCycle) => void;
     onCheckout?: (payload: {
@@ -44,6 +47,9 @@
     showSeatPicker = false,
     subscribedSeats = null,
     isGroupSubscribed = false,
+    disableCheckout = false,
+    disableSwitch = false,
+    disableSeats = false,
     className = "",
     onCycleChange,
     onCheckout,
@@ -92,6 +98,9 @@
         {showSeatPicker}
         {subscribedSeats}
         {isGroupSubscribed}
+        {disableCheckout}
+        {disableSwitch}
+        {disableSeats}
         {onCheckout}
         {onSwitchPlan}
         {onUpdateSeats}

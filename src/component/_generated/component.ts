@@ -122,7 +122,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
       getCurrentSubscription: FunctionReference<
         "query",
         "internal",
-        { userId: string },
+        { entityId: string },
         {
           amount: number | null;
           cancelAtPeriodEnd: boolean;
@@ -174,20 +174,20 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         } | null,
         Name
       >;
-      getCustomerByUserId: FunctionReference<
+      getCustomerByEntityId: FunctionReference<
         "query",
         "internal",
-        { userId: string },
+        { entityId: string },
         {
           country?: string;
           createdAt?: string;
           email?: string;
+          entityId: string;
           id: string;
           metadata?: Record<string, any>;
           mode?: string;
           name?: string | null;
           updatedAt?: string;
-          userId: string;
         } | null,
         Name
       >;
@@ -259,12 +259,12 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           country?: string;
           createdAt?: string;
           email?: string;
+          entityId: string;
           id: string;
           metadata?: Record<string, any>;
           mode?: string;
           name?: string | null;
           updatedAt?: string;
-          userId: string;
         },
         string,
         Name
@@ -272,7 +272,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
       listAllUserSubscriptions: FunctionReference<
         "query",
         "internal",
-        { userId: string },
+        { entityId: string },
         Array<{
           amount: number | null;
           cancelAtPeriodEnd: boolean;
@@ -388,7 +388,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
       listUserOrders: FunctionReference<
         "query",
         "internal",
-        { userId: string },
+        { entityId: string },
         Array<{
           affiliate?: string | null;
           amount: number;
@@ -416,7 +416,7 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
       listUserSubscriptions: FunctionReference<
         "query",
         "internal",
-        { userId: string },
+        { entityId: string },
         Array<{
           amount: number | null;
           cancelAtPeriodEnd: boolean;

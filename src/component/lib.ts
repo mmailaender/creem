@@ -7,15 +7,15 @@ import { asyncMap } from "convex-helpers";
 import { api } from "./_generated/api.js";
 import { convertToDatabaseProduct } from "./util.js";
 
-export const getCustomerByUserId = query({
+export const getCustomerByEntityId = query({
   args: {
-    userId: v.string(),
+    entityId: v.string(),
   },
   returns: v.union(schema.tables.customers.validator, v.null()),
   handler: async (ctx, args) => {
     const customer = await ctx.db
       .query("customers")
-      .withIndex("userId", (q) => q.eq("userId", args.userId))
+      .withIndex("entityId", (q) => q.eq("entityId", args.entityId))
       .unique();
     return omitSystemFields(customer);
   },
@@ -27,7 +27,7 @@ export const insertCustomer = mutation({
   handler: async (ctx, args) => {
     const existingCustomer = await ctx.db
       .query("customers")
-      .withIndex("userId", (q) => q.eq("userId", args.userId))
+      .withIndex("entityId", (q) => q.eq("entityId", args.entityId))
       .unique();
     if (existingCustomer) {
       // Enrich existing customer record with any new fields
@@ -77,7 +77,7 @@ export const getProduct = query({
 /** For apps that have 0 or 1 active subscription per user. Excludes expired trials. */
 export const getCurrentSubscription = query({
   args: {
-    userId: v.string(),
+    entityId: v.string(),
   },
   returns: v.union(
     v.object({
@@ -89,7 +89,7 @@ export const getCurrentSubscription = query({
   handler: async (ctx, args) => {
     const customer = await ctx.db
       .query("customers")
-      .withIndex("userId", (q) => q.eq("userId", args.userId))
+      .withIndex("entityId", (q) => q.eq("entityId", args.entityId))
       .unique();
     if (!customer) {
       return null;
@@ -127,7 +127,7 @@ export const getCurrentSubscription = query({
 /** List active subscriptions for a user, excluding ended and expired trials. */
 export const listUserSubscriptions = query({
   args: {
-    userId: v.string(),
+    entityId: v.string(),
   },
   returns: v.array(
     v.object({
@@ -138,7 +138,7 @@ export const listUserSubscriptions = query({
   handler: async (ctx, args) => {
     const customer = await ctx.db
       .query("customers")
-      .withIndex("userId", (q) => q.eq("userId", args.userId))
+      .withIndex("entityId", (q) => q.eq("entityId", args.entityId))
       .unique();
     if (!customer) {
       return [];
@@ -179,7 +179,7 @@ export const listUserSubscriptions = query({
 /** Returns all subscriptions for a user, including ended and expired trials. */
 export const listAllUserSubscriptions = query({
   args: {
-    userId: v.string(),
+    entityId: v.string(),
   },
   returns: v.array(
     v.object({
@@ -190,7 +190,7 @@ export const listAllUserSubscriptions = query({
   handler: async (ctx, args) => {
     const customer = await ctx.db
       .query("customers")
-      .withIndex("userId", (q) => q.eq("userId", args.userId))
+      .withIndex("entityId", (q) => q.eq("entityId", args.entityId))
       .unique();
     if (!customer) {
       return [];
@@ -350,13 +350,13 @@ export const createOrder = mutation({
 /** List paid one-time orders for a user. */
 export const listUserOrders = query({
   args: {
-    userId: v.string(),
+    entityId: v.string(),
   },
   returns: v.array(schema.tables.orders.validator),
   handler: async (ctx, args) => {
     const customer = await ctx.db
       .query("customers")
-      .withIndex("userId", (q) => q.eq("userId", args.userId))
+      .withIndex("entityId", (q) => q.eq("entityId", args.entityId))
       .unique();
     if (!customer) {
       return [];

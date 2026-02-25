@@ -14,7 +14,7 @@ const currentUser = async (ctx: QueryCtx) => {
     return null;
   }
   const subscription = await creem.getCurrentSubscription(ctx, {
-    userId: user._id,
+    entityId: user._id,
   });
   const productKey = subscription?.productKey as string | undefined;
   const isPremium = productKey != null && productKey.startsWith("premium");

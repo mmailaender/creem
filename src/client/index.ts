@@ -76,6 +76,7 @@ type CreemConfig<Products extends Record<string, string>> = {
   getUserInfo: (ctx: RunQueryCtx) => Promise<{
     userId: string;
     email: string;
+    billingEntityId?: string;
   }>;
   /** Static plan catalog. Used by the billing snapshot resolver and getBillingUiModel. */
   planCatalog?: PlanCatalog;
@@ -144,7 +145,7 @@ export class Creem<
   DataModel extends GenericDataModel = GenericDataModel,
   Products extends Record<string, string> = Record<string, string>,
 > {
-  public creem: CreemSDK;
+  public sdk: CreemSDK;
   public products: Products;
   private apiKey: string;
   private webhookSecret: string;
@@ -166,14 +167,24 @@ export class Creem<
         : undefined);
     this.serverURL = config.serverURL ?? process.env["CREEM_SERVER_URL"];
 
-    this.creem = new CreemSDK({
+    this.sdk = new CreemSDK({
       apiKey: this.apiKey,
       ...(this.serverIdx !== undefined ? { serverIdx: this.serverIdx } : {}),
       ...(this.serverURL ? { serverURL: this.serverURL } : {}),
     });
   }
-  getCustomerByUserId(ctx: RunQueryCtx, userId: string) {
-    return ctx.runQuery(this.component.lib.getCustomerByUserId, { userId });
+  getCustomerByEntityId(ctx: RunQueryCtx, entityId: string) {
+    return ctx.runQuery(this.component.lib.getCustomerByEntityId, { entityId });
+  }
+
+  /** Resolve the billing entity ID from getUserInfo. Returns billingEntityId ?? userId. */
+  private async resolveEntityId(ctx: RunQueryCtx): Promise<{ entityId: string; userId: string; email: string }> {
+    const info = await this.config.getUserInfo(ctx);
+    return {
+      entityId: info.billingEntityId ?? info.userId,
+      userId: info.userId,
+      email: info.email,
+    };
   }
   async syncProducts(ctx: RunActionCtx) {
     await ctx.runAction(this.component.lib.syncProducts, {
@@ -187,6 +198,7 @@ export class Creem<
     ctx: RunMutationCtx,
     {
       productId,
+      entityId,
       userId,
       email,
       successUrl,
@@ -194,6 +206,7 @@ export class Creem<
       metadata,
     }: {
       productId: string;
+      entityId: string;
       userId: string;
       email: string;
       successUrl: string;
@@ -202,19 +215,20 @@ export class Creem<
     },
   ): Promise<CheckoutEntity> {
     const dbCustomer = await ctx.runQuery(
-      this.component.lib.getCustomerByUserId,
+      this.component.lib.getCustomerByEntityId,
       {
-        userId,
+        entityId,
       },
     );
 
-    const checkout = await this.creem.checkouts.create({
+    const checkout = await this.sdk.checkouts.create({
       productId,
       successUrl,
       units,
       metadata: {
         ...(metadata ?? {}),
         convexUserId: userId,
+        convexBillingEntityId: entityId,
       },
       customer: dbCustomer ? { id: dbCustomer.id } : { email },
     });
@@ -226,7 +240,7 @@ export class Creem<
           typeof checkout.customer === "object" ? checkout.customer : undefined;
         await ctx.runMutation(this.component.lib.insertCustomer, {
           id: customerId,
-          userId,
+          entityId,
           email: customerObj?.email,
           name: customerObj?.name ?? undefined,
           country: customerObj?.country,
@@ -240,18 +254,18 @@ export class Creem<
 
   async createCustomerPortalSession(
     ctx: GenericActionCtx<DataModel>,
-    { userId }: { userId: string },
+    { entityId }: { entityId: string },
   ) {
     const customer = await ctx.runQuery(
-      this.component.lib.getCustomerByUserId,
-      { userId },
+      this.component.lib.getCustomerByEntityId,
+      { entityId },
     );
 
     if (!customer) {
       throw new Error("Customer not found");
     }
 
-    const portal = await this.creem.customers.generateBillingLinks({
+    const portal = await this.sdk.customers.generateBillingLinks({
       customerId: customer.id,
     });
     return { url: portal.customerPortalLink };
@@ -267,12 +281,12 @@ export class Creem<
   }
   async getCurrentSubscription(
     ctx: RunQueryCtx,
-    { userId }: { userId: string },
+    { entityId }: { entityId: string },
   ) {
     const subscription = await ctx.runQuery(
       this.component.lib.getCurrentSubscription,
       {
-        userId,
+        entityId,
       },
     );
     if (!subscription) {
@@ -293,22 +307,22 @@ export class Creem<
       product,
     };
   }
-  /** Return active subscriptions for a user, excluding ended and expired trials. */
-  listUserSubscriptions(ctx: RunQueryCtx, { userId }: { userId: string }) {
+  /** Return active subscriptions for an entity, excluding ended and expired trials. */
+  listUserSubscriptions(ctx: RunQueryCtx, { entityId }: { entityId: string }) {
     return ctx.runQuery(this.component.lib.listUserSubscriptions, {
-      userId,
+      entityId,
     });
   }
-  /** Return paid one-time orders for a user. */
-  listUserOrders(ctx: RunQueryCtx, { userId }: { userId: string }) {
+  /** Return paid one-time orders for an entity. */
+  listUserOrders(ctx: RunQueryCtx, { entityId }: { entityId: string }) {
     return ctx.runQuery(this.component.lib.listUserOrders, {
-      userId,
+      entityId,
     });
   }
-  /** Return all subscriptions for a user, including ended and expired trials. */
-  listAllUserSubscriptions(ctx: RunQueryCtx, { userId }: { userId: string }) {
+  /** Return all subscriptions for an entity, including ended and expired trials. */
+  listAllUserSubscriptions(ctx: RunQueryCtx, { entityId }: { entityId: string }) {
     return ctx.runQuery(this.component.lib.listAllUserSubscriptions, {
-      userId,
+      entityId,
     });
   }
   getProduct(ctx: RunQueryCtx, { productId }: { productId: string }) {
@@ -316,17 +330,16 @@ export class Creem<
   }
   async changeSubscription(
     ctx: GenericActionCtx<DataModel>,
-    { productId }: { productId: string },
+    { entityId, productId }: { entityId: string; productId: string },
   ) {
-    const { userId } = await this.config.getUserInfo(ctx);
-    const subscription = await this.getCurrentSubscription(ctx, { userId });
+    const subscription = await this.getCurrentSubscription(ctx, { entityId });
     if (!subscription) {
       throw new Error("Subscription not found");
     }
     if (subscription.productId === productId) {
       throw new Error("Subscription already on this product");
     }
-    const updatedSubscription = await this.creem.subscriptions.upgrade(
+    const updatedSubscription = await this.sdk.subscriptions.upgrade(
       subscription.id,
       {
         productId,
@@ -337,23 +350,22 @@ export class Creem<
 
   async updateSubscriptionSeats(
     ctx: GenericActionCtx<DataModel>,
-    { units }: { units: number },
+    { entityId, units }: { entityId: string; units: number },
   ) {
     if (units < 1) {
       throw new Error("Units must be at least 1");
     }
-    const { userId } = await this.config.getUserInfo(ctx);
-    const subscription = await this.getCurrentSubscription(ctx, { userId });
+    const subscription = await this.getCurrentSubscription(ctx, { entityId });
     if (!subscription) {
       throw new Error("Subscription not found");
     }
     // Fetch live subscription from Creem to get item IDs
-    const live = await this.creem.subscriptions.get(subscription.id);
+    const live = await this.sdk.subscriptions.get(subscription.id);
     const item = live.items?.[0];
     if (!item) {
       throw new Error("Subscription has no items");
     }
-    const updatedSubscription = await this.creem.subscriptions.update(
+    const updatedSubscription = await this.sdk.subscriptions.update(
       subscription.id,
       {
         items: [{ id: item.id, units }],
@@ -380,10 +392,10 @@ export class Creem<
   async getBillingSnapshot(
     ctx: RunQueryCtx,
     {
-      userId,
+      entityId,
       payment,
     }: {
-      userId: string;
+      entityId: string;
       payment?: PaymentSnapshot | null;
     },
   ): Promise<BillingSnapshot> {
@@ -391,8 +403,8 @@ export class Creem<
       await Promise.all([
         this.config.getPlanCatalog?.(ctx),
         this.config.getUserBillingContext?.(ctx),
-        this.getCurrentSubscription(ctx, { userId }),
-        this.listAllUserSubscriptions(ctx, { userId }),
+        this.getCurrentSubscription(ctx, { entityId }),
+        this.listAllUserSubscriptions(ctx, { entityId }),
       ]);
     const catalog = dynamicCatalog ?? this.config.planCatalog;
 
@@ -420,10 +432,9 @@ export class Creem<
    *  When neither is set, omits the mode so Creem's store-level default applies. */
   async cancelSubscription(
     ctx: RunActionCtx,
-    { revokeImmediately }: { revokeImmediately?: boolean } = {},
+    { entityId, revokeImmediately }: { entityId: string; revokeImmediately?: boolean },
   ) {
-    const { userId } = await this.config.getUserInfo(ctx);
-    const subscription = await this.getCurrentSubscription(ctx, { userId });
+    const subscription = await this.getCurrentSubscription(ctx, { entityId });
     if (!subscription) {
       throw new Error("Subscription not found");
     }
@@ -446,7 +457,7 @@ export class Creem<
     console.log(
       `[creem-cancel] subId=${subscription.id} status=${subscription.status} cancelParams=${JSON.stringify(cancelParams)}`,
     );
-    const updatedSubscription = await this.creem.subscriptions.cancel(
+    const updatedSubscription = await this.sdk.subscriptions.cancel(
       subscription.id,
       cancelParams,
     );
@@ -457,22 +468,20 @@ export class Creem<
   }
 
   /** Pause an active subscription. */
-  async pauseSubscription(ctx: RunActionCtx) {
-    const { userId } = await this.config.getUserInfo(ctx);
-    const subscription = await this.getCurrentSubscription(ctx, { userId });
+  async pauseSubscription(ctx: RunActionCtx, { entityId }: { entityId: string }) {
+    const subscription = await this.getCurrentSubscription(ctx, { entityId });
     if (!subscription) {
       throw new Error("Subscription not found");
     }
     if (subscription.status !== "active" && subscription.status !== "trialing") {
       throw new Error("Subscription is not active");
     }
-    return await this.creem.subscriptions.pause(subscription.id);
+    return await this.sdk.subscriptions.pause(subscription.id);
   }
 
   /** Resume a subscription that is in scheduled_cancel or paused state. */
-  async resumeSubscription(ctx: RunActionCtx) {
-    const { userId } = await this.config.getUserInfo(ctx);
-    const subscription = await this.getCurrentSubscription(ctx, { userId });
+  async resumeSubscription(ctx: RunActionCtx, { entityId }: { entityId: string }) {
+    const subscription = await this.getCurrentSubscription(ctx, { entityId });
     if (!subscription) {
       throw new Error("Subscription not found");
     }
@@ -482,7 +491,7 @@ export class Creem<
     ) {
       throw new Error("Subscription is not in a resumable state");
     }
-    return await this.creem.subscriptions.resume(subscription.id);
+    return await this.sdk.subscriptions.resume(subscription.id);
   }
 
   private async verifyWebhook(body: string, headers: Record<string, string>) {
@@ -655,31 +664,28 @@ export class Creem<
     return customer.id ?? null;
   }
 
-  /** Extract convexUserId from webhook metadata. */
-  private getConvexUserId(metadata: unknown): string | null {
-    if (
-      metadata &&
-      typeof metadata === "object" &&
-      "convexUserId" in metadata
-    ) {
-      const val = (metadata as Record<string, unknown>).convexUserId;
-      return typeof val === "string" ? val : null;
-    }
+  /** Extract billing entity ID from webhook metadata. Prefers convexBillingEntityId, falls back to convexUserId. */
+  private getConvexEntityId(metadata: unknown): string | null {
+    if (!metadata || typeof metadata !== "object") return null;
+    const meta = metadata as Record<string, unknown>;
+    // Prefer billingEntityId (org billing), fall back to userId (personal billing)
+    if (typeof meta.convexBillingEntityId === "string") return meta.convexBillingEntityId;
+    if (typeof meta.convexUserId === "string") return meta.convexUserId;
     return null;
   }
 
-  /** Upsert a customer record if we have both userId and customerId. */
+  /** Upsert a customer record if we have both entityId and customerId. */
   private async upsertCustomerFromWebhook(
     ctx: RunMutationCtx,
     customerId: string | null,
-    userId: string | null,
+    entityId: string | null,
     customerEntity?: CustomerEntity | null,
   ) {
-    if (!customerId || !userId) return;
+    if (!customerId || !entityId) return;
     try {
       await ctx.runMutation(this.component.lib.insertCustomer, {
         id: customerId,
-        userId,
+        entityId,
         email: customerEntity?.email,
         name: customerEntity?.name ?? undefined,
         country: customerEntity?.country,
@@ -705,7 +711,7 @@ export class Creem<
    * Returns all data the connected widgets need minus app-specific fields.
    * Use this in your own query if you need to add app-specific fields (e.g. ownedProductIds).
    */
-  async buildBillingUiModel(ctx: RunQueryCtx, { userId }: { userId: string }) {
+  async buildBillingUiModel(ctx: RunQueryCtx, { entityId }: { entityId: string }) {
     const products = await this.listProducts(ctx);
     const configuredProducts = Object.fromEntries(
       Object.entries(this.products).map(([key, productId]) => [
@@ -715,11 +721,11 @@ export class Creem<
     );
     const [billingSnapshot, subscription, activeSubscriptions, customer, orders] =
       await Promise.all([
-        this.getBillingSnapshot(ctx, { userId }),
-        this.getCurrentSubscription(ctx, { userId }),
-        this.listUserSubscriptions(ctx, { userId }),
-        this.getCustomerByUserId(ctx, userId),
-        this.listUserOrders(ctx, { userId }),
+        this.getBillingSnapshot(ctx, { entityId }),
+        this.getCurrentSubscription(ctx, { entityId }),
+        this.listUserSubscriptions(ctx, { entityId }),
+        this.getCustomerByEntityId(ctx, entityId),
+        this.listUserOrders(ctx, { entityId }),
       ]);
     const catalog =
       (await this.config.getPlanCatalog?.(ctx)) ??
@@ -757,7 +763,9 @@ export class Creem<
           productId: v.string(),
         },
         handler: async (ctx, args) => {
+          const { entityId } = await this.resolveEntityId(ctx);
           await this.changeSubscription(ctx, {
+            entityId,
             productId: args.productId,
           });
         },
@@ -767,7 +775,9 @@ export class Creem<
           units: v.number(),
         },
         handler: async (ctx, args) => {
+          const { entityId } = await this.resolveEntityId(ctx);
           await this.updateSubscriptionSeats(ctx, {
+            entityId,
             units: args.units,
           });
         },
@@ -777,7 +787,9 @@ export class Creem<
           revokeImmediately: v.optional(v.boolean()),
         },
         handler: async (ctx, args) => {
+          const { entityId } = await this.resolveEntityId(ctx);
           await this.cancelSubscription(ctx, {
+            entityId,
             revokeImmediately: args.revokeImmediately,
           });
         },
@@ -785,7 +797,8 @@ export class Creem<
       resumeCurrentSubscription: actionGeneric({
         args: {},
         handler: async (ctx) => {
-          await this.resumeSubscription(ctx);
+          const { entityId } = await this.resolveEntityId(ctx);
+          await this.resumeSubscription(ctx, { entityId });
         },
       }),
       getConfiguredProducts: queryGeneric({
@@ -812,16 +825,16 @@ export class Creem<
           }),
         ),
         handler: async (ctx) => {
-          const { userId } = await this.config.getUserInfo(ctx);
-          return await this.listAllUserSubscriptions(ctx, { userId });
+          const { entityId } = await this.resolveEntityId(ctx);
+          return await this.listAllUserSubscriptions(ctx, { entityId });
         },
       }),
       getCurrentBillingSnapshot: queryGeneric({
         args: {},
         returns: v.any(),
         handler: async (ctx) => {
-          const { userId } = await this.config.getUserInfo(ctx);
-          return await this.getBillingSnapshot(ctx, { userId });
+          const { entityId } = await this.resolveEntityId(ctx);
+          return await this.getBillingSnapshot(ctx, { entityId });
         },
       }),
       /**
@@ -843,14 +856,14 @@ export class Creem<
             ]),
           );
 
-          let userInfo: { userId: string; email: string } | null = null;
+          let resolved: { entityId: string; userId: string; email: string } | null = null;
           try {
-            userInfo = await this.config.getUserInfo(ctx);
+            resolved = await this.resolveEntityId(ctx);
           } catch {
             // No authenticated user — return unauthenticated model
           }
 
-          if (!userInfo) {
+          if (!resolved) {
             return {
               user: null,
               billingSnapshot: null,
@@ -863,10 +876,10 @@ export class Creem<
           }
 
           const billingData = await this.buildBillingUiModel(ctx, {
-            userId: userInfo.userId,
+            entityId: resolved.entityId,
           });
           return {
-            user: { _id: userInfo.userId, email: userInfo.email },
+            user: { _id: resolved.userId, email: resolved.email },
             ...billingData,
           };
         },
@@ -883,9 +896,10 @@ export class Creem<
           url: v.string(),
         }),
         handler: async (ctx, args) => {
-          const { userId, email } = await this.config.getUserInfo(ctx);
+          const { entityId, userId, email } = await this.resolveEntityId(ctx);
           const checkout = await this.createCheckoutSession(ctx, {
             productId: args.productId,
+            entityId,
             userId,
             email,
             successUrl: args.successUrl,
@@ -908,15 +922,15 @@ export class Creem<
         args: {},
         returns: v.object({ url: v.string() }),
         handler: async (ctx) => {
-          const { userId } = await this.config.getUserInfo(ctx);
+          const { entityId } = await this.resolveEntityId(ctx);
           const { url } = await this.createCustomerPortalSession(ctx, {
-            userId,
+            entityId,
           });
           return { url };
         },
       }),
 
-      // ── Primitive queries ──────────────────────────────
+      // ── Entity-scoped queries ──────────────────────────────
       getProduct: queryGeneric({
         args: { productId: v.string() },
         returns: v.union(schema.tables.products.validator, v.null()),
@@ -924,213 +938,37 @@ export class Creem<
           return await this.getProduct(ctx, { productId: args.productId });
         },
       }),
-      getSubscription: queryGeneric({
-        args: { subscriptionId: v.string() },
-        returns: v.union(schema.tables.subscriptions.validator, v.null()),
-        handler: async (ctx, args) => {
-          return await ctx.runQuery(this.component.lib.getSubscription, {
-            id: args.subscriptionId,
-          });
-        },
-      }),
       getCustomer: queryGeneric({
         args: {},
         returns: v.union(schema.tables.customers.validator, v.null()),
         handler: async (ctx) => {
-          const { userId } = await this.config.getUserInfo(ctx);
-          return await this.getCustomerByUserId(ctx, userId);
+          const { entityId } = await this.resolveEntityId(ctx);
+          return await this.getCustomerByEntityId(ctx, entityId);
         },
       }),
       listSubscriptions: queryGeneric({
         args: {},
         returns: v.any(),
         handler: async (ctx) => {
-          const { userId } = await this.config.getUserInfo(ctx);
-          return await this.listUserSubscriptions(ctx, { userId });
+          const { entityId } = await this.resolveEntityId(ctx);
+          return await this.listUserSubscriptions(ctx, { entityId });
         },
       }),
       listOrders: queryGeneric({
         args: {},
         returns: v.array(schema.tables.orders.validator),
         handler: async (ctx) => {
-          const { userId } = await this.config.getUserInfo(ctx);
-          return await this.listUserOrders(ctx, { userId });
+          const { entityId } = await this.resolveEntityId(ctx);
+          return await this.listUserOrders(ctx, { entityId });
         },
       }),
 
-      // ── Phase 3: Full Creem API pass-through actions ────────────
+      // ── Entity-scoped actions ────────────
       pauseCurrentSubscription: actionGeneric({
         args: {},
         handler: async (ctx) => {
-          await this.pauseSubscription(ctx);
-        },
-      }),
-      createCreemProduct: actionGeneric({
-        args: {
-          name: v.string(),
-          price: v.number(),
-          currency: v.string(),
-          billingType: v.string(),
-          billingPeriod: v.optional(v.string()),
-          description: v.optional(v.string()),
-          taxMode: v.optional(v.string()),
-          taxCategory: v.optional(v.string()),
-        },
-        returns: v.any(),
-        handler: async (ctx, args) => {
-          const product = await this.creem.products.create({
-            name: args.name,
-            price: args.price,
-            currency: args.currency as "USD" | "EUR",
-            billingType: args.billingType as "recurring" | "onetime",
-            billingPeriod: args.billingPeriod as
-              | "once"
-              | "every-month"
-              | "every-three-months"
-              | "every-six-months"
-              | "every-year"
-              | undefined,
-            description: args.description,
-            taxMode: args.taxMode as "inclusive" | "exclusive" | undefined,
-            taxCategory: args.taxCategory as
-              | "saas"
-              | "digital-goods-service"
-              | "ebooks"
-              | undefined,
-          });
-          // Sync the product into the component DB
-          const dbProduct = convertToDatabaseProduct(
-            product as unknown as Parameters<typeof convertToDatabaseProduct>[0],
-          );
-          await ctx.runMutation(this.component.lib.createProduct, {
-            product: dbProduct,
-          });
-          return product;
-        },
-      }),
-      retrieveCheckout: actionGeneric({
-        args: { checkoutId: v.string() },
-        returns: v.any(),
-        handler: async (ctx, args) => {
-          return await this.creem.checkouts.retrieve(args.checkoutId);
-        },
-      }),
-      getTransaction: actionGeneric({
-        args: { transactionId: v.string() },
-        returns: v.any(),
-        handler: async (ctx, args) => {
-          return await this.creem.transactions.getById(args.transactionId);
-        },
-      }),
-      listTransactions: actionGeneric({
-        args: {
-          customerId: v.optional(v.string()),
-          orderId: v.optional(v.string()),
-          productId: v.optional(v.string()),
-          pageNumber: v.optional(v.number()),
-          pageSize: v.optional(v.number()),
-        },
-        returns: v.any(),
-        handler: async (ctx, args) => {
-          return await this.creem.transactions.search(
-            args.customerId,
-            args.orderId,
-            args.productId,
-            args.pageNumber,
-            args.pageSize,
-          );
-        },
-      }),
-      activateLicense: actionGeneric({
-        args: {
-          key: v.string(),
-          instanceName: v.string(),
-        },
-        returns: v.any(),
-        handler: async (ctx, args) => {
-          return await this.creem.licenses.activate({
-            key: args.key,
-            instanceName: args.instanceName,
-          });
-        },
-      }),
-      validateLicense: actionGeneric({
-        args: {
-          key: v.string(),
-          instanceId: v.string(),
-        },
-        returns: v.any(),
-        handler: async (ctx, args) => {
-          return await this.creem.licenses.validate({
-            key: args.key,
-            instanceId: args.instanceId,
-          });
-        },
-      }),
-      deactivateLicense: actionGeneric({
-        args: {
-          key: v.string(),
-          instanceId: v.string(),
-        },
-        returns: v.any(),
-        handler: async (ctx, args) => {
-          return await this.creem.licenses.deactivate({
-            key: args.key,
-            instanceId: args.instanceId,
-          });
-        },
-      }),
-      createDiscount: actionGeneric({
-        args: {
-          name: v.string(),
-          type: v.string(),
-          duration: v.string(),
-          appliesToProducts: v.array(v.string()),
-          code: v.optional(v.string()),
-          percentage: v.optional(v.number()),
-          amount: v.optional(v.number()),
-          currency: v.optional(v.string()),
-          maxRedemptions: v.optional(v.number()),
-          expiryDate: v.optional(v.string()),
-          durationInMonths: v.optional(v.number()),
-        },
-        returns: v.any(),
-        handler: async (ctx, args) => {
-          return await this.creem.discounts.create({
-            name: args.name,
-            type: args.type as "percentage" | "fixed",
-            duration: args.duration as "forever" | "once" | "repeating",
-            appliesToProducts: args.appliesToProducts,
-            code: args.code,
-            percentage: args.percentage,
-            amount: args.amount,
-            currency: args.currency,
-            maxRedemptions: args.maxRedemptions,
-            expiryDate: args.expiryDate
-              ? new Date(args.expiryDate)
-              : undefined,
-            durationInMonths: args.durationInMonths,
-          });
-        },
-      }),
-      getDiscount: actionGeneric({
-        args: {
-          discountId: v.optional(v.string()),
-          discountCode: v.optional(v.string()),
-        },
-        returns: v.any(),
-        handler: async (ctx, args) => {
-          return await this.creem.discounts.get(
-            args.discountId,
-            args.discountCode,
-          );
-        },
-      }),
-      deleteDiscount: actionGeneric({
-        args: { discountId: v.string() },
-        returns: v.any(),
-        handler: async (ctx, args) => {
-          return await this.creem.discounts.delete(args.discountId);
+          const { entityId } = await this.resolveEntityId(ctx);
+          await this.pauseSubscription(ctx, { entityId });
         },
       }),
     };
@@ -1189,11 +1027,11 @@ export class Creem<
                   ? checkout.customer
                   : undefined;
               const customerId = this.getCustomerId(customerObj);
-              const userId = this.getConvexUserId(checkout.metadata);
+              const entityId = this.getConvexEntityId(checkout.metadata);
               await this.upsertCustomerFromWebhook(
                 ctx,
                 customerId,
-                userId,
+                entityId,
                 customerObj as CustomerEntity | undefined,
               );
 
@@ -1297,14 +1135,14 @@ export class Creem<
                   ? (parsed.customer as CustomerEntity)
                   : undefined;
               const customerId = this.getCustomerId(parsed.customer);
-              const userId = this.getConvexUserId(
+              const entityId = this.getConvexEntityId(
                 raw.metadata ??
                   (parsed as unknown as Record<string, unknown>).metadata,
               );
               await this.upsertCustomerFromWebhook(
                 ctx,
                 customerId,
-                userId,
+                entityId,
                 customerEntity,
               );
             } else {

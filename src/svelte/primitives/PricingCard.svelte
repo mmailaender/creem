@@ -16,6 +16,9 @@
     showSeatPicker?: boolean;
     subscribedSeats?: number | null;
     isGroupSubscribed?: boolean;
+    disableCheckout?: boolean;
+    disableSwitch?: boolean;
+    disableSeats?: boolean;
     className?: string;
     onCheckout?: (payload: {
       plan: UIPlanEntry;
@@ -43,6 +46,9 @@
     showSeatPicker = false,
     subscribedSeats = null,
     isGroupSubscribed = false,
+    disableCheckout = false,
+    disableSwitch = false,
+    disableSeats = false,
     className = "",
     onCheckout,
     onSwitchPlan,
@@ -155,16 +161,18 @@
 
   {#if isSeatPlan && showSeatPicker && !isActiveProduct && !isSiblingPlan}
     <div class="mb-4 flex items-center gap-2">
-      <label class="text-sm text-zinc-600 dark:text-zinc-300">Seats</label>
+      <label for="seat-checkout-{plan.planId}" class="text-sm text-zinc-600 dark:text-zinc-300">Seats</label>
       <input
+        id="seat-checkout-{plan.planId}"
         type="number"
         min="1"
+        disabled={disableSeats}
         value={seatCount}
         oninput={(e: Event) => {
           const val = parseInt((e.target as HTMLInputElement).value, 10);
           if (val > 0) seatCount = val;
         }}
-        class="w-20 rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+        class="w-20 rounded-md border border-zinc-300 px-2 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
       />
     </div>
   {/if}
@@ -172,21 +180,24 @@
   {#if isActiveProduct && isSeatPlan && showSeatPicker && onUpdateSeats}
     {#if editingSeats}
       <div class="mb-4 flex items-center gap-2">
-        <label class="text-sm text-zinc-600 dark:text-zinc-300">Seats</label>
+        <label for="seat-adjust-{plan.planId}" class="text-sm text-zinc-600 dark:text-zinc-300">Seats</label>
         <input
+          id="seat-adjust-{plan.planId}"
           type="number"
           min="1"
+          disabled={disableSeats}
           value={seatAdjustCount}
           oninput={(e: Event) => {
             const val = parseInt((e.target as HTMLInputElement).value, 10);
             if (val > 0) seatAdjustCount = val;
           }}
-          class="w-20 rounded-md border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
+          class="w-20 rounded-md border border-zinc-300 px-2 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
         />
         {#if seatsChanged}
           <button
             type="button"
-            class="rounded-md bg-indigo-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+            disabled={disableSeats}
+            class="rounded-md bg-indigo-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-indigo-500 dark:hover:bg-indigo-600"
             onclick={() => onUpdateSeats?.({ units: seatAdjustCount })}
           >
             Update
@@ -203,7 +214,8 @@
     {:else}
       <button
         type="button"
-        class="mb-4 text-sm text-indigo-600 transition hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
+        disabled={disableSeats}
+        class="mb-4 text-sm text-indigo-600 transition hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 dark:text-indigo-400 dark:hover:text-indigo-300"
         onclick={() => { editingSeats = true; }}
       >
         Change seats
@@ -227,7 +239,7 @@
         Current plan
       </span>
     {:else if isSiblingPlan && productId}
-      <CheckoutButton {productId} onCheckout={handleCheckout}>
+      <CheckoutButton {productId} disabled={disableSwitch} onCheckout={handleCheckout}>
         {checkoutLabel}
       </CheckoutButton>
     {:else if plan.category === "enterprise"}
@@ -248,7 +260,7 @@
         </button>
       {/if}
     {:else if productId}
-      <CheckoutButton {productId} onCheckout={handleCheckout}>
+      <CheckoutButton {productId} disabled={disableCheckout} onCheckout={handleCheckout}>
         {checkoutLabel}
       </CheckoutButton>
     {:else if plan.category !== "free"}

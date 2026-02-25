@@ -4,7 +4,6 @@
   import PricingSection from "../primitives/PricingSection.svelte";
   import PaymentWarningBanner from "../primitives/PaymentWarningBanner.svelte";
   import ScheduledChangeBanner from "../primitives/ScheduledChangeBanner.svelte";
-  import TrialLimitBanner from "../primitives/TrialLimitBanner.svelte";
   import CancelConfirmDialog from "../primitives/CancelConfirmDialog.svelte";
   import type { UIPlanEntry, RecurringCycle } from "../../core/types.js";
   import {
@@ -12,6 +11,7 @@
     type SubscriptionContextValue,
   } from "./subscriptionContext.js";
   import type {
+    BillingPermissions,
     ConnectedBillingApi,
     ConnectedBillingModel,
     SubscriptionPlanRegistration,
@@ -19,6 +19,7 @@
 
   interface Props {
     api: ConnectedBillingApi;
+    permissions?: BillingPermissions;
     className?: string;
     successUrl?: string;
     units?: number;
@@ -28,12 +29,19 @@
 
   let {
     api,
+    permissions = undefined,
     className = "",
     successUrl = undefined,
     units = undefined,
     showSeatPicker = false,
     children,
   }: Props = $props();
+
+  const canCheckout = $derived(permissions?.canCheckout !== false);
+  const canChange = $derived(permissions?.canChangeSubscription !== false);
+  const canCancel = $derived(permissions?.canCancelSubscription !== false);
+  const canResume = $derived(permissions?.canResumeSubscription !== false);
+  const canUpdateSeats = $derived(permissions?.canUpdateSeats !== false);
 
   const client = useConvexClient();
 
@@ -305,12 +313,11 @@
       </div>
     {/if}
 
-    <TrialLimitBanner snapshot={snapshot} />
     {#if ownsActiveSubscription && snapshot}
       <ScheduledChangeBanner
         snapshot={{ ...snapshot, metadata: { ...snapshot.metadata, cancelAtPeriodEnd: localCancelAtPeriodEnd, currentPeriodEnd: localCurrentPeriodEnd } }}
         isLoading={isActionLoading}
-        onResume={resumeRef ? resumeSubscription : undefined}
+        onResume={resumeRef && canResume ? resumeSubscription : undefined}
       />
     {/if}
     <PaymentWarningBanner snapshot={snapshot} />
@@ -330,9 +337,12 @@
       onCycleChange={(cycle) => {
         selectedCycle = cycle;
       }}
-      onCheckout={handlePricingCheckout}
-      onSwitchPlan={changeSubRef ? handleSwitchPlan : undefined}
-      onUpdateSeats={updateSeatsRef ? handleUpdateSeats : undefined}
+      disableCheckout={!canCheckout}
+      disableSwitch={!canChange}
+      disableSeats={!canUpdateSeats}
+      onCheckout={canCheckout ? handlePricingCheckout : undefined}
+      onSwitchPlan={changeSubRef && canChange ? handleSwitchPlan : undefined}
+      onUpdateSeats={updateSeatsRef && canUpdateSeats ? handleUpdateSeats : undefined}
     />
 
     <div class="flex flex-wrap items-center gap-3">
@@ -344,7 +354,7 @@
         <button
           type="button"
           class="text-sm text-red-600 transition hover:text-red-700 disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300"
-          disabled={isActionLoading}
+          disabled={isActionLoading || !canCancel}
           onclick={() => { cancelDialogOpen = true; }}
         >
           Cancel subscription

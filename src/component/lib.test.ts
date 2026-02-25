@@ -62,7 +62,7 @@ function createTestProduct(overrides: Partial<DbProduct> = {}): DbProduct {
 function createTestCustomer(overrides: Partial<DbCustomer> = {}): DbCustomer {
   return {
     id: "cust_123",
-    userId: "user_456",
+    entityId: "user_456",
     ...overrides,
   };
 }
@@ -453,14 +453,14 @@ describe("insertCustomer mutation", () => {
     const id = await t.mutation(api.lib.insertCustomer, customer);
 
     expect(id).toBeDefined();
-    const result = await t.query(api.lib.getCustomerByUserId, {
-      userId: "user_456",
+    const result = await t.query(api.lib.getCustomerByEntityId, {
+      entityId: "user_456",
     });
     expect(result).not.toBeNull();
     expect(result?.id).toBe("cust_123");
   });
 
-  it("returns existing customer id when customer already exists for userId", async () => {
+  it("returns existing customer id when customer already exists for entityId", async () => {
     const customer = createTestCustomer();
 
     const id1 = await t.mutation(api.lib.insertCustomer, customer);
@@ -472,30 +472,30 @@ describe("insertCustomer mutation", () => {
 
     expect(id1).toBe(id2);
 
-    const result = await t.query(api.lib.getCustomerByUserId, {
-      userId: "user_456",
+    const result = await t.query(api.lib.getCustomerByEntityId, {
+      entityId: "user_456",
     });
     expect(result?.id).toBe("cust_123");
   });
 
-  it("allows different customers for different userIds", async () => {
+  it("allows different customers for different entityIds", async () => {
     const customer1 = createTestCustomer({
       id: "cust_123",
-      userId: "user_123",
+      entityId: "user_123",
     });
     const customer2 = createTestCustomer({
       id: "cust_456",
-      userId: "user_456",
+      entityId: "user_456",
     });
 
     await t.mutation(api.lib.insertCustomer, customer1);
     await t.mutation(api.lib.insertCustomer, customer2);
 
-    const result1 = await t.query(api.lib.getCustomerByUserId, {
-      userId: "user_123",
+    const result1 = await t.query(api.lib.getCustomerByEntityId, {
+      entityId: "user_123",
     });
-    const result2 = await t.query(api.lib.getCustomerByUserId, {
-      userId: "user_456",
+    const result2 = await t.query(api.lib.getCustomerByEntityId, {
+      entityId: "user_456",
     });
 
     expect(result1?.id).toBe("cust_123");
@@ -512,7 +512,7 @@ describe("getCurrentSubscription query", () => {
 
   it("returns null when no customer exists", async () => {
     const result = await t.query(api.lib.getCurrentSubscription, {
-      userId: "user_nonexistent",
+      entityId: "user_nonexistent",
     });
 
     expect(result).toBeNull();
@@ -522,7 +522,7 @@ describe("getCurrentSubscription query", () => {
     await t.mutation(api.lib.insertCustomer, createTestCustomer());
 
     const result = await t.query(api.lib.getCurrentSubscription, {
-      userId: "user_456",
+      entityId: "user_456",
     });
 
     expect(result).toBeNull();
@@ -542,7 +542,7 @@ describe("getCurrentSubscription query", () => {
     });
 
     const result = await t.query(api.lib.getCurrentSubscription, {
-      userId: "user_456",
+      entityId: "user_456",
     });
 
     expect(result).toBeNull();
@@ -562,7 +562,7 @@ describe("getCurrentSubscription query", () => {
     });
 
     const result = await t.query(api.lib.getCurrentSubscription, {
-      userId: "user_456",
+      entityId: "user_456",
     });
 
     expect(result).not.toBeNull();
@@ -587,7 +587,7 @@ describe("getCurrentSubscription query", () => {
     });
 
     const result = await t.query(api.lib.getCurrentSubscription, {
-      userId: "user_456",
+      entityId: "user_456",
     });
 
     expect(result).toBeNull();
@@ -609,7 +609,7 @@ describe("getCurrentSubscription query", () => {
     });
 
     const result = await t.query(api.lib.getCurrentSubscription, {
-      userId: "user_456",
+      entityId: "user_456",
     });
 
     expect(result).not.toBeNull();
@@ -626,7 +626,7 @@ describe("listUserSubscriptions query", () => {
 
   it("returns empty array when no customer exists", async () => {
     const result = await t.query(api.lib.listUserSubscriptions, {
-      userId: "user_nonexistent",
+      entityId: "user_nonexistent",
     });
 
     expect(result).toEqual([]);
@@ -636,7 +636,7 @@ describe("listUserSubscriptions query", () => {
     await t.mutation(api.lib.insertCustomer, createTestCustomer());
 
     const result = await t.query(api.lib.listUserSubscriptions, {
-      userId: "user_456",
+      entityId: "user_456",
     });
 
     expect(result).toEqual([]);
@@ -656,7 +656,7 @@ describe("listUserSubscriptions query", () => {
     });
 
     const result = await t.query(api.lib.listUserSubscriptions, {
-      userId: "user_456",
+      entityId: "user_456",
     });
 
     expect(result).toHaveLength(0);
@@ -675,7 +675,7 @@ describe("listUserSubscriptions query", () => {
     });
 
     const result = await t.query(api.lib.listUserSubscriptions, {
-      userId: "user_456",
+      entityId: "user_456",
     });
 
     expect(result).toHaveLength(1);
@@ -699,7 +699,7 @@ describe("listUserSubscriptions query", () => {
     });
 
     const result = await t.query(api.lib.listUserSubscriptions, {
-      userId: "user_456",
+      entityId: "user_456",
     });
 
     expect(result).toHaveLength(0);
@@ -721,7 +721,7 @@ describe("listUserSubscriptions query", () => {
     });
 
     const result = await t.query(api.lib.listUserSubscriptions, {
-      userId: "user_456",
+      entityId: "user_456",
     });
 
     expect(result).toHaveLength(1);
@@ -754,7 +754,7 @@ describe("listUserSubscriptions query", () => {
     });
 
     const result = await t.query(api.lib.listUserSubscriptions, {
-      userId: "user_456",
+      entityId: "user_456",
     });
 
     expect(result).toHaveLength(2);
@@ -861,7 +861,7 @@ describe("listAllUserSubscriptions query", () => {
 
   it("returns empty array when no customer exists", async () => {
     const result = await t.query(api.lib.listAllUserSubscriptions, {
-      userId: "user_nonexistent",
+      entityId: "user_nonexistent",
     });
 
     expect(result).toEqual([]);
@@ -880,7 +880,7 @@ describe("listAllUserSubscriptions query", () => {
     });
 
     const result = await t.query(api.lib.listAllUserSubscriptions, {
-      userId: "user_456",
+      entityId: "user_456",
     });
 
     expect(result).toHaveLength(1);
@@ -903,7 +903,7 @@ describe("listAllUserSubscriptions query", () => {
     });
 
     const result = await t.query(api.lib.listAllUserSubscriptions, {
-      userId: "user_456",
+      entityId: "user_456",
     });
 
     expect(result).toHaveLength(1);
@@ -946,7 +946,7 @@ describe("listAllUserSubscriptions query", () => {
     });
 
     const result = await t.query(api.lib.listAllUserSubscriptions, {
-      userId: "user_456",
+      entityId: "user_456",
     });
 
     expect(result).toHaveLength(3);

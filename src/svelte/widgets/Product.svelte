@@ -7,10 +7,11 @@
     PRODUCT_GROUP_CONTEXT_KEY,
     type ProductGroupContextValue,
   } from "./productGroupContext.js";
-  import type { ConnectedBillingApi, ConnectedBillingModel, ProductType } from "./types.js";
+  import type { BillingPermissions, ConnectedBillingApi, ConnectedBillingModel, ProductType } from "./types.js";
 
   interface Props {
     api?: ConnectedBillingApi;
+    permissions?: BillingPermissions;
     productId: string;
     type: ProductType;
     title?: string;
@@ -21,6 +22,7 @@
 
   let {
     api = undefined,
+    permissions = undefined,
     productId,
     type,
     title = undefined,
@@ -28,6 +30,8 @@
     className = "",
     successUrl = undefined,
   }: Props = $props();
+
+  const canCheckout = $derived(permissions?.canCheckout !== false);
 
   // ── Context detection: grouped (item) vs standalone ──────────────────
   const groupContext = getContext<ProductGroupContextValue | undefined>(
@@ -147,7 +151,7 @@
     {:else}
       <CheckoutButton
         {productId}
-        disabled={isLoading}
+        disabled={isLoading || !canCheckout}
         onCheckout={onCheckout}
       >
         {type === "one-time" ? "Buy now" : "Purchase"}

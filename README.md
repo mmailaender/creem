@@ -49,7 +49,12 @@ import { api, components } from "./_generated/api";
 export const creem = new Creem(components.creem, {
   getUserInfo: async (ctx) => {
     const user = await ctx.runQuery(api.users.currentUser);
-    return { userId: user._id, email: user.email };
+    return {
+      userId: user._id,
+      email: user.email,
+      // For org billing, return the org ID as billingEntityId:
+      // billingEntityId: user.activeOrgId,
+    };
   },
   products: {
     basicMonthly: "prod_xxx",
@@ -101,25 +106,15 @@ export const {
   resumeCurrentSubscription, // action — resume scheduled_cancel or paused
   pauseCurrentSubscription, // action — pause subscription
 
-  // Primitive queries (for custom UIs)
+  // Entity-scoped queries
   getProduct, // query  — single product by ID
-  getSubscription, // query  — single subscription by ID
-  getCustomer, // query  — customer record for current user
-  listSubscriptions, // query  — active subscriptions for current user
-  listOrders, // query  — orders for current user
-
-  // Full Creem API pass-through actions
-  createCreemProduct, // action — create a product on Creem
-  retrieveCheckout, // action — retrieve checkout session details
-  getTransaction, // action — get transaction by ID
-  listTransactions, // action — search transactions
-  activateLicense, // action — activate a license key
-  validateLicense, // action — validate a license key
-  deactivateLicense, // action — deactivate a license key
-  createDiscount, // action — create a discount code
-  getDiscount, // action — get discount by ID or code
-  deleteDiscount, // action — delete a discount
+  getCustomer, // query  — customer record for current entity
+  listSubscriptions, // query  — active subscriptions for current entity
+  listOrders, // query  — orders for current entity
 } = creem.api();
+
+// For cross-entity / admin operations, use class methods directly
+// with your own RBAC checks. See "Tier 2" section below.
 ```
 
 ### Billing UI model
@@ -143,7 +138,7 @@ export const getCustomBillingModel = query({
     const user = await currentUser(ctx);
     if (!user) return { user: null, billingSnapshot: null /* ... */ };
 
-    const billingData = await creem.buildBillingUiModel(ctx, { userId: user._id });
+    const billingData = await creem.buildBillingUiModel(ctx, { entityId: user._id });
     return { user, ...billingData, myCustomField: "value" };
   },
 });
@@ -253,6 +248,7 @@ multiple subscription widgets:
 | Prop             | Type                  | Description                                        |
 | ---------------- | --------------------- | -------------------------------------------------- |
 | `api`            | `ConnectedBillingApi` | **Required.** Backend function references.         |
+| `permissions`    | `BillingPermissions`  | Optional. Disable actions based on user role.      |
 | `className`      | `string`              | Wrapper CSS class.                                 |
 | `successUrl`     | `string`              | Redirect after checkout. Defaults to current page. |
 | `units`          | `number`              | Auto-derived seat count for seat-based plans.      |
@@ -275,6 +271,7 @@ renders a pricing card.
 | `contactUrl`  | `string`                                             | "Contact sales" link for enterprise plans.                      |
 | `productIds`  | `Record<RecurringCycle, string>`                     | Creem product IDs keyed by billing cycle.                       |
 | `api`         | `ConnectedBillingApi`                                | Required in standalone mode only.                               |
+| `permissions` | `BillingPermissions`                                 | Optional. Disable actions based on user role (standalone only). |
 | `className`   | `string`                                             | Standalone mode only. Wrapper CSS class.                        |
 | `successUrl`  | `string`                                             | Standalone mode only. Redirect after checkout.                  |
 
@@ -339,6 +336,7 @@ renders a full card with checkout.
 | `title`       | `string`                    | Card title. Auto-resolves from product data.         |
 | `description` | `string`                    | Card subtitle. Auto-resolves from product data.      |
 | `api`         | `ConnectedBillingApi`       | Required in standalone mode only.                    |
+| `permissions` | `BillingPermissions`        | Optional. Disable checkout based on user role.       |
 | `successUrl`  | `string`                    | Standalone mode only. Redirect after checkout.       |
 
 `Product.Item` is an alias for `Product` for discoverability.
@@ -408,35 +406,15 @@ See the [React example](example) for a complete integration.
 
 ## 6. API surface
 
-### Class methods
+The API is split into two tiers for security:
 
-The `Creem` client provides these methods for use in your own queries/mutations:
+### Tier 1: `creem.api()` — entity-scoped
 
-- `getCurrentSubscription(ctx, { userId })`
-- `listUserSubscriptions(ctx, { userId })` — active subscriptions
-- `listAllUserSubscriptions(ctx, { userId })` — including ended
-- `listUserOrders(ctx, { userId })` — paid one-time orders
-- `listProducts(ctx)`
-- `getProduct(ctx, { productId })`
-- `getCustomerByUserId(ctx, userId)`
-- `syncProducts(ctx)` — sync all Creem products to the component DB
-- `getBillingSnapshot(ctx, { userId, payment? })`
-- `buildBillingUiModel(ctx, { userId })` — aggregates all billing data for
-  widgets (subscriptions, orders, products, snapshot)
-- `changeSubscription(ctx, { productId })`
-- `updateSubscriptionSeats(ctx, { units })` — update seat count with proration
-- `cancelSubscription(ctx, { revokeImmediately? })`
-- `pauseSubscription(ctx)` — pause an active subscription
-- `resumeSubscription(ctx)` — resume scheduled_cancel or paused
-- `registerRoutes(http, { path?, events? })` — auto-handles checkout,
-  subscription, product, and order webhooks
-
-### `creem.api()` exports
-
-Ready-to-use Convex function exports:
+These auto-resolve the billing entity from `getUserInfo` and are safe to export
+directly. They always operate on the authenticated user’s (or org’s) data.
 
 **Core queries:**
-`getConfiguredProducts`, `listAllProducts`, `getCurrentBillingSnapshot`, `getBillingUiModel`
+`getConfiguredProducts`, `listAllProducts`, `getCurrentBillingSnapshot`, `getBillingUiModel`, `listAllSubscriptions`
 
 **Checkout & portal actions:**
 `generateCheckoutLink`, `generateCustomerPortalUrl`
@@ -444,11 +422,85 @@ Ready-to-use Convex function exports:
 **Subscription management actions:**
 `changeCurrentSubscription`, `updateSubscriptionSeats`, `cancelCurrentSubscription`, `resumeCurrentSubscription`, `pauseCurrentSubscription`
 
-**Primitive queries (for custom UIs):**
-`getProduct`, `getSubscription`, `getCustomer`, `listSubscriptions`, `listOrders`
+**Entity-scoped queries:**
+`getProduct`, `getCustomer`, `listSubscriptions`, `listOrders`
 
-**Full Creem API pass-through actions:**
-`createCreemProduct`, `retrieveCheckout`, `getTransaction`, `listTransactions`, `activateLicense`, `validateLicense`, `deactivateLicense`, `createDiscount`, `getDiscount`, `deleteDiscount`
+### Tier 2: Class methods — explicit `entityId`
+
+These take an explicit `entityId` and are **not** in `creem.api()`. Wrap them in
+your own Convex functions with RBAC checks:
+
+- `getCurrentSubscription(ctx, { entityId })`
+- `listUserSubscriptions(ctx, { entityId })` — active subscriptions
+- `listAllUserSubscriptions(ctx, { entityId })` — including ended
+- `listUserOrders(ctx, { entityId })` — paid one-time orders
+- `getCustomerByEntityId(ctx, entityId)`
+- `getBillingSnapshot(ctx, { entityId, payment? })`
+- `buildBillingUiModel(ctx, { entityId })`
+- `changeSubscription(ctx, { entityId, productId })`
+- `updateSubscriptionSeats(ctx, { entityId, units })`
+- `cancelSubscription(ctx, { entityId, revokeImmediately? })`
+- `pauseSubscription(ctx, { entityId })`
+- `resumeSubscription(ctx, { entityId })`
+- `createCheckoutSession(ctx, { entityId, userId, email, productId, successUrl, ... })`
+- `createCustomerPortalSession(ctx, { entityId })`
+
+**Utility methods (no entity):**
+- `listProducts(ctx)`
+- `getProduct(ctx, { productId })`
+- `syncProducts(ctx)`
+- `registerRoutes(http, { path?, events? })`
+
+For Creem SDK pass-through (products, licenses, discounts, transactions), use
+`creem.sdk.*` directly in your own wrappers.
+
+### Organization billing
+
+Return `billingEntityId` from `getUserInfo` to scope billing to an organization:
+
+```ts
+getUserInfo: async (ctx) => {
+  const user = await ctx.runQuery(api.users.currentUser);
+  const org = await ctx.runQuery(api.orgs.getActiveOrg);
+  return {
+    userId: user._id,
+    email: user.email,
+    billingEntityId: org?._id, // omit for personal billing
+  };
+},
+```
+
+When `billingEntityId` is set, all `creem.api()` functions and checkout metadata
+automatically scope to that entity. Webhooks resolve `convexBillingEntityId`
+from metadata (falls back to `convexUserId`).
+
+### RBAC & `BillingPermissions`
+
+RBAC is the **app’s responsibility**. The component provides `BillingPermissions`
+to grey out UI actions for users without sufficient privileges:
+
+```ts
+import type { BillingPermissions } from "@mmailaender/creem/svelte";
+
+type BillingPermissions = {
+  canCheckout?: boolean;
+  canChangeSubscription?: boolean;
+  canCancelSubscription?: boolean;
+  canResumeSubscription?: boolean;
+  canUpdateSeats?: boolean;
+};
+```
+
+Pass `permissions` to any entry-point component:
+
+```svelte
+<Subscription.Group api={billingApi} permissions={{ canCheckout: true, canCancelSubscription: false }} />
+<Product api={billingApi} permissions={{ canCheckout: false }} type="one-time" productId="prod_xxx" />
+```
+
+When a permission is `false`, the corresponding button renders as disabled
+(greyed out) instead of hidden. When omitted or `undefined`, all actions default
+to enabled.
 
 ---
 

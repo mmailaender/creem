@@ -7,7 +7,7 @@ export default defineSchema(
   {
     customers: defineTable({
       id: v.string(),
-      userId: v.string(),
+      entityId: v.string(),
       email: v.optional(v.string()),
       name: v.optional(vNullableString),
       country: v.optional(v.string()),
@@ -16,7 +16,7 @@ export default defineSchema(
       createdAt: v.optional(v.string()),
       updatedAt: v.optional(v.string()),
     })
-      .index("userId", ["userId"])
+      .index("entityId", ["entityId"])
       .index("id", ["id"]),
     products: defineTable({
       id: v.string(),

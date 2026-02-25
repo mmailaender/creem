@@ -8,6 +8,7 @@
     type ProductGroupContextValue,
   } from "./productGroupContext.js";
   import type {
+    BillingPermissions,
     ConnectedBillingApi,
     ConnectedBillingModel,
     ProductItemRegistration,
@@ -16,6 +17,7 @@
 
   interface Props {
     api: ConnectedBillingApi;
+    permissions?: BillingPermissions;
     transition?: Transition[];
     className?: string;
     successUrl?: string;
@@ -24,11 +26,14 @@
 
   let {
     api,
+    permissions = undefined,
     transition = [],
     className = "",
     successUrl = undefined,
     children,
   }: Props = $props();
+
+  const canCheckout = $derived(permissions?.canCheckout !== false);
 
   const client = useConvexClient();
 
@@ -200,7 +205,7 @@
           {:else if checkoutProductId}
             <CheckoutButton
               productId={checkoutProductId}
-              disabled={isLoading}
+              disabled={isLoading || !canCheckout}
               onCheckout={() => startCheckout(checkoutProductId)}
             >
               {activeOwnedProductId ? "Upgrade" : "Buy now"}
@@ -208,7 +213,7 @@
           {:else}
             <CheckoutButton
               productId={item.productId}
-              disabled={isLoading}
+              disabled={isLoading || !canCheckout}
               onCheckout={() => startCheckout(item.productId)}
             >
               Buy now

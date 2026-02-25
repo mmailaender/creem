@@ -1,6 +1,14 @@
 import type { FunctionReference } from "convex/server";
 import type { BillingSnapshot, RecurringCycle } from "../../core/types.js";
 
+export type BillingPermissions = {
+  canCheckout?: boolean;
+  canChangeSubscription?: boolean;
+  canCancelSubscription?: boolean;
+  canResumeSubscription?: boolean;
+  canUpdateSeats?: boolean;
+};
+
 export type ConnectedBillingApi = {
   getBillingUiModel: FunctionReference<"query">;
   generateCheckoutLink: FunctionReference<"action">;

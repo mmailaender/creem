@@ -8,6 +8,7 @@
     type SubscriptionContextValue,
   } from "./subscriptionContext.js";
   import type {
+    BillingPermissions,
     ConnectedBillingApi,
     ConnectedBillingModel,
     SubscriptionPlanType,
@@ -22,6 +23,7 @@
     contactUrl?: string;
     recommended?: boolean;
     productIds?: Partial<Record<RecurringCycle, string>>;
+    permissions?: BillingPermissions;
     className?: string;
     successUrl?: string;
     units?: number;
@@ -30,6 +32,7 @@
 
   let {
     api = undefined,
+    permissions = undefined,
     planId = undefined,
     type,
     title = undefined,
@@ -42,6 +45,10 @@
     units = undefined,
     showSeatPicker = false,
   }: Props = $props();
+
+  const canCheckout = $derived(permissions?.canCheckout !== false);
+  const canChange = $derived(permissions?.canChangeSubscription !== false);
+  const canUpdateSeats = $derived(permissions?.canUpdateSeats !== false);
 
   // ── Context detection: grouped (item) vs standalone ──────────────────
   const groupContext = getContext<SubscriptionContextValue | undefined>(
@@ -248,9 +255,12 @@
       {showSeatPicker}
       subscribedSeats={localSubscribedSeats}
       isGroupSubscribed={ownsActiveSubscription}
-      onCheckout={handleCheckout}
-      onSwitchPlan={standalone?.refs.changeSub ? handleSwitchPlan : undefined}
-      onUpdateSeats={standalone?.refs.updateSeats ? handleUpdateSeats : undefined}
+      disableCheckout={!canCheckout}
+      disableSwitch={!canChange}
+      disableSeats={!canUpdateSeats}
+      onCheckout={canCheckout ? handleCheckout : undefined}
+      onSwitchPlan={standalone?.refs.changeSub && canChange ? handleSwitchPlan : undefined}
+      onUpdateSeats={standalone?.refs.updateSeats && canUpdateSeats ? handleUpdateSeats : undefined}
     />
   {/if}
 </section>

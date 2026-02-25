@@ -32,6 +32,7 @@ export {
   shouldShowBillingCycleToggle,
 } from "../core/selectors.js";
 export type {
+  BillingPermissions,
   ConnectedBillingApi,
   ConnectedBillingModel,
   ProductType,
