@@ -60,7 +60,7 @@
   <section class="surface-base radius-xl relative z-10 flex min-h-[344px] flex-col gap-4 p-6">
     <h4 class="title-s text-foreground-default">{includedTitle}</h4>
     <ul class="flex flex-1 flex-col gap-2 pb-10">
-      {#each features as feature}
+      {#each features as feature (feature)}
         <li class="flex items-center gap-2">
           <span class="inline-flex h-5 w-5 items-center justify-center">
             <img alt="" aria-hidden="true" class="h-4 w-4" src={CHECK_ICON_URL} />

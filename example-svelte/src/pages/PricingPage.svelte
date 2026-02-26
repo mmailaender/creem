@@ -247,7 +247,7 @@
     {/if}
 
     <section class="mt-28 grid grid-cols-1 gap-1 px-4 sm:px-6 xl:grid-cols-3 xl:px-16">
-      {#each planDefs as plan}
+      {#each planDefs as plan (plan.planId)}
         {@const price = getPriceForCycle(plan.productIds, selectedCycle)}
         {@const currentProductId = price?.productId}
         {@const isActiveProduct =
