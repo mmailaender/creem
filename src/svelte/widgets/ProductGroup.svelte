@@ -163,7 +163,7 @@
     <p class="text-sm text-red-600">{error}</p>
   {/if}
 
-  <div class="grid gap-4 md:grid-cols-2">
+  <div class="flex flex-wrap items-center gap-3">
     {#each registeredItems as item (item.productId)}
       {@const isOwned = effectiveOwnedProductIds.includes(item.productId)}
       {@const isIncluded = !isOwned && activeOwnedProductId != null && isLowerTierThan(item.productId, activeOwnedProductId)}
@@ -174,7 +174,7 @@
       {@const resolvedPrice = formatPriceWithInterval(item.productId, allProducts)}
       {@const resolvedImageUrl = matchedProduct?.imageUrl ?? null}
       <article
-        class={`rounded-xl border p-4 shadow-sm ${isIncluded ? "border-zinc-100 bg-zinc-50 opacity-60 dark:border-zinc-800 dark:bg-zinc-900" : "border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950"}`}
+        class={`max-w-sm rounded-xl border p-4 shadow-sm ${isIncluded ? "border-zinc-100 bg-zinc-50 opacity-60 dark:border-zinc-800 dark:bg-zinc-900" : "border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950"}`}
       >
         {#if resolvedImageUrl}
           <img
