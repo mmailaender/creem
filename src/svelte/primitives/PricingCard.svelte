@@ -1,9 +1,10 @@
 <script lang="ts">
   import CheckoutButton from "./CheckoutButton.svelte";
+  import Badge from "./Badge.svelte";
+  import NumberInput from "./NumberInput.svelte";
   import type { UIPlanEntry, RecurringCycle } from "../../core/types.js";
   import type { ConnectedProduct } from "../widgets/types.js";
   import { resolveProductIdForPlan, formatPriceWithInterval, formatSeatPrice } from "./shared.js";
-  import { renderMarkdown } from "../../core/markdown.js";
 
   interface Props {
     plan: UIPlanEntry;
@@ -33,6 +34,7 @@
     }) => Promise<void> | void;
     onUpdateSeats?: (payload: { units: number }) => Promise<void> | void;
     onContactSales?: (payload: { plan: UIPlanEntry }) => Promise<void> | void;
+    onCancelSubscription?: () => void;
   }
 
   let {
@@ -55,9 +57,11 @@
     onSwitchPlan,
     onUpdateSeats,
     onContactSales,
+    onCancelSubscription,
   }: Props = $props();
 
   const isSeatPlan = $derived(plan.pricingModel === "seat");
+  const isEnterprise = $derived(plan.category === "enterprise");
   let seatCount = $derived(1);
   let seatAdjustCount = $state(1);
   let editingSeats = $state(false);
@@ -74,10 +78,6 @@
 
   const productId = $derived(resolveProductIdForPlan(plan, selectedCycle));
   const priceLabel = $derived(formatPriceWithInterval(productId, products));
-  const imageUrl = $derived.by(() => {
-    if (!productId || !products.length) return null;
-    return products.find((p) => p.id === productId)?.imageUrl ?? null;
-  });
 
   // Exact match: user is subscribed to THIS specific product (plan + cycle)
   const isActiveProduct = $derived(
@@ -102,6 +102,9 @@
   // Sibling plan in the same <Subscription> group that already has a subscription
   const isSiblingPlan = $derived(
     !isActiveProduct && !isActivePlanOtherCycle && isGroupSubscribed && productId != null && plan.category !== "free" && plan.category !== "enterprise",
+  );
+  const showSeatCheckoutControls = $derived(
+    isSeatPlan && showSeatPicker && !isActiveProduct && !isSiblingPlan,
   );
 
   const seatPriceLabel = $derived(
@@ -129,86 +132,111 @@
       onCheckout?.({ plan, productId: payload.productId, units: effectiveUnits });
     }
   };
+
+  const CHECK_ICON_URL = "https://files.svgcdn.io/ph/check-bold.svg";
+
+  const splitPriceLabel = (value: string | null): { main: string; suffix: string | null; tail: string } | null => {
+    if (!value) return null;
+    const match = value.match(/^(.*?)(\/[a-z0-9]+)(.*)$/i);
+    if (!match) return { main: value, suffix: null, tail: "" };
+    return {
+      main: match[1]?.trim() ?? value,
+      suffix: match[2] ?? null,
+      tail: match[3]?.trim() ?? "",
+    };
+  };
+
+  const splitPrice = $derived(splitPriceLabel(seatPriceLabel ?? priceLabel));
+
+  const descriptionLines = $derived.by<string[]>(() => {
+    if (!plan.description) return [];
+    return plan.description
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => line.replace(/^(?:[-*]\s+|[✔✓]\s*)/, "").trim())
+      .filter(Boolean);
+  });
+
+  const featureLines = $derived.by<string[]>(() => {
+    if (descriptionLines.length < 3) return [];
+    return descriptionLines;
+  });
+
+  const leadDescription = $derived.by<string | null>(() => {
+    if (!descriptionLines.length || featureLines.length > 0) return null;
+    return descriptionLines[0] ?? null;
+  });
 </script>
 
 <section
-  class={`relative flex flex-col rounded-xl border bg-white p-5 shadow-sm dark:bg-zinc-950 ${
-    plan.recommended
-      ? "border-indigo-500 ring-2 ring-indigo-500/20 dark:border-indigo-400 dark:ring-indigo-400/20"
-      : "border-zinc-200 dark:border-zinc-800"
+  class={`relative flex flex-col rounded-2xl bg-surface-base p-6 ${
+    isEnterprise
+      ? " md:grid md:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] md:gap-x-8 md:gap-y-3"
+      : ""
+  } ${
+    plan.recommended ? "border border-brand-default" : ""
   } ${className}`}
 >
-  {#if plan.recommended}
-    <span
-      class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-indigo-600 px-3 py-0.5 text-xs font-semibold text-white dark:bg-indigo-500"
-    >
-      Recommended
-    </span>
-  {/if}
-
-  {#if imageUrl}
-    <img
-      src={imageUrl}
-      alt={plan.title ?? plan.planId}
-      class="mb-4 aspect-video w-full rounded-lg object-cover"
-    />
-  {/if}
-
-  <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-    {plan.title ?? plan.planId}
-  </h3>
-
-  <div class="mt-2 mb-4">
-    {#if plan.category === "free"}
-      <span class="text-3xl font-bold text-zinc-900 dark:text-zinc-100">Free</span>
-    {:else if plan.category === "enterprise"}
-      <span class="text-lg font-medium text-zinc-600 dark:text-zinc-300">Custom pricing</span>
-    {:else if seatPriceLabel}
-      <span class="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{seatPriceLabel}</span>
-    {:else if priceLabel}
-      <span class="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{priceLabel}</span>
+  <div class="mb-3 flex h-5 items-center justify-between gap-2">
+    <h3 class="title-m text-foreground-default">
+      {plan.title ?? plan.planId}
+    </h3>
+    {#if plan.recommended}
+      <Badge color="primary" variant="filled">
+        Recommended
+      </Badge>
+    {:else if isActiveProduct || isActiveFreePlan}
+      <Badge color="neutral" variant="faded">
+        {#if isTrialing}
+          Free trial{#if trialDaysLeft != null}&ensp;·&ensp;{trialDaysLeft} day{trialDaysLeft === 1 ? '' : 's'} left{/if}
+        {:else}
+          Current plan
+        {/if}
+      </Badge>
     {/if}
   </div>
 
-  {#if isSeatPlan && showSeatPicker && !isActiveProduct && !isSiblingPlan}
-    <div class="mb-4 flex items-center gap-2">
-      <label for="seat-checkout-{plan.planId}" class="text-sm text-zinc-600 dark:text-zinc-300">Seats</label>
-      <input
-        id="seat-checkout-{plan.planId}"
-        type="number"
-        min="1"
-        disabled={disableSeats}
-        value={seatCount}
-        oninput={(e: Event) => {
-          const val = parseInt((e.target as HTMLInputElement).value, 10);
-          if (val > 0) seatCount = val;
-        }}
-        class="w-20 rounded-md border border-zinc-300 px-2 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
-      />
-    </div>
+  <div class="flex items-baseline gap-1">
+    {#if plan.category === "free"}
+      <span class="heading-m text-foreground-default">Free</span>
+    {:else if plan.category === "enterprise"}
+      <span class="heading-m text-foreground-default">Custom</span>
+    {:else if splitPrice}
+      <span class="heading-m text-foreground-default">{splitPrice.main}</span>
+      {#if splitPrice.suffix}
+        <span class="title-s text-foreground-placeholder">{splitPrice.suffix}</span>
+      {/if}
+      {#if splitPrice.tail}
+        <span class="body-m text-foreground-muted">{splitPrice.tail}</span>
+      {/if}
+    {/if}
+  </div>
+
+  {#if leadDescription}
+    <p class="mb-4 body-m text-foreground-muted">{leadDescription}</p>
   {/if}
 
   {#if isActiveProduct && isSeatPlan && showSeatPicker && onUpdateSeats}
     {#if editingSeats}
-      <div class="mb-4 flex items-center gap-2">
-        <label for="seat-adjust-{plan.planId}" class="text-sm text-zinc-600 dark:text-zinc-300">Seats</label>
-        <input
-          id="seat-adjust-{plan.planId}"
-          type="number"
-          min="1"
-          disabled={disableSeats}
+      <div class="mb-2 flex items-center justify-between rounded-xl bg-surface-subtle py-2 pl-4 pr-2">
+        <span class="label-m text-foreground-default">Seats:</span>
+        <NumberInput
           value={seatAdjustCount}
-          oninput={(e: Event) => {
-            const val = parseInt((e.target as HTMLInputElement).value, 10);
-            if (val > 0) seatAdjustCount = val;
+          min={1}
+          compact
+          disabled={disableSeats}
+          onValueChange={(next) => {
+            if (next > 0) seatAdjustCount = next;
           }}
-          class="w-20 rounded-md border border-zinc-300 px-2 py-1 text-sm disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
         />
+      </div>
+      <div class="mb-4 flex items-center gap-2">
         {#if seatsChanged}
           <button
             type="button"
             disabled={disableSeats}
-            class="rounded-md bg-indigo-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-indigo-500 dark:hover:bg-indigo-600"
+            class="button-filled h-8"
             onclick={() => onUpdateSeats?.({ units: seatAdjustCount })}
           >
             Update
@@ -216,7 +244,7 @@
         {/if}
         <button
           type="button"
-          class="text-xs text-zinc-500 transition hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+          class="label-m text-foreground-muted transition hover:text-foreground-default"
           onclick={() => { seatAdjustCount = subscribedSeats ?? 1; editingSeats = false; }}
         >
           Cancel
@@ -226,7 +254,7 @@
       <button
         type="button"
         disabled={disableSeats}
-        class="mb-4 text-sm text-indigo-600 transition hover:text-indigo-700 disabled:cursor-not-allowed disabled:opacity-50 dark:text-indigo-400 dark:hover:text-indigo-300"
+        class="mb-4 label-m text-brand-default transition hover:text-brand-default disabled:cursor-not-allowed disabled:opacity-50"
         onclick={() => { editingSeats = true; }}
       >
         Change seats
@@ -234,57 +262,85 @@
     {/if}
   {/if}
 
-  <div>
-    {#if isActiveProduct && isTrialing}
-      <div class="space-y-1">
-        <span
-          class="inline-flex rounded-md bg-sky-100 px-3 py-2 text-sm font-medium text-sky-700 dark:bg-sky-900/40 dark:text-sky-300"
-        >
-          Free trial{#if trialDaysLeft != null}&ensp;·&ensp;{trialDaysLeft} day{trialDaysLeft === 1 ? '' : 's'} left{/if}
-        </span>
+  <div class={`mb-4 ${isEnterprise ? "mt-2" : "mt-6"} ${showSeatCheckoutControls ? "flex flex-col gap-2" : "flex min-h-8 items-start"}`}>
+    {#if showSeatCheckoutControls}
+      <div class="flex w-full items-center justify-between rounded-xl bg-surface-subtle py-2 pl-4 pr-2">
+        <span class="label-m text-foreground-default">Seats:</span>
+        <NumberInput
+          value={seatCount}
+          min={1}
+          compact
+          disabled={disableSeats}
+          onValueChange={(next) => {
+            if (next > 0) seatCount = next;
+          }}
+        />
       </div>
+    {/if}
+
+    <div class={showSeatCheckoutControls ? "w-full" : "flex min-h-8 items-start w-full"}>
+    {#if isActiveProduct && onCancelSubscription}
+      <button type="button" class="button-outline w-full" onclick={onCancelSubscription}>
+        Cancel subscription
+      </button>
     {:else if isActiveProduct || isActiveFreePlan}
-      <span
-        class="inline-flex rounded-md bg-emerald-100 px-3 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
-      >
-        Current plan
-      </span>
+      <!-- Keep CTA row height but intentionally empty when current plan has no action -->
     {:else if isSiblingPlan && productId}
-      <CheckoutButton {productId} disabled={disableSwitch} onCheckout={handleCheckout}>
+      <CheckoutButton
+        {productId}
+        disabled={disableSwitch}
+        onCheckout={handleCheckout}
+        className={`${plan.recommended ? "button-filled" : "button-faded"} w-full`}
+      >
         {checkoutLabel}
       </CheckoutButton>
     {:else if plan.category === "enterprise"}
       {#if plan.contactUrl}
         <a
           href={plan.contactUrl}
-          class="inline-flex items-center justify-center rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100 dark:text-zinc-100 hover:dark:bg-zinc-800"
+          class="button-outline w-full"
         >
           Contact sales
         </a>
       {:else if onContactSales}
         <button
           type="button"
-          class="inline-flex items-center justify-center rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100"
+          class="button-outline w-full"
           onclick={() => onContactSales?.({ plan })}
         >
           Contact sales
         </button>
       {/if}
     {:else if productId}
-      <CheckoutButton {productId} disabled={disableCheckout} onCheckout={handleCheckout}>
+      <CheckoutButton
+        {productId}
+        disabled={disableCheckout}
+        onCheckout={handleCheckout}
+        className={`${plan.recommended ? "button-filled" : "button-faded"} w-full`}
+      >
         {checkoutLabel}
       </CheckoutButton>
     {:else if plan.category !== "free"}
-      <span class="text-sm text-zinc-500 dark:text-zinc-400">
+      <span class="body-m text-foreground-muted">
         Configure a checkout handler to activate this plan.
       </span>
     {/if}
+    </div>
   </div>
 
-  {#if plan.description}
-    <div class="creem-prose mt-4 text-sm text-zinc-600 dark:text-zinc-300">
-      <!-- eslint-disable-next-line svelte/no-at-html-tags — merchant-authored markdown from Creem -->
-      {@html renderMarkdown(plan.description)}
+  {#if featureLines.length > 0}
+    <div class={`w-full ${isEnterprise ? "pt-0 md:col-start-2 md:row-span-6 md:self-start" : "pt-4"}`}>
+      <p class="title-s mb-4 text-foreground-default">Plan includes:</p>
+      <ul class="space-y-2">
+        {#each featureLines as feature (feature)}
+          <li class="flex items-center gap-2">
+            <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center">
+              <img alt="" aria-hidden="true" class="h-4 w-4" src={CHECK_ICON_URL} />
+            </span>
+            <span class="body-m text-foreground-default">{feature}</span>
+          </li>
+        {/each}
+      </ul>
     </div>
   {/if}
 </section>

@@ -12,5 +12,9 @@
 @import './rounded/utilities.css';
 @import './typography/utilities.css';
 @import './components/buttons.css';
+@import './components/badges.css';
+@import './components/icon-buttons.css';
+@import './components/inputs.css';
+@import './components/links.css';
 @import './components/prose.css';
 @import './components/segment-control.css';
