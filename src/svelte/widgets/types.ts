@@ -11,13 +11,18 @@ export type BillingPermissions = {
 };
 
 export type ConnectedBillingApi = {
-  getBillingUiModel: FunctionReference<"query">;
-  generateCheckoutLink: FunctionReference<"action">;
-  generateCustomerPortalUrl?: FunctionReference<"action">;
-  changeCurrentSubscription?: FunctionReference<"action">;
-  updateSubscriptionSeats?: FunctionReference<"action">;
-  cancelCurrentSubscription?: FunctionReference<"action">;
-  resumeCurrentSubscription?: FunctionReference<"action">;
+  uiModel: FunctionReference<"query">;
+  checkouts: {
+    create: FunctionReference<"action">;
+  };
+  subscriptions?: {
+    update?: FunctionReference<"action">;
+    cancel?: FunctionReference<"action">;
+    resume?: FunctionReference<"action">;
+  };
+  customers?: {
+    portalUrl?: FunctionReference<"action">;
+  };
 };
 
 export type ConnectedProduct = {

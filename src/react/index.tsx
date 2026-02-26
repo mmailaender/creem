@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import { useAction } from "convex/react";
-import type { CreemComponentApi } from "../client/index.js";
+import type { FunctionReference } from "convex/server";
 import {
   hasBillingAction,
   hasCheckoutSuccessParams,
@@ -83,18 +83,18 @@ const resolveProductIdForPlan = (
   return Object.values(productIds)[0];
 };
 
-type CheckoutApi = Pick<CreemComponentApi, "generateCheckoutLink">;
+type CheckoutApi = { create: FunctionReference<"action"> };
 
 export const CustomerPortalLink = ({
   creemApi,
   children,
   className,
 }: PropsWithChildren<{
-  creemApi: Pick<CreemComponentApi, "generateCustomerPortalUrl">;
+  creemApi: { portalUrl: FunctionReference<"action"> };
   className?: string;
 }>) => {
   const generateCustomerPortalUrl = useAction(
-    creemApi.generateCustomerPortalUrl,
+    creemApi.portalUrl,
   );
   const [portalUrl, setPortalUrl] = useState<string>();
 
@@ -120,7 +120,7 @@ export const CustomerPortalLink = ({
 /** One-time checkout uses the same Creem checkout API, with naming optimized for one-time product flows. */
 export const OneTimeCheckoutLink = (
   props: PropsWithChildren<{
-    creemApi: Pick<CreemComponentApi, "generateCheckoutLink">;
+    creemApi: CheckoutApi;
     productId: string;
     units?: number;
     metadata?: Record<string, string>;
@@ -168,7 +168,7 @@ export const CustomerPortalButton = ({
   children,
   ...props
 }: PropsWithChildren<{
-  creemApi: Pick<CreemComponentApi, "generateCustomerPortalUrl">;
+  creemApi: { portalUrl: FunctionReference<"action"> };
   className?: string;
 }>) => (
   <CustomerPortalLink
@@ -548,14 +548,14 @@ export const CheckoutLink = ({
   metadata,
   lazy = false,
 }: PropsWithChildren<{
-  creemApi: Pick<CreemComponentApi, "generateCheckoutLink">;
+  creemApi: CheckoutApi;
   productId: string;
   units?: number;
   metadata?: Record<string, string>;
   className?: string;
   lazy?: boolean;
 }>) => {
-  const generateCheckoutLink = useAction(creemApi.generateCheckoutLink);
+  const generateCheckoutLink = useAction(creemApi.create);
   const [checkoutLink, setCheckoutLink] = useState<string>();
   const [isLoading, setIsLoading] = useState(false);
 

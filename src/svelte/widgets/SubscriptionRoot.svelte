@@ -49,14 +49,15 @@
   const client = useConvexClient();
 
   // svelte-ignore state_referenced_locally
-  const {
-    getBillingUiModel: billingUiModelRef,
-    generateCheckoutLink: checkoutLinkRef,
-    changeCurrentSubscription: changeSubRef,
-    updateSubscriptionSeats: updateSeatsRef,
-    cancelCurrentSubscription: cancelRef,
-    resumeCurrentSubscription: resumeRef,
-  } = api;
+  const billingUiModelRef = api.uiModel;
+  // svelte-ignore state_referenced_locally
+  const checkoutLinkRef = api.checkouts.create;
+  // svelte-ignore state_referenced_locally
+  const updateRef = api.subscriptions?.update;
+  // svelte-ignore state_referenced_locally
+  const cancelRef = api.subscriptions?.cancel;
+  // svelte-ignore state_referenced_locally
+  const resumeRef = api.subscriptions?.resume;
 
   const billingModelQuery = useQuery(billingUiModelRef, {});
 
@@ -217,11 +218,11 @@
     productId: string;
     units?: number;
   }) => {
-    if (!changeSubRef) return;
+    if (!updateRef) return;
     isActionLoading = true;
     actionError = null;
     try {
-      await client.action(changeSubRef, { productId: payload.productId });
+      await client.action(updateRef, { productId: payload.productId });
     } catch (error) {
       actionError = error instanceof Error ? error.message : "Switch failed";
     } finally {
@@ -230,11 +231,11 @@
   };
 
   const handleUpdateSeats = async (payload: { units: number }) => {
-    if (!updateSeatsRef) return;
+    if (!updateRef) return;
     isActionLoading = true;
     actionError = null;
     try {
-      await client.action(updateSeatsRef, { units: payload.units });
+      await client.action(updateRef, { units: payload.units });
     } catch (error) {
       actionError = error instanceof Error ? error.message : "Seat update failed";
     } finally {
@@ -330,17 +331,8 @@
       disableSwitch={!canChange}
       disableSeats={!canUpdateSeats}
       onCheckout={canCheckout ? handlePricingCheckout : undefined}
-      onSwitchPlan={changeSubRef && canChange ? handleSwitchPlan : undefined}
-      onUpdateSeats={updateSeatsRef && canUpdateSeats ? handleUpdateSeats : undefined}
-      onCancelSubscription={
-        cancelRef &&
-        canCancel &&
-        ownsActiveSubscription &&
-        localSubscriptionState !== "scheduled_cancel" &&
-        localSubscriptionState !== "canceled"
-          ? openCancelDialog
-          : undefined
-      }
+      onSwitchPlan={updateRef && canChange ? handleSwitchPlan : undefined}
+      onUpdateSeats={updateRef && canUpdateSeats ? handleUpdateSeats : undefined}
     />
 
     <div class="flex flex-wrap items-center gap-3">

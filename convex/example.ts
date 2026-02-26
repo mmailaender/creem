@@ -13,7 +13,7 @@ const currentUser = async (ctx: QueryCtx) => {
   if (!user) {
     return null;
   }
-  const subscription = await creem.getCurrentSubscription(ctx, {
+  const subscription = await creem.subscriptions.getCurrent(ctx, {
     entityId: user._id,
   });
   const productName = subscription?.product?.name?.toLowerCase() ?? "";
