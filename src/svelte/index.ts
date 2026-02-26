@@ -21,8 +21,6 @@ export type {
   BillingSnapshot,
   CheckoutSuccessParams,
   OneTimePaymentStatus,
-  PlanCatalog,
-  PlanCatalogEntry,
   RecurringCycle,
 } from "../core/types.js";
 export {

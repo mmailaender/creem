@@ -40,7 +40,6 @@ import type {
   BillingSnapshot,
   BillingUserContext,
   PaymentSnapshot,
-  PlanCatalog,
   SubscriptionSnapshot,
 } from "../core/types.js";
 
@@ -78,10 +77,6 @@ type CreemConfig<Products extends Record<string, string>> = {
     email: string;
     billingEntityId?: string;
   }>;
-  /** Static plan catalog. Used by the billing snapshot resolver and getBillingUiModel. */
-  planCatalog?: PlanCatalog;
-  /** Dynamic plan catalog getter. Takes priority over static planCatalog if both are set. */
-  getPlanCatalog?: (ctx: RunQueryCtx) => Promise<PlanCatalog> | PlanCatalog;
   getUserBillingContext?:
     | ((ctx: RunQueryCtx) => Promise<BillingUserContext> | BillingUserContext)
     | undefined;
@@ -399,17 +394,14 @@ export class Creem<
       payment?: PaymentSnapshot | null;
     },
   ): Promise<BillingSnapshot> {
-    const [dynamicCatalog, userContext, currentSubscription, allSubscriptions] =
+    const [userContext, currentSubscription, allSubscriptions] =
       await Promise.all([
-        this.config.getPlanCatalog?.(ctx),
         this.config.getUserBillingContext?.(ctx),
         this.getCurrentSubscription(ctx, { entityId }),
         this.listAllUserSubscriptions(ctx, { entityId }),
       ]);
-    const catalog = dynamicCatalog ?? this.config.planCatalog;
 
     const resolverInput: BillingResolverInput = {
-      catalog,
       currentSubscription: currentSubscription
         ? this.toSubscriptionSnapshot(currentSubscription)
         : null,
@@ -727,10 +719,6 @@ export class Creem<
         this.getCustomerByEntityId(ctx, entityId),
         this.listUserOrders(ctx, { entityId }),
       ]);
-    const catalog =
-      (await this.config.getPlanCatalog?.(ctx)) ??
-      this.config.planCatalog ??
-      null;
     const ownedProductIds = [
       ...new Set(orders.map((o) => o.productId)),
     ];
@@ -752,7 +740,6 @@ export class Creem<
         trialEnd: s.trialEnd ?? null,
       })),
       hasCreemCustomer: customer != null,
-      planCatalog: catalog,
     };
   }
 

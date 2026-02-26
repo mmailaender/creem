@@ -52,27 +52,6 @@
     className="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900"
   />
 
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <!--  SIMPLE SETUP — auto-renders plans from planCatalog, zero config  -->
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
-
-  <section class="space-y-3">
-    <h2 class="text-xl font-semibold">
-      0. Simple Setup (Auto-Render from planCatalog)
-    </h2>
-    <p class="text-sm text-zinc-600 dark:text-zinc-300">
-      No <code>&lt;Subscription&gt;</code> children needed — plans, titles, and
-      descriptions are resolved automatically from the <code>planCatalog</code>
-      config and the Creem product table.
-    </p>
-    <Subscription.Group api={connectedApi} className="space-y-4" />
-    <BillingPortal api={connectedApi} />
-  </section>
-
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <!--  ADVANCED / FLEXIBLE — explicit <Subscription> children            -->
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
-
   <!-- ─── Section 1: Subscriptions with trial (all 4 billing cycles) ─── -->
   <section class="space-y-3">
     <h2 class="text-xl font-semibold">

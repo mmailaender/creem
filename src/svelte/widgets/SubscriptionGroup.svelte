@@ -144,34 +144,7 @@
     });
   });
 
-  // Auto-derive plans from the planCatalog when no <Subscription.Plan> children are registered.
-  const plansFromCatalog = $derived.by<UIPlanEntry[]>(() => {
-    const catalog = model?.planCatalog;
-    if (!catalog?.plans) return [];
-    return catalog.plans.map((p) => {
-      const firstProductId = Object.values(p.creemProductIds ?? {})[0];
-      const firstProduct = firstProductId
-        ? allProducts.find((prod) => prod.id === firstProductId)
-        : undefined;
-      return {
-        planId: p.planId,
-        category: (p.category ?? "custom") as UIPlanEntry["category"],
-        billingType: (p.billingType ?? "custom") as UIPlanEntry["billingType"],
-        pricingModel: (p.pricingModel ?? "flat") as UIPlanEntry["pricingModel"],
-        title: firstProduct?.name ?? p.planId.charAt(0).toUpperCase() + p.planId.slice(1),
-        description: firstProduct?.description ?? undefined,
-        contactUrl: p.contactUrl,
-        recommended: p.recommended,
-        creemProductIds: p.creemProductIds,
-        billingCycles: p.billingCycles as RecurringCycle[] | undefined,
-      };
-    });
-  });
-
-  // Explicit <Subscription.Plan> children take priority; otherwise auto-render from catalog
-  const plans = $derived(
-    plansFromRegistered.length > 0 ? plansFromRegistered : plansFromCatalog,
-  );
+  const plans = $derived(plansFromRegistered);
 
   // Collect all product IDs that belong to plans in THIS component instance.
   const ownProductIds = $derived.by<Set<string>>(() => {

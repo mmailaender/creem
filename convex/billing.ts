@@ -1,5 +1,4 @@
 import { Creem } from "@mmailaender/convex-creem";
-import type { PlanCatalog } from "@mmailaender/convex-creem";
 import { api, components } from "./_generated/api";
 import { internalAction, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
@@ -29,58 +28,6 @@ const configuredProductIds = {
   // Repeating (consumable) product
   creditTopUp: "prod_73CnZ794MaJ1DUn8MU0O5f",
 } as const;
-
-// Single source of truth for subscription plans.
-// Flows to both the billing resolver and the UI widgets via the Creem constructor.
-const planCatalog: PlanCatalog = {
-  version: "1",
-  defaultPlanId: "free",
-  plans: [
-    {
-      planId: "free",
-      category: "free",
-    },
-    {
-      planId: "basic",
-      category: "paid",
-      billingType: "recurring",
-      creemProductIds: {
-        "every-month": configuredProductIds.basicTrialMonthly,
-        "every-three-months": configuredProductIds.basicTrialQuarterly,
-        "every-six-months": configuredProductIds.basicTrialSemiAnnual,
-        "every-year": configuredProductIds.basicTrialYearly,
-      },
-      billingCycles: [
-        "every-month",
-        "every-three-months",
-        "every-six-months",
-        "every-year",
-      ],
-    },
-    {
-      planId: "premium",
-      category: "paid",
-      billingType: "recurring",
-      recommended: true,
-      creemProductIds: {
-        "every-month": configuredProductIds.premiumTrialMonthly,
-        "every-three-months": configuredProductIds.premiumTrialQuarterly,
-        "every-six-months": configuredProductIds.premiumTrialSemiAnnual,
-        "every-year": configuredProductIds.premiumTrialYearly,
-      },
-      billingCycles: [
-        "every-month",
-        "every-three-months",
-        "every-six-months",
-        "every-year",
-      ],
-    },
-    {
-      planId: "enterprise",
-      category: "enterprise",
-    },
-  ],
-};
 
 // User query to use in the Creem component.
 // For organization billing, return billingEntityId (e.g. the org ID).
@@ -114,7 +61,6 @@ export const creem = new Creem(components.creem, {
       // billingEntityId: user.billingEntityId,
     };
   },
-  planCatalog,
 
   // These can be configured in code or via environment variables
   // Uncomment and replace with actual values to configure in code:

@@ -59,20 +59,6 @@ export type ConnectedBillingModel = {
     trialEnd?: string | null;
   }>;
   hasCreemCustomer?: boolean;
-  planCatalog?: {
-    version?: string;
-    defaultPlanId?: string;
-    plans: Array<{
-      planId: string;
-      category: string;
-      billingType?: string;
-      pricingModel?: string;
-      creemProductIds?: Record<string, string>;
-      billingCycles?: string[];
-      contactUrl?: string;
-      recommended?: boolean;
-    }>;
-  } | null;
   policy?: unknown;
 };
 

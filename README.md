@@ -61,25 +61,6 @@ export const creem = new Creem(components.creem, {
     basicYearly: "prod_yyy",
     premiumMonthly: "prod_zzz",
   },
-  // Optional: define your plan catalog once here.
-  // It flows to both the billing resolver and the UI widgets.
-  planCatalog: {
-    version: "1",
-    defaultPlanId: "free",
-    plans: [
-      { planId: "free", category: "free" },
-      {
-        planId: "basic",
-        category: "paid",
-        billingType: "recurring",
-        creemProductIds: {
-          "every-month": "prod_xxx",
-          "every-year": "prod_yyy",
-        },
-        billingCycles: ["every-month", "every-year"],
-      },
-    ],
-  },
 });
 ```
 
@@ -126,7 +107,6 @@ The model includes:
 - **`activeSubscriptions`** — all non-ended subscriptions with product, status, seats, period info
 - **`ownedProductIds`** — product IDs from paid one-time orders (derived from the `orders` table)
 - **`billingSnapshot`** — resolved billing state for UI banners and gates
-- **`planCatalog`** — your plan catalog config (if provided)
 
 If you need app-specific fields, write your own query using the
 `buildBillingUiModel` helper:
@@ -217,15 +197,7 @@ syncing, and billing state out of the box.
 
 ### `<Subscription.Group>` — subscription pricing page
 
-If `planCatalog` is configured in the Creem constructor, plans auto-render with
-zero config:
-
-```svelte
-<Subscription.Group api={billingApi} />
-```
-
-Or override with explicit `<Subscription>` children for custom layouts or
-multiple subscription widgets:
+Define your plans with `<Subscription>` children:
 
 ```svelte
 <Subscription.Group api={billingApi}>
