@@ -4,7 +4,7 @@
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	min-height: 1.75rem;
+	height: 1.75rem;
 	padding-inline: 12px;
 	padding-block: 8px;
 	border-radius: var(--et-radius-full);

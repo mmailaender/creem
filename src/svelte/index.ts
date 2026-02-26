@@ -6,6 +6,8 @@ export { default as BillingToggle } from "./primitives/BillingToggle.svelte";
 export { default as Badge } from "./primitives/Badge.svelte";
 export { default as SegmentControl } from "./primitives/SegmentControl.svelte";
 export { default as IconButton } from "./primitives/IconButton.svelte";
+export { default as Input } from "./primitives/Input.svelte";
+export { default as NumberInput } from "./primitives/NumberInput.svelte";
 export { default as Link } from "./primitives/Link.svelte";
 export { default as CheckoutButton } from "./primitives/CheckoutButton.svelte";
 export { default as CustomerPortalButton } from "./primitives/CustomerPortalButton.svelte";

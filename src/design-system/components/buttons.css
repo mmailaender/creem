@@ -6,7 +6,7 @@
 	align-items: center;
 	justify-content: center;
 	gap: 0.375rem;
-	min-height: 2rem;
+	height: 2rem;
 	padding-inline: 12px;
 	border-radius: var(--et-radius-m);
 	font-family: var(--et-typeface-plain);

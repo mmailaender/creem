@@ -25,6 +25,7 @@
     successUrl?: string;
     units?: number;
     showSeatPicker?: boolean;
+    twoColumnLayout?: boolean;
     children?: import("svelte").Snippet;
   }
 
@@ -35,6 +36,7 @@
     successUrl = undefined,
     units = undefined,
     showSeatPicker = false,
+    twoColumnLayout = false,
     children,
   }: Props = $props();
 
@@ -268,6 +270,10 @@
     }
   };
 
+  const openCancelDialog = () => {
+    cancelDialogOpen = true;
+  };
+
 </script>
 
 <div class="hidden" aria-hidden="true">
@@ -314,6 +320,7 @@
       subscriptionTrialEnd={matchedSubscription?.trialEnd ?? null}
       {units}
       {showSeatPicker}
+      {twoColumnLayout}
       subscribedSeats={localSubscribedSeats}
       isGroupSubscribed={ownsActiveSubscription}
       onCycleChange={(cycle) => {
@@ -325,22 +332,20 @@
       onCheckout={canCheckout ? handlePricingCheckout : undefined}
       onSwitchPlan={changeSubRef && canChange ? handleSwitchPlan : undefined}
       onUpdateSeats={updateSeatsRef && canUpdateSeats ? handleUpdateSeats : undefined}
+      onCancelSubscription={
+        cancelRef &&
+        canCancel &&
+        ownsActiveSubscription &&
+        localSubscriptionState !== "scheduled_cancel" &&
+        localSubscriptionState !== "canceled"
+          ? openCancelDialog
+          : undefined
+      }
     />
 
     <div class="flex flex-wrap items-center gap-3">
       {#if children}
         {@render children()}
-      {/if}
-
-      {#if cancelRef && ownsActiveSubscription && localSubscriptionState !== "scheduled_cancel" && localSubscriptionState !== "canceled"}
-        <button
-          type="button"
-          class="text-sm text-red-600 transition hover:text-red-700 disabled:opacity-50 dark:text-red-400 dark:hover:text-red-300"
-          disabled={isActionLoading || !canCancel}
-          onclick={() => { cancelDialogOpen = true; }}
-        >
-          Cancel subscription
-        </button>
       {/if}
     </div>
 
