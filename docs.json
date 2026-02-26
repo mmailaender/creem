@@ -255,6 +255,13 @@
               "api-reference/endpoint/resume-subscription",
               "api-reference/endpoint/cancel-subscription"
             ]
+          },
+          {
+            "group": "Stats",
+            "icon": "chart-line",
+            "pages": [
+              "api-reference/endpoint/get-stats-summary"
+            ]
           }
         ]
       }

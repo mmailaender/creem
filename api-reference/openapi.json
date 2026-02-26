@@ -1,6 +1,2771 @@
 {
   "openapi": "3.0.0",
   "paths": {
+    "/auth": {
+      "post": {
+        "operationId": "AuthController_authenticateClient",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      },
+      "get": {
+        "operationId": "AuthController_getUser",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "email",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/auth/provider": {
+      "get": {
+        "operationId": "AuthController_getUserProviderAccount",
+        "parameters": [
+          {
+            "name": "providerAccountId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "provider",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/auth/verification": {
+      "post": {
+        "operationId": "AuthController_createVerification",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/auth/verification/check": {
+      "post": {
+        "operationId": "AuthController_checkVerification",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/auth/provider/sign-in": {
+      "post": {
+        "operationId": "AuthController_providerSignIn",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/mobile/auth/magic/request": {
+      "post": {
+        "operationId": "requestMagicLink",
+        "summary": "Request a magic link",
+        "description": "Sends a one-time magic link to the specified email address for authentication.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Magic link request details",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email address to send the magic link to"
+                  },
+                  "redirect": {
+                    "type": "string",
+                    "description": "Optional deep-link redirect URL"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Magic link sent successfully"
+          }
+        },
+        "tags": ["Mobile Auth"]
+      }
+    },
+    "/mobile/auth/magic/permanent": {
+      "post": {
+        "operationId": "createPermanentMagicLink",
+        "summary": "Create a permanent (multi-use) magic link",
+        "description": "Creates a magic link that can be used multiple times until expiry. Intended for Apple App Store review and similar testing scenarios. Protected endpoint - requires Basic Auth (admin credentials).",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Permanent magic link request details",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["email"],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "description": "Email address for the magic link",
+                    "example": "apple-reviewer@example.com"
+                  },
+                  "redirect": {
+                    "type": "string",
+                    "description": "Optional deep-link redirect URL (e.g., creemapp://auth/callback)",
+                    "example": "creemapp://auth/callback"
+                  },
+                  "expiryDays": {
+                    "type": "number",
+                    "description": "Number of days until the magic link expires (default: 30)",
+                    "default": 30,
+                    "example": 30
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Permanent magic link created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "message": {
+                      "type": "string",
+                      "example": "Permanent magic link created (valid for 30 days)"
+                    },
+                    "magicLinkUrl": {
+                      "type": "string",
+                      "example": "https://app.creem.io/auth/magic-link?token=abc123..."
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing Basic Auth credentials"
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions"
+          }
+        },
+        "tags": ["Mobile Auth"],
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/mobile/auth/magic/exchange": {
+      "post": {
+        "operationId": "exchangeMagicLink",
+        "summary": "Exchange a magic link token",
+        "description": "Exchanges a magic link token for access and refresh tokens.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "description": "Magic link token to exchange",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["token"],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "description": "The magic link token received via email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token exchanged successfully, returns access and refresh tokens"
+          },
+          "400": {
+            "description": "Invalid or expired magic link token"
+          }
+        },
+        "tags": ["Mobile Auth"]
+      }
+    },
+    "/mobile/auth/refresh": {
+      "post": {
+        "operationId": "refreshToken",
+        "summary": "Refresh access token",
+        "description": "Exchanges a refresh token for new access and refresh tokens.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Tokens refreshed successfully"
+          },
+          "401": {
+            "description": "Invalid refresh token"
+          }
+        },
+        "tags": ["Mobile Auth"]
+      }
+    },
+    "/mobile/auth/google": {
+      "post": {
+        "operationId": "signInWithGoogle",
+        "summary": "Sign in with Google",
+        "description": "Authenticates a user using a Google ID token.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Authentication successful, returns access and refresh tokens"
+          },
+          "401": {
+            "description": "Invalid Google token"
+          }
+        },
+        "tags": ["Mobile Auth"]
+      }
+    },
+    "/mobile/auth/logout": {
+      "post": {
+        "operationId": "logout",
+        "summary": "Logout user",
+        "description": "Invalidates the refresh token and logs out the user.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Logout successful"
+          }
+        },
+        "tags": ["Mobile Auth"]
+      }
+    },
+    "/mobile/auth/me": {
+      "get": {
+        "operationId": "getCurrentUser",
+        "summary": "Get current user",
+        "description": "Returns the currently authenticated user profile.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "User profile retrieved successfully"
+          },
+          "401": {
+            "description": "Not authenticated"
+          }
+        },
+        "tags": ["Mobile Auth"]
+      }
+    },
+    "/store/api-keys": {
+      "get": {
+        "operationId": "StoreApiKeyController_listStoreApiKeys",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "operationId": "StoreApiKeyController_createStoreApiKey",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateStoreApiKeyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/store/api-keys/{id}/reveal": {
+      "get": {
+        "operationId": "StoreApiKeyController_revealStoreApiKey",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/store/api-keys/{id}/regenerate": {
+      "post": {
+        "operationId": "StoreApiKeyController_regenerateStoreApiKeyById",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/store/api-keys/{id}": {
+      "delete": {
+        "operationId": "StoreApiKeyController_deleteStoreApiKey",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/store": {
+      "post": {
+        "operationId": "StoreController_createStore",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      },
+      "get": {
+        "operationId": "StoreController_fetchUserStores",
+        "parameters": [
+          {
+            "name": "role",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/store/{storeId}": {
+      "post": {
+        "operationId": "StoreController_updateStore",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/store/slug/{slug}": {
+      "get": {
+        "operationId": "StoreController_fetchStoreBySlug",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/store/public/indexed": {
+      "get": {
+        "operationId": "StoreController_fetchIndexedStores",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/store/public/list": {
+      "get": {
+        "operationId": "StoreController_fetchPublicStores",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/store/public/slug/{slug}": {
+      "get": {
+        "operationId": "StoreController_fetchPublicStoreBySlug",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/store/{storeId}/onboarding-status": {
+      "get": {
+        "operationId": "StoreController_getOnboardingStatus",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/store/{storeId}/year-in-review": {
+      "get": {
+        "operationId": "StoreController_getYearInReview",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/store/{storeId}/settings/public/indexed": {
+      "get": {
+        "operationId": "StoreController_checkStoreIndexed",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/store/{storeId}/onboarding-status": {
+      "get": {
+        "operationId": "StoreAdminController_getOnboardingStatus",
+        "summary": "Get store onboarding status",
+        "description": "Returns the onboarding checklist status for a store, including business details, verification, payout account, and approval status.",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "path",
+            "description": "Store ID",
+            "schema": {
+              "example": "sto_abc123",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Onboarding status retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OnboardingStatusDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized - invalid credentials"
+          },
+          "404": {
+            "description": "Store not found"
+          }
+        },
+        "tags": ["Admin - Stores"],
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/admin/store/{storeId}/toggle-account-flags": {
+      "post": {
+        "operationId": "StoreAdminController_toggleAccountFlags",
+        "summary": "Toggle account payment/payout flags",
+        "description": "Toggle payments_enabled and/or payouts_enabled flags for a store account.",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "path",
+            "description": "Store ID",
+            "schema": {
+              "example": "sto_abc123",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ToggleAccountFlagsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Account flags updated successfully"
+          },
+          "401": {
+            "description": "Unauthorized - invalid credentials"
+          },
+          "404": {
+            "description": "Store account not found"
+          }
+        },
+        "tags": ["Admin - Stores"],
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/admin/store/{storeId}/payout-account/{payoutAccountId}/status": {
+      "patch": {
+        "operationId": "StoreAdminController_updatePayoutAccountStatus",
+        "summary": "Update payout account status",
+        "description": "Update the status and optional status description of a payout account.",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "path",
+            "description": "Store ID",
+            "schema": {
+              "example": "sto_abc123",
+              "type": "string"
+            }
+          },
+          {
+            "name": "payoutAccountId",
+            "required": true,
+            "in": "path",
+            "description": "Payout Account ID",
+            "schema": {
+              "example": "uuid-string",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdatePayoutAccountStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Payout account status updated successfully"
+          },
+          "400": {
+            "description": "Invalid status value"
+          },
+          "401": {
+            "description": "Unauthorized - invalid credentials"
+          },
+          "404": {
+            "description": "Payout account not found"
+          }
+        },
+        "tags": ["Admin - Stores"],
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/store/{storeId}/business-details": {
+      "get": {
+        "operationId": "BusinessDetailsController_fetchBusinessDetails",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      },
+      "post": {
+        "operationId": "BusinessDetailsController_upsertBusinessDetails",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/business-details/slug/{slug}": {
+      "get": {
+        "operationId": "PublicBusinessDetailsController_fetchBusinessDetailsBySlug",
+        "parameters": [
+          {
+            "name": "slug",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/paysway/process-pending-verifications": {
+      "post": {
+        "operationId": "PayswayAdminController_processPendingVerifications",
+        "summary": "Admin - Process pending Paysway verifications",
+        "description": "Processes all pending Paysway verifications (both new and legacy systems). If payout instruments exist, updates verification status to approved/completed. This is useful for backfilling verifications that were created before instruments were synced.",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Processing completed successfully"
+          },
+          "403": {
+            "description": "Forbidden - Admin access required"
+          }
+        },
+        "tags": ["Admin Paysway"],
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/admin/paysway/sync-store-instruments": {
+      "post": {
+        "operationId": "PayswayAdminController_syncStoreInstruments",
+        "summary": "Admin - Sync Paysway instruments for a store",
+        "description": "Pulls data from Paysway for the given recipient and creates missing payout instruments for the store.",
+        "parameters": [
+          {
+            "name": "store_id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "recipient_id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sync completed successfully"
+          },
+          "500": {
+            "description": "Sync failed"
+          }
+        },
+        "tags": ["Admin Paysway"],
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/admin/paysway/create-provider-recipient": {
+      "post": {
+        "operationId": "PayswayAdminController_createProviderRecipient",
+        "summary": "Create missing ProviderRecipient for a PayoutInstrument",
+        "description": "Pass the provider_reference value. Fetches recipient data from Paysway API and creates the ProviderRecipient record.",
+        "parameters": [
+          {
+            "name": "provider_reference",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "ProviderRecipient created successfully"
+          }
+        },
+        "tags": ["Admin Paysway"],
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/verification": {
+      "post": {
+        "operationId": "VerificationController_createVerification",
+        "summary": "Initialize a new verification process",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateVerificationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Verification created successfully"
+          }
+        },
+        "tags": ["Verification"]
+      },
+      "get": {
+        "operationId": "VerificationController_getVerifications",
+        "summary": "Get all verifications for the authenticated user",
+        "parameters": [
+          {
+            "name": "type",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verifications retrieved successfully"
+          }
+        },
+        "tags": ["Verification"]
+      }
+    },
+    "/verification/type/{type}": {
+      "get": {
+        "operationId": "VerificationController_getVerificationByType",
+        "summary": "Get verification by user ID and type",
+        "parameters": [
+          {
+            "name": "type",
+            "required": true,
+            "in": "path",
+            "description": "Verification type",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "scope",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verification retrieved successfully"
+          }
+        },
+        "tags": ["Verification"]
+      }
+    },
+    "/verification/stores": {
+      "get": {
+        "operationId": "VerificationController_getStoresWithVerifications",
+        "summary": "List user stores with linked verifications",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Stores with verification links retrieved successfully"
+          }
+        },
+        "tags": ["Verification"]
+      }
+    },
+    "/verification/stores/link": {
+      "post": {
+        "operationId": "VerificationController_linkVerificationToStore",
+        "summary": "Link an existing verification to a store",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkVerificationToStoreDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verification linked to store successfully"
+          }
+        },
+        "tags": ["Verification"]
+      }
+    },
+    "/verification/stores/migrate": {
+      "post": {
+        "operationId": "VerificationController_migrateLegacyVerification",
+        "summary": "Migrate a legacy verification to the new model",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MigrateLegacyVerificationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Legacy verification migrated successfully"
+          }
+        },
+        "tags": ["Verification"]
+      }
+    },
+    "/verification/{verificationId}": {
+      "get": {
+        "operationId": "VerificationController_getVerification",
+        "summary": "Get verification by ID",
+        "parameters": [
+          {
+            "name": "verificationId",
+            "required": true,
+            "in": "path",
+            "description": "Verification ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verification retrieved successfully"
+          }
+        },
+        "tags": ["Verification"]
+      }
+    },
+    "/verification/{verificationId}/config": {
+      "get": {
+        "operationId": "VerificationController_getVerificationConfig",
+        "summary": "Get verification configuration (SDK token, redirect URL)",
+        "parameters": [
+          {
+            "name": "verificationId",
+            "required": true,
+            "in": "path",
+            "description": "Verification ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verification config retrieved successfully"
+          }
+        },
+        "tags": ["Verification"]
+      }
+    },
+    "/verification/store": {
+      "post": {
+        "operationId": "VerificationController_getOrCreateVerificationForStore",
+        "summary": "Get or create verification for a store (with automatic reuse logic)",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GetOrCreateVerificationForStoreDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verification retrieved or created successfully (reuses existing if approved)"
+          }
+        },
+        "tags": ["Verification"]
+      }
+    },
+    "/verification/wallet/register": {
+      "post": {
+        "operationId": "VerificationController_registerWalletAddress",
+        "summary": "Register wallet address for PAYOUT_CRYPTO verification",
+        "description": "Registers a crypto wallet address for payout verification. Creates/updates verification check and payout instrument.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterWalletAddressDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Wallet address registered successfully"
+          }
+        },
+        "tags": ["Verification"]
+      }
+    },
+    "/admin/verification/list": {
+      "get": {
+        "operationId": "VerificationAdminController_listVerifications",
+        "summary": "Admin - List all verifications with filters",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (1-indexed)",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "default": 25,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search by ID, user ID, email, or provider reference",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "description": "Filter by status",
+            "schema": {
+              "enum": [
+                "PENDING",
+                "IN_REVIEW",
+                "APPROVED",
+                "REJECTED",
+                "EXPIRED",
+                "ARCHIVED"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "description": "Filter by type",
+            "schema": {
+              "enum": [
+                "USER_KYC",
+                "USER_KYB",
+                "BUSINESS_KYB",
+                "PAYOUT_BANK",
+                "PAYOUT_CRYPTO",
+                "PAYOUT_STRIPE"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "required": false,
+            "in": "query",
+            "description": "Sort field",
+            "schema": {
+              "default": "createdAt",
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortOrder",
+            "required": false,
+            "in": "query",
+            "description": "Sort order",
+            "schema": {
+              "enum": ["asc", "desc"],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verifications list retrieved successfully"
+          }
+        },
+        "tags": ["Admin Verification"],
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/admin/verification/users": {
+      "get": {
+        "operationId": "VerificationAdminController_listUsersWithVerifications",
+        "summary": "Admin - List users with verification summaries",
+        "description": "Returns a paginated list of users who have verifications, with summary information about their verification types and statuses.",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "description": "Page number (1-indexed)",
+            "schema": {
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "pageSize",
+            "required": false,
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "default": 25,
+              "type": "number"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "description": "Search by user ID or email",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Users with verification summaries retrieved successfully"
+          }
+        },
+        "tags": ["Admin Verification"],
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/admin/verification/{verificationId}": {
+      "get": {
+        "operationId": "VerificationAdminController_getVerification",
+        "summary": "Admin - Get verification by ID",
+        "parameters": [
+          {
+            "name": "verificationId",
+            "required": true,
+            "in": "path",
+            "description": "Verification ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verification retrieved successfully"
+          }
+        },
+        "tags": ["Admin Verification"],
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/admin/verification/user/{userId}": {
+      "get": {
+        "operationId": "VerificationAdminController_getVerificationsForUser",
+        "summary": "Admin - List verifications for a user",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "description": "User ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verifications retrieved successfully"
+          }
+        },
+        "tags": ["Admin Verification"],
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/admin/verification/{verificationId}/status": {
+      "put": {
+        "operationId": "VerificationAdminController_updateVerificationStatus",
+        "summary": "Admin - Update verification status",
+        "parameters": [
+          {
+            "name": "verificationId",
+            "required": true,
+            "in": "path",
+            "description": "Verification ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVerificationStatusDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verification status updated successfully"
+          }
+        },
+        "tags": ["Admin Verification"],
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/admin/verification/{verificationId}/expiration": {
+      "put": {
+        "operationId": "VerificationAdminController_updateVerificationExpiration",
+        "summary": "Admin - Update verification expiration date",
+        "parameters": [
+          {
+            "name": "verificationId",
+            "required": true,
+            "in": "path",
+            "description": "Verification ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateVerificationExpirationDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verification expiration updated successfully"
+          }
+        },
+        "tags": ["Admin Verification"],
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/admin/verification/{verificationId}/reset": {
+      "put": {
+        "operationId": "VerificationAdminController_resetVerificationToPending",
+        "summary": "Admin - Reset verification to pending",
+        "description": "Resets a verification to PENDING status. Allows the user to retry the verification using the same provider reference/applicant. Simpler than archiving as it reuses the existing verification.",
+        "parameters": [
+          {
+            "name": "verificationId",
+            "required": true,
+            "in": "path",
+            "description": "Verification ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verification reset to pending successfully"
+          },
+          "400": {
+            "description": "Verification is already pending or is approved"
+          },
+          "404": {
+            "description": "Verification not found"
+          }
+        },
+        "tags": ["Admin Verification"],
+        "security": [
+          {
+            "basic": []
+          }
+        ]
+      }
+    },
+    "/admin/webhook-handlers": {
+      "get": {
+        "operationId": "AdminController_getWebhookHandlers",
+        "summary": "Get registered webhook handlers info",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Webhook handlers info"
+          }
+        }
+      }
+    },
+    "/admin/payout/dry-run": {
+      "post": {
+        "operationId": "AdminController_processPayouts",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/report/payouts": {
+      "post": {
+        "operationId": "AdminController_generatePayoutsReport",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/payout/report/dry-run": {
+      "post": {
+        "operationId": "AdminController_dryRunPayoutReport",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/payout/stage": {
+      "post": {
+        "operationId": "AdminController_stagePayout",
+        "parameters": [
+          {
+            "name": "payoutId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/payout/release": {
+      "post": {
+        "operationId": "AdminController_releasePayout",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/account/adjustment": {
+      "post": {
+        "operationId": "AdminController_createAdjustment",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/account/adjustment/abandoned-cart-fees": {
+      "post": {
+        "operationId": "AdminController_reimburseAbandonedCartFees",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/account": {
+      "post": {
+        "operationId": "AdminController_create",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/account/retry": {
+      "post": {
+        "operationId": "AdminController_retry",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/account/missing": {
+      "post": {
+        "operationId": "AdminController_missingAccounts",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/store/settings/statement-descriptor": {
+      "post": {
+        "operationId": "AdminController_fixStatementDescriptor",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/dispute/status": {
+      "get": {
+        "operationId": "AdminController_checkDisputeStatus",
+        "parameters": [
+          {
+            "name": "platformId",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "providerReference",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/account/approve": {
+      "post": {
+        "operationId": "AdminController_approveStore",
+        "parameters": [
+          {
+            "name": "store_id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/account/reject": {
+      "post": {
+        "operationId": "AdminController_rejectStore",
+        "parameters": [
+          {
+            "name": "store_id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/account/payout-review/reject": {
+      "post": {
+        "operationId": "AdminController_rejectPayoutReview",
+        "parameters": [
+          {
+            "name": "store_id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/account/payout-review/approve": {
+      "post": {
+        "operationId": "AdminController_approvePayoutReview",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/account/require-action": {
+      "post": {
+        "operationId": "AdminController_requireActionStore",
+        "parameters": [
+          {
+            "name": "store_id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/account/reset-verification": {
+      "post": {
+        "operationId": "AdminController_resetStoreVerification",
+        "summary": "Reset store verification",
+        "description": "Resets store verification by soft-deleting linked UserVerification records and deleting the store Verification record. This allows the user to go through the verification process again. Useful for migration issues.",
+        "parameters": [
+          {
+            "name": "store_id",
+            "required": true,
+            "in": "query",
+            "description": "Store ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verification reset successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "deletedUserVerifications": {
+                      "type": "number",
+                      "description": "Number of UserVerification records soft-deleted"
+                    },
+                    "deletedVerification": {
+                      "type": "boolean",
+                      "description": "Whether the store Verification record was deleted"
+                    },
+                    "deletedVerificationChecks": {
+                      "type": "number",
+                      "description": "Number of VerificationCheck records deleted"
+                    },
+                    "unlinkedVerifications": {
+                      "type": "number",
+                      "description": "Number of UserVerification records unlinked (shared with other stores)"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid store ID"
+          }
+        },
+        "tags": ["Admin - Verification"]
+      }
+    },
+    "/admin/stores/{storeId}/selective-reset": {
+      "post": {
+        "operationId": "AdminController_selectiveReset",
+        "summary": "Selective reset of store verification data",
+        "description": "Allows admin to selectively reset verification-related data with options.",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "path",
+            "description": "Store ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "resetUserVerifications": {
+                    "type": "boolean",
+                    "description": "Soft-delete/unlink UserVerifications"
+                  },
+                  "resetPayoutAccountStatus": {
+                    "type": "boolean",
+                    "description": "Reset PayoutAccount status to not_started"
+                  },
+                  "resetPaymentsEnabled": {
+                    "type": "boolean",
+                    "description": "Reset payments_enabled to false"
+                  },
+                  "resetPayoutsEnabled": {
+                    "type": "boolean",
+                    "description": "Reset payouts_enabled to false"
+                  },
+                  "accountStatus": {
+                    "type": "string",
+                    "description": "Set Account status (not_started, pending, active, error)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Selective reset completed"
+          }
+        },
+        "tags": ["Admin - Store"]
+      }
+    },
+    "/admin/stores/{storeId}/update-entity-type": {
+      "post": {
+        "operationId": "AdminController_updateEntityType",
+        "summary": "Update store entity type (individual \u003C-\u003E business)",
+        "description": "Changes the entity type of a store. This is a destructive operation that: 1) Updates the entity type, 2) Unlinks all user verifications, 3) Deletes all payout accounts and instruments, 4) Disables payouts, 5) Resets payout review. Rejects if active payouts exist.",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "path",
+            "description": "Store ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "entityType": {
+                    "type": "string",
+                    "enum": ["individual", "business"],
+                    "description": "The new entity type for the store"
+                  }
+                },
+                "required": ["entityType"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Entity type updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "previousEntityType": {
+                      "type": "string"
+                    },
+                    "newEntityType": {
+                      "type": "string"
+                    },
+                    "deletedUserVerifications": {
+                      "type": "number"
+                    },
+                    "unlinkedVerifications": {
+                      "type": "number"
+                    },
+                    "deletedPayoutAccounts": {
+                      "type": "number"
+                    },
+                    "payoutsDisabled": {
+                      "type": "boolean"
+                    },
+                    "payoutReviewReset": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid entity type, same as current, active payouts exist, or store has no business details"
+          },
+          "404": {
+            "description": "Store not found"
+          }
+        },
+        "tags": ["Admin - Store"]
+      }
+    },
+    "/admin/stores/{storeId}/initialize-identity-verification": {
+      "post": {
+        "operationId": "AdminController_initializeIdentityVerification",
+        "summary": "Initialize identity verification (KYC/KYB) based on entity type",
+        "description": "Creates identity verification for the store based on business details entity_type. Business → KYB (Persona), Individual → KYC (Sumsub). Sends verification email to the merchant.",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "path",
+            "description": "Store ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "description": "Optional reason for verification request"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Identity verification initialized successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "verificationId": {
+                      "type": "string"
+                    },
+                    "verificationType": {
+                      "type": "string",
+                      "enum": ["USER_KYC", "BUSINESS_KYB"]
+                    },
+                    "status": {
+                      "type": "string"
+                    },
+                    "verificationUrl": {
+                      "type": "string"
+                    },
+                    "emailSent": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - missing business details or entity type"
+          },
+          "404": {
+            "description": "Store not found"
+          }
+        },
+        "tags": ["Admin - Store"]
+      }
+    },
+    "/admin/stores/{storeId}/unlink-verification": {
+      "post": {
+        "operationId": "AdminController_unlinkVerification",
+        "summary": "Unlink a verification from a store",
+        "description": "Removes the link between a UserVerification and a store. If this is the only store linked, the verification will be soft-deleted.",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "path",
+            "description": "Store ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "verificationId": {
+                    "type": "string",
+                    "description": "UserVerification ID"
+                  }
+                },
+                "required": ["verificationId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verification unlinked successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "unlinked": {
+                      "type": "boolean"
+                    },
+                    "softDeleted": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "404": {
+            "description": "Store or verification not found"
+          }
+        },
+        "tags": ["Admin - Store"]
+      }
+    },
+    "/admin/stores/{storeId}/linkable-verifications": {
+      "get": {
+        "operationId": "AdminController_getLinkableVerifications",
+        "summary": "Get verifications that can be linked to a store",
+        "description": "Returns verifications belonging to the store owner that are not already linked to this store.",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "path",
+            "description": "Store ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of linkable verifications"
+          }
+        },
+        "tags": ["Admin - Store"]
+      }
+    },
+    "/admin/stores/{storeId}/link-verification": {
+      "post": {
+        "operationId": "AdminController_linkVerification",
+        "summary": "Link a verification to a store",
+        "description": "Creates a link between an existing UserVerification and a store. Validates that the verification belongs to the store owner.",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "path",
+            "description": "Store ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "verificationId": {
+                    "type": "string",
+                    "description": "UserVerification ID"
+                  }
+                },
+                "required": ["verificationId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verification linked successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "linked": {
+                      "type": "boolean"
+                    },
+                    "alreadyLinked": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "404": {
+            "description": "Store or verification not found"
+          }
+        },
+        "tags": ["Admin - Store"]
+      }
+    },
+    "/admin/stores/{storeId}/delete-verification-check": {
+      "post": {
+        "operationId": "AdminController_deleteVerificationCheck",
+        "summary": "Delete a verification check",
+        "description": "Permanently deletes a UserVerificationCheck record.",
+        "parameters": [
+          {
+            "name": "storeId",
+            "required": true,
+            "in": "path",
+            "description": "Store ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "checkId": {
+                    "type": "string",
+                    "description": "UserVerificationCheck ID"
+                  }
+                },
+                "required": ["checkId"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Check deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "deleted": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "404": {
+            "description": "Check not found"
+          }
+        },
+        "tags": ["Admin - Store"]
+      }
+    },
+    "/admin/store/soft-delete": {
+      "post": {
+        "operationId": "AdminController_adminSoftDeleteStore",
+        "summary": "Soft delete a store",
+        "description": "Soft deletes a store by setting deleted_at timestamp. This is a direct admin action that bypasses the delete request flow.",
+        "parameters": [
+          {
+            "name": "store_id",
+            "required": true,
+            "in": "query",
+            "description": "Store ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Store soft-deleted successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request - invalid store ID"
+          },
+          "404": {
+            "description": "Store not found"
+          }
+        },
+        "tags": ["Admin - Store"]
+      }
+    },
+    "/admin/store/change-owner": {
+      "post": {
+        "operationId": "AdminController_changeStoreOwner",
+        "summary": "Change store owner",
+        "description": "Transfers store ownership to another user. The current owner is demoted to admin role.",
+        "parameters": [
+          {
+            "name": "store_id",
+            "required": true,
+            "in": "query",
+            "description": "Store ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["newOwnerEmail"],
+                "properties": {
+                  "newOwnerEmail": {
+                    "type": "string",
+                    "description": "Email of the new owner"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Owner changed successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "previousOwnerId": {
+                      "type": "string",
+                      "nullable": true
+                    },
+                    "newOwnerId": {
+                      "type": "string"
+                    },
+                    "storeId": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request"
+          },
+          "404": {
+            "description": "Store or user not found"
+          }
+        },
+        "tags": ["Admin - Store"]
+      }
+    },
+    "/admin/account/business-info-action": {
+      "post": {
+        "operationId": "AdminController_businessInfoActionStore",
+        "summary": "[DEPRECATED] Request business info verification for a store",
+        "description": "Legacy endpoint to initiate KYB verification. Use POST /admin/kyb/create-inquiry instead, which uses the new verification flow with proper user tracking and dashboard URLs.",
+        "deprecated": true,
+        "parameters": [
+          {
+            "name": "store_id",
+            "required": true,
+            "in": "query",
+            "description": "Store ID",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "description": "Reason for verification request"
+                  },
+                  "kybUrl": {
+                    "type": "string",
+                    "description": "Optional custom KYB URL"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verification initiated"
+          }
+        }
+      }
+    },
+    "/admin/kyb/create-inquiry": {
+      "post": {
+        "operationId": "AdminController_createKybInquiry",
+        "summary": "Create KYB inquiry for a store",
+        "description": "Creates a Persona KYB inquiry for the specified store and sends verification email to the merchant. The store must have business details completed.",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateKybInquiryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "KYB inquiry created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "inquiryId": {
+                      "type": "string",
+                      "description": "The KYB inquiry ID"
+                    },
+                    "storeId": {
+                      "type": "string",
+                      "description": "The store ID"
+                    },
+                    "status": {
+                      "type": "string",
+                      "description": "Current inquiry status"
+                    },
+                    "directUrl": {
+                      "type": "string",
+                      "description": "Direct Persona URL for verification"
+                    },
+                    "emailSent": {
+                      "type": "boolean",
+                      "description": "Whether the verification email was sent"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing Basic Auth credentials"
+          },
+          "403": {
+            "description": "Forbidden - Insufficient permissions"
+          },
+          "404": {
+            "description": "Store not found"
+          }
+        },
+        "security": [
+          {
+            "basic": []
+          }
+        ],
+        "tags": ["Admin - KYB"]
+      }
+    },
+    "/admin/product/upgrade": {
+      "post": {
+        "operationId": "AdminController_upgradeProducts",
+        "parameters": [
+          {
+            "name": "store_id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/email/appsumo-review-follow-up": {
+      "post": {
+        "operationId": "AdminController_sendAppSumoReviewFollowUp",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/payment-methods/update": {
+      "post": {
+        "operationId": "AdminController_updatePaymentMethods",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/stripe/load-transactions": {
+      "post": {
+        "operationId": "AdminController_loadStripeTransactions",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/wise/create-recipient": {
+      "post": {
+        "operationId": "AdminController_createWiseRecipient",
+        "parameters": [
+          {
+            "name": "store_id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/notification/store": {
+      "post": {
+        "operationId": "AdminController_createStoreNotification",
+        "parameters": [
+          {
+            "name": "store_id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/wise/import-recipients": {
+      "post": {
+        "operationId": "AdminController_importWiseRecipients",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/paysway/link": {
+      "post": {
+        "operationId": "AdminController_getPayswayLink",
+        "parameters": [
+          {
+            "name": "store_id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/payout/generate-innvoices": {
+      "post": {
+        "operationId": "AdminController_generateInvoices",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/chargebackstop/find-matching-transaction": {
+      "get": {
+        "operationId": "AdminController_findMatchingTransaction",
+        "parameters": [
+          {
+            "name": "alert_id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/payout/invoice-number": {
+      "get": {
+        "operationId": "AdminController_generateInvoiceNumber",
+        "parameters": [
+          {
+            "name": "payout_id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/review/business-details": {
+      "get": {
+        "operationId": "AdminController_fetchBusinessDetailsForReview",
+        "parameters": [
+          {
+            "name": "store_id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/payment-instruments": {
+      "get": {
+        "operationId": "AdminController_getPaymentInstrumentsByStoreId",
+        "parameters": [
+          {
+            "name": "store_id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/payout/backfill-fees/all": {
+      "post": {
+        "operationId": "AdminController_backfillPayoutFeesForAllStores",
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/payout/backfill-fees/stores": {
+      "post": {
+        "operationId": "AdminController_backfillPayoutFeesForStores",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BackfillPayoutFeesForStoresDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/ledger/trigger-transaction-create-event": {
+      "post": {
+        "operationId": "AdminController_triggerLedgerTransactionCreateEvent",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TriggerLedgerTransactionCreateEventDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/admin-access/grant": {
+      "post": {
+        "operationId": "AdminController_grantTemporaryAdminAccess",
+        "parameters": [
+          {
+            "name": "store_id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "admin_email",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/admin-access/revoke": {
+      "post": {
+        "operationId": "AdminController_revokeTemporaryAdminAccess",
+        "parameters": [
+          {
+            "name": "store_id",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "admin_email",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        }
+      }
+    },
+    "/admin/admin-access/active": {
+      "get": {
+        "operationId": "AdminController_getActiveAdminAccesses",
+        "parameters": [
+          {
+            "name": "admin_email",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        }
+      }
+    },
     "/v1/products": {
       "get": {
         "operationId": "retrieveProduct",
@@ -11,7 +2776,7 @@
             "name": "product_id",
             "required": true,
             "in": "query",
-            "description": "The unique identifier of the product",
+            "description": "The unique identifier of the product.",
             "schema": {
               "example": "prod_1234567890",
               "type": "string"
@@ -101,8 +2866,10 @@
             "name": "page_number",
             "required": false,
             "in": "query",
-            "description": "The page number",
+            "description": "The page number for pagination.",
             "schema": {
+              "default": 1,
+              "example": 1,
               "type": "number"
             }
           },
@@ -110,8 +2877,10 @@
             "name": "page_size",
             "required": false,
             "in": "query",
-            "description": "The page size",
+            "description": "The number of items per page.",
             "schema": {
+              "default": 10,
+              "example": 10,
               "type": "number"
             }
           }
@@ -155,8 +2924,10 @@
             "name": "page_number",
             "required": false,
             "in": "query",
-            "description": "The page number",
+            "description": "The page number for pagination.",
             "schema": {
+              "default": 1,
+              "example": 1,
               "type": "number"
             }
           },
@@ -164,8 +2935,10 @@
             "name": "page_size",
             "required": false,
             "in": "query",
-            "description": "The page size",
+            "description": "The number of items per page.",
             "schema": {
+              "default": 50,
+              "example": 50,
               "type": "number"
             }
           }
@@ -209,8 +2982,9 @@
             "name": "customer_id",
             "required": false,
             "in": "query",
-            "description": "The unique identifier of the customer",
+            "description": "The unique identifier of the customer.",
             "schema": {
+              "example": "cust_1234567890",
               "type": "string"
             }
           },
@@ -218,8 +2992,9 @@
             "name": "email",
             "required": false,
             "in": "query",
-            "description": "The unique email of the customer",
+            "description": "The email address of the customer.",
             "schema": {
+              "example": "customer@example.com",
               "type": "string"
             }
           }
@@ -561,8 +3336,8 @@
     "/v1/subscriptions/{id}/resume": {
       "post": {
         "operationId": "resumeSubscription",
-        "summary": "Resume a paused subscription.",
-        "description": "Resume a previously paused subscription. Restart billing and restore access to the subscription.",
+        "summary": "Resume a subscription.",
+        "description": "Resume a subscription. Subscription must be in paused or scheduled_cancel status.",
         "parameters": [
           {
             "name": "id",
@@ -841,8 +3616,9 @@
             "name": "discount_id",
             "required": false,
             "in": "query",
-            "description": "The unique identifier of the discount (provide either discount_id OR discount_code)",
+            "description": "The unique identifier of the discount (provide either discount_id OR discount_code).",
             "schema": {
+              "example": "disc_1234567890",
               "type": "string"
             }
           },
@@ -850,8 +3626,9 @@
             "name": "discount_code",
             "required": false,
             "in": "query",
-            "description": "The unique discount code (provide either discount_id OR discount_code)",
+            "description": "The unique discount code (provide either discount_id OR discount_code).",
             "schema": {
+              "example": "SAVE20",
               "type": "string"
             }
           }
@@ -984,7 +3761,7 @@
             "name": "transaction_id",
             "required": true,
             "in": "query",
-            "description": "The unique identifier of the transaction",
+            "description": "The unique identifier of the transaction.",
             "schema": {
               "example": "txn_1234567890",
               "type": "string"
@@ -1030,8 +3807,9 @@
             "name": "customer_id",
             "required": false,
             "in": "query",
-            "description": "The customer id",
+            "description": "Filter transactions by customer ID.",
             "schema": {
+              "example": "cust_1234567890",
               "type": "string"
             }
           },
@@ -1039,8 +3817,9 @@
             "name": "order_id",
             "required": false,
             "in": "query",
-            "description": "The order id",
+            "description": "Filter transactions by order ID.",
             "schema": {
+              "example": "ord_1234567890",
               "type": "string"
             }
           },
@@ -1048,8 +3827,9 @@
             "name": "product_id",
             "required": false,
             "in": "query",
-            "description": "The product id",
+            "description": "Filter transactions by product ID.",
             "schema": {
+              "example": "prod_1234567890",
               "type": "string"
             }
           },
@@ -1057,8 +3837,10 @@
             "name": "page_number",
             "required": false,
             "in": "query",
-            "description": "The page number",
+            "description": "The page number for pagination.",
             "schema": {
+              "default": 1,
+              "example": 1,
               "type": "number"
             }
           },
@@ -1066,8 +3848,10 @@
             "name": "page_size",
             "required": false,
             "in": "query",
-            "description": "The page size",
+            "description": "The number of items per page.",
             "schema": {
+              "default": 10,
+              "example": 10,
               "type": "number"
             }
           }
@@ -1100,6 +3884,79 @@
           }
         ]
       }
+    },
+    "/v1/stats/summary": {
+      "get": {
+        "operationId": "getMetricsSummary",
+        "summary": "Get store metrics summary",
+        "description": "Retrieve aggregated store metrics including counts, revenue, and MRR. When startDate and endDate are provided, totals are filtered to that date range. When interval is also provided, the response includes a periods array with time-series data points grouped by that interval. The periods array starts from the store's first transaction or startDate, whichever is later, to avoid empty leading buckets. All monetary amounts are in cents (integer, no decimals).",
+        "parameters": [
+          {
+            "name": "startDate",
+            "required": false,
+            "in": "query",
+            "description": "Start of the date range as a Unix timestamp in milliseconds (e.g. 1740614400000). When provided with endDate, filters totals to this range. Required when interval is specified.",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": false,
+            "in": "query",
+            "description": "End of the date range as a Unix timestamp in milliseconds (e.g. 1772150400000). When provided with startDate, filters totals to this range. Required when interval is specified.",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "interval",
+            "required": false,
+            "in": "query",
+            "description": "Groups time-series data into buckets of this size. Requires startDate and endDate. Returns a periods array with one entry per bucket containing grossRevenue and netRevenue.",
+            "schema": {
+              "enum": ["day", "week", "month"],
+              "type": "string"
+            }
+          },
+          {
+            "name": "currency",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "enum": ["EUR", "USD"],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successfully retrieved store metrics summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatsSummaryEntity"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request - Invalid input parameters"
+          },
+          "401": {
+            "description": "Unauthorized - Invalid or missing API key"
+          },
+          "404": {
+            "description": "Not Found - Resource does not exist"
+          }
+        },
+        "tags": ["Stats"],
+        "security": [
+          {
+            "ApiKey": []
+          }
+        ]
+      }
     }
   },
   "info": {
@@ -1120,10 +3977,7 @@
   "tags": [],
   "servers": [
     {
-      "url": "https://api.creem.io"
-    },
-    {
-      "url": "https://test-api.creem.io"
+      "url": "http://localhost:8000"
     }
   ],
   "components": {
@@ -1132,10 +3986,390 @@
         "type": "apiKey",
         "in": "header",
         "name": "x-api-key",
-        "description": "API key for authentication. You can find your API key in the Creem dashboard under Settings > API Keys."
+        "description": "API key for authentication. You can find your API key in the Creem dashboard under Settings \u003E API Keys."
+      },
+      "basic": {
+        "type": "http",
+        "scheme": "basic",
+        "description": "Basic auth required for admin endpoints."
       }
     },
     "schemas": {
+      "CreateStoreApiKeyDto": {
+        "type": "object",
+        "properties": {}
+      },
+      "OnboardingItem": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Item identifier",
+            "example": "business-details"
+          },
+          "label": {
+            "type": "string",
+            "description": "Human-readable label",
+            "example": "Provide details about your product"
+          },
+          "status": {
+            "type": "string",
+            "description": "Current status of this item",
+            "enum": ["incomplete", "inProgress", "complete", "rejected"],
+            "example": "complete"
+          },
+          "actionable": {
+            "type": "boolean",
+            "description": "Whether user can take action on this item",
+            "example": true
+          },
+          "disabled": {
+            "type": "boolean",
+            "description": "Whether item is disabled (waiting for prerequisites)",
+            "example": false
+          }
+        },
+        "required": ["id", "label", "status", "actionable"]
+      },
+      "OnboardingStatusDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "description": "List of onboarding checklist items",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OnboardingItem"
+            }
+          },
+          "overallStatus": {
+            "type": "string",
+            "description": "Overall onboarding status",
+            "enum": [
+              "notStarted",
+              "inProgress",
+              "pendingReview",
+              "approved",
+              "rejected"
+            ],
+            "example": "inProgress"
+          }
+        },
+        "required": ["items", "overallStatus"]
+      },
+      "ToggleAccountFlagsDto": {
+        "type": "object",
+        "properties": {
+          "paymentsEnabled": {
+            "type": "boolean",
+            "description": "Enable or disable payments for the store",
+            "example": true
+          },
+          "payoutsEnabled": {
+            "type": "boolean",
+            "description": "Enable or disable payouts for the store",
+            "example": true
+          }
+        }
+      },
+      "UpdatePayoutAccountStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "error",
+              "active",
+              "pending",
+              "disabled",
+              "partial",
+              "not_started",
+              "rejected"
+            ],
+            "description": "New payout account status"
+          },
+          "statusDescription": {
+            "type": "string",
+            "description": "Optional status description"
+          }
+        },
+        "required": ["status"]
+      },
+      "CreateVerificationDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "User initiating the verification"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "USER_KYC",
+              "USER_KYB",
+              "BUSINESS_KYB",
+              "PAYOUT_BANK",
+              "PAYOUT_CRYPTO",
+              "PAYOUT_STRIPE"
+            ]
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "SUMSUB",
+              "PERSONA",
+              "PAYSWAY",
+              "MURAL",
+              "MANUAL",
+              "STRIPE"
+            ]
+          },
+          "storeIds": {
+            "description": "Stores to link to this verification",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "countryCode": {
+            "type": "string",
+            "description": "ISO country code used for provider configuration",
+            "example": "US"
+          },
+          "isBusiness": {
+            "type": "boolean",
+            "description": "Whether the verification is for a business context"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata forwarded to the provider"
+          },
+          "purpose": {
+            "type": "string",
+            "description": "Purpose tag to distinguish multiple verifications"
+          },
+          "scope": {
+            "type": "string",
+            "description": "Optional scope identifier (e.g. store onboarding)"
+          }
+        },
+        "required": ["userId", "type", "provider"]
+      },
+      "LinkVerificationToStoreDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "User initiating the link"
+          },
+          "verificationId": {
+            "type": "string",
+            "description": "Verification ID to link"
+          },
+          "storeId": {
+            "type": "string",
+            "description": "Store ID to link the verification to"
+          }
+        },
+        "required": ["userId", "verificationId", "storeId"]
+      },
+      "MigrateLegacyVerificationDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "User initiating the migration"
+          },
+          "legacyVerificationId": {
+            "type": "string",
+            "description": "Legacy verification ID to migrate"
+          },
+          "storeId": {
+            "type": "string",
+            "description": "Store ID the legacy verification belongs to"
+          }
+        },
+        "required": ["userId", "legacyVerificationId", "storeId"]
+      },
+      "GetOrCreateVerificationForStoreDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "User that owns the verification"
+          },
+          "storeEntityType": {
+            "type": "string",
+            "description": "Entity type of the store triggering the verification",
+            "enum": ["individual", "business"]
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "SUMSUB",
+              "PERSONA",
+              "PAYSWAY",
+              "MURAL",
+              "MANUAL",
+              "STRIPE"
+            ]
+          },
+          "countryCode": {
+            "type": "string",
+            "description": "ISO country code to pass to the provider"
+          },
+          "storeIds": {
+            "description": "List of stores to link to the verification",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "scope": {
+            "type": "string",
+            "description": "Optional scope identifier for the verification"
+          },
+          "reuseVerificationId": {
+            "type": "string",
+            "description": "If provided, attempt to reuse an existing verification matching this ID"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Additional metadata forwarded to the provider"
+          },
+          "purpose": {
+            "type": "string",
+            "description": "Purpose tag to classify the verification flow"
+          }
+        },
+        "required": ["userId", "storeEntityType", "provider"]
+      },
+      "RegisterWalletAddressDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "User initiating the wallet registration"
+          },
+          "storeId": {
+            "type": "string",
+            "description": "Store ID to register wallet for (required if verificationId not provided)"
+          },
+          "verificationId": {
+            "type": "string",
+            "description": "Verification ID to update directly (for store-less verifications)"
+          },
+          "walletAddress": {
+            "type": "string",
+            "description": "Wallet address (e.g., Ethereum address)"
+          },
+          "network": {
+            "type": "string",
+            "description": "Network/chain (e.g., polygon)"
+          },
+          "signature": {
+            "type": "string",
+            "description": "Message signature for wallet verification (required to prove ownership)"
+          }
+        },
+        "required": [
+          "userId",
+          "storeId",
+          "walletAddress",
+          "network",
+          "signature"
+        ]
+      },
+      "UpdateVerificationStatusDto": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "IN_REVIEW",
+              "APPROVED",
+              "REJECTED",
+              "EXPIRED",
+              "ARCHIVED"
+            ]
+          },
+          "reason": {
+            "type": "string",
+            "description": "Reason for the status change"
+          }
+        }
+      },
+      "UpdateVerificationExpirationDto": {
+        "type": "object",
+        "properties": {
+          "expiresAt": {
+            "type": "object",
+            "description": "New expiration timestamp in ISO 8601 format. Pass null or empty string to clear expiration.",
+            "example": "2025-01-01T00:00:00.000Z",
+            "nullable": true
+          },
+          "forceExpire": {
+            "type": "boolean",
+            "description": "When true, immediately marks the verification as EXPIRED (ignores expiresAt)."
+          }
+        }
+      },
+      "CreateKybInquiryDto": {
+        "type": "object",
+        "properties": {
+          "storeId": {
+            "type": "string",
+            "description": "Store ID to create KYB inquiry for",
+            "example": "store_abc123"
+          },
+          "reason": {
+            "type": "string",
+            "description": "Reason for requesting KYB verification",
+            "example": "Business verification required for compliance"
+          }
+        },
+        "required": ["storeId"]
+      },
+      "BackfillPayoutFeesForStoresDto": {
+        "type": "object",
+        "properties": {
+          "storeIds": {
+            "description": "List of store IDs to backfill missing payout fee ledger entries for",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["storeIds"]
+      },
+      "TriggerLedgerTransactionCreateEventDto": {
+        "type": "object",
+        "properties": {
+          "transactionId": {
+            "type": "string",
+            "description": "Transaction ID to trigger the ledger transaction create event for",
+            "example": "txn_1234567890"
+          },
+          "status": {
+            "type": "string",
+            "description": "Transaction status to use when emitting the event",
+            "enum": [
+              "pending",
+              "paid",
+              "refunded",
+              "partialRefund",
+              "chargeback",
+              "uncollectible",
+              "declined",
+              "void",
+              "canceled"
+            ],
+            "example": "paid"
+          }
+        },
+        "required": ["transactionId", "status"]
+      },
       "EnvironmentMode": {
         "type": "string",
         "description": "String representing the environment.",
@@ -1165,6 +4399,37 @@
           }
         },
         "required": ["id", "type", "description"]
+      },
+      "ProductBillingType": {
+        "type": "string",
+        "description": "Indicates the billing method for the customer. It can either be a `recurring` billing cycle or a `onetime` payment.",
+        "enum": ["recurring", "onetime"]
+      },
+      "ProductBillingPeriod": {
+        "type": "string",
+        "description": "Billing period",
+        "enum": [
+          "every-month",
+          "every-three-months",
+          "every-six-months",
+          "every-year",
+          "once"
+        ]
+      },
+      "ProductStatus": {
+        "type": "string",
+        "description": "Status of the product",
+        "enum": ["active", "archived"]
+      },
+      "TaxMode": {
+        "type": "string",
+        "description": "Specifies the tax calculation mode for the transaction. If set to \"inclusive,\" the tax is included in the price. If set to \"exclusive,\" the tax is added on top of the price.",
+        "enum": ["inclusive", "exclusive"]
+      },
+      "TaxCategory": {
+        "type": "string",
+        "description": "Categorizes the type of product or service for tax purposes. This helps determine the applicable tax rules based on the nature of the item or service.",
+        "enum": ["saas", "digital-goods-service", "ebooks"]
       },
       "ProductEntity": {
         "type": "object",
@@ -1212,28 +4477,23 @@
             "example": "USD"
           },
           "billing_type": {
-            "type": "string",
-            "description": "Indicates the billing method for the customer. It can either be a `recurring` billing cycle or a `onetime` payment.",
-            "example": "recurring"
+            "example": "recurring",
+            "$ref": "#/components/schemas/ProductBillingType"
           },
           "billing_period": {
-            "type": "string",
-            "description": "Billing period",
-            "example": "every-month"
+            "example": "every-month",
+            "$ref": "#/components/schemas/ProductBillingPeriod"
           },
           "status": {
-            "type": "string",
-            "description": "Status of the product"
+            "$ref": "#/components/schemas/ProductStatus"
           },
           "tax_mode": {
-            "type": "string",
-            "description": "Specifies the tax calculation mode for the transaction. If set to \"inclusive,\" the tax is included in the price. If set to \"exclusive,\" the tax is added on top of the price.",
-            "example": "inclusive"
+            "example": "inclusive",
+            "$ref": "#/components/schemas/TaxMode"
           },
           "tax_category": {
-            "type": "string",
-            "description": "Categorizes the type of product or service for tax purposes. This helps determine the applicable tax rules based on the nature of the item or service.",
-            "example": ["saas", "digital-goods-service", "ebooks"]
+            "example": "saas",
+            "$ref": "#/components/schemas/TaxCategory"
           },
           "product_url": {
             "type": "string",
@@ -1336,6 +4596,27 @@
         },
         "required": ["items", "pagination"]
       },
+      "ProductCurrency": {
+        "type": "string",
+        "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
+        "enum": ["EUR", "USD"]
+      },
+      "ProductRequestBillingType": {
+        "type": "string",
+        "description": "Indicates the billing method for the customer. It can either be a `recurring` billing cycle or a `onetime` payment.",
+        "enum": ["recurring", "onetime"]
+      },
+      "ProductRequestBillingPeriod": {
+        "type": "string",
+        "description": "Billing period, required if billing_type is recurring",
+        "enum": [
+          "once",
+          "every-month",
+          "every-three-months",
+          "every-six-months",
+          "every-year"
+        ]
+      },
       "CustomFieldRequestType": {
         "type": "string",
         "description": "The type of the field.",
@@ -1431,29 +4712,24 @@
             "minimum": 100
           },
           "currency": {
-            "type": "string",
-            "description": "Three-letter ISO currency code, in uppercase. Must be a supported currency.",
-            "example": "USD"
+            "example": "USD",
+            "$ref": "#/components/schemas/ProductCurrency"
           },
           "billing_type": {
-            "type": "string",
-            "description": "Indicates the billing method for the customer. It can either be a `recurring` billing cycle or a `onetime` payment.",
-            "example": "recurring"
+            "example": "recurring",
+            "$ref": "#/components/schemas/ProductRequestBillingType"
           },
           "billing_period": {
-            "type": "string",
-            "description": "Billing period, required if billing_type is recurring",
-            "example": "every-month"
+            "example": "every-month",
+            "$ref": "#/components/schemas/ProductRequestBillingPeriod"
           },
           "tax_mode": {
-            "type": "string",
-            "description": "Specifies the tax calculation mode for the transaction. If set to \"inclusive,\" the tax is included in the price. If set to \"exclusive,\" the tax is added on top of the price.",
-            "example": "inclusive"
+            "example": "inclusive",
+            "$ref": "#/components/schemas/TaxMode"
           },
           "tax_category": {
-            "type": "string",
-            "description": "Categorizes the type of product or service for tax purposes. This helps determine the applicable tax rules based on the nature of the item or service.",
-            "example": ["saas", "digital-goods-service", "ebooks"]
+            "example": "saas",
+            "$ref": "#/components/schemas/TaxCategory"
           },
           "default_success_url": {
             "type": "string",
@@ -1505,7 +4781,8 @@
           "name": {
             "type": "string",
             "description": "Customer name.",
-            "example": "John Doe"
+            "example": "John Doe",
+            "nullable": true
           },
           "country": {
             "type": "string",
@@ -1601,10 +4878,47 @@
           },
           "units": {
             "type": "number",
-            "description": "The number of units for the subscription item."
+            "description": "The number of units for the subscription item.",
+            "nullable": true
           }
         },
         "required": ["id", "mode", "object"]
+      },
+      "SubscriptionCollectionMethod": {
+        "type": "string",
+        "description": "The method used for collecting payments for the subscription.",
+        "enum": ["charge_automatically"]
+      },
+      "SubscriptionStatus": {
+        "type": "string",
+        "description": "The current status of the subscription.",
+        "enum": [
+          "active",
+          "canceled",
+          "unpaid",
+          "paused",
+          "trialing",
+          "scheduled_cancel"
+        ]
+      },
+      "TransactionType": {
+        "type": "string",
+        "description": "The type of transaction. payment(one time payments) and invoice(subscription)",
+        "enum": ["payment", "invoice"]
+      },
+      "TransactionStatus": {
+        "type": "string",
+        "description": "Status of the transaction.",
+        "enum": [
+          "pending",
+          "paid",
+          "refunded",
+          "partialRefund",
+          "chargedBack",
+          "uncollectible",
+          "declined",
+          "void"
+        ]
       },
       "TransactionEntity": {
         "type": "object",
@@ -1629,12 +4943,14 @@
           "amount_paid": {
             "type": "number",
             "description": "The amount the customer paid in cents. 1000 = $10.00",
-            "example": 2000
+            "example": 2000,
+            "nullable": true
           },
           "discount_amount": {
             "type": "number",
             "description": "The discount amount in cents. 1000 = $10.00",
-            "example": 2000
+            "example": 2000,
+            "nullable": true
           },
           "currency": {
             "type": "string",
@@ -1642,23 +4958,23 @@
             "example": "USD"
           },
           "type": {
-            "type": "string",
-            "description": "The type of transaction. payment(one time payments) and invoice(subscription)"
+            "$ref": "#/components/schemas/TransactionType"
           },
           "tax_country": {
             "type": "string",
             "description": "The ISO alpha-2 country code where tax is collected.",
             "example": "US",
-            "pattern": "^[A-Z]{2}$"
+            "pattern": "^[A-Z]{2}$",
+            "nullable": true
           },
           "tax_amount": {
             "type": "number",
             "description": "The sale tax amount in cents. 1000 = $10.00",
-            "example": 2000
+            "example": 2000,
+            "nullable": true
           },
           "status": {
-            "type": "string",
-            "description": "Status of the transaction."
+            "$ref": "#/components/schemas/TransactionStatus"
           },
           "refunded_amount": {
             "type": "number",
@@ -1754,22 +5070,12 @@
             }
           },
           "collection_method": {
-            "type": "string",
-            "description": "The method used for collecting payments for the subscription.",
-            "example": "charge_automatically"
+            "example": "charge_automatically",
+            "$ref": "#/components/schemas/SubscriptionCollectionMethod"
           },
           "status": {
-            "type": "string",
-            "description": "The current status of the subscription.",
-            "enum": [
-              "active",
-              "canceled",
-              "unpaid",
-              "paused",
-              "trialing",
-              "scheduled_cancel"
-            ],
-            "example": "active"
+            "example": "active",
+            "$ref": "#/components/schemas/SubscriptionStatus"
           },
           "last_transaction_id": {
             "type": "string",
@@ -1925,6 +5231,16 @@
         },
         "required": ["product_id"]
       },
+      "OrderStatus": {
+        "type": "string",
+        "description": "Current status of the order.",
+        "enum": ["pending", "paid"]
+      },
+      "OrderType": {
+        "type": "string",
+        "description": "The type of order. This can specify whether it's a regular purchase, subscription, etc.",
+        "enum": ["recurring", "onetime"]
+      },
       "OrderEntity": {
         "type": "object",
         "properties": {
@@ -1941,7 +5257,8 @@
           },
           "customer": {
             "type": "string",
-            "description": "The customer who placed the order."
+            "description": "The customer who placed the order.",
+            "nullable": true
           },
           "product": {
             "type": "string",
@@ -1950,12 +5267,14 @@
           "transaction": {
             "type": "string",
             "description": "The transaction ID of the order",
-            "example": "tx_1234567890"
+            "example": "tx_1234567890",
+            "nullable": true
           },
           "discount": {
             "type": "string",
             "description": "The discount ID of the order",
-            "example": "dis_1234567890"
+            "example": "dis_1234567890",
+            "nullable": true
           },
           "amount": {
             "type": "number",
@@ -1995,33 +5314,33 @@
           "fx_amount": {
             "type": "number",
             "description": "The amount in the foreign currency, if applicable.",
-            "example": 15
+            "example": 15,
+            "nullable": true
           },
           "fx_currency": {
             "type": "string",
             "description": "Three-letter ISO code of the foreign currency, if applicable.",
-            "example": "EUR"
+            "example": "EUR",
+            "nullable": true
           },
           "fx_rate": {
             "type": "number",
             "description": "The exchange rate used for converting between currencies, if applicable.",
-            "example": 1.2
+            "example": 1.2,
+            "nullable": true
           },
           "status": {
-            "type": "string",
-            "description": "Current status of the order.",
-            "enum": ["pending", "paid"],
-            "example": "pending"
+            "example": "pending",
+            "$ref": "#/components/schemas/OrderStatus"
           },
           "type": {
-            "type": "string",
-            "description": "The type of order. This can specify whether it's a regular purchase, subscription, etc.",
             "example": "recurring",
-            "enum": ["recurring", "onetime"]
+            "$ref": "#/components/schemas/OrderType"
           },
           "affiliate": {
             "type": "string",
-            "description": "The affiliate associated with the order, if applicable."
+            "description": "The affiliate associated with the order, if applicable.",
+            "nullable": true
           },
           "created_at": {
             "format": "date-time",
@@ -2059,15 +5378,18 @@
         "properties": {
           "max_length": {
             "type": "number",
-            "description": "Maximum character length constraint for the input."
+            "description": "Maximum character length constraint for the input.",
+            "nullable": true
           },
           "minimum_length": {
             "type": "number",
-            "description": "Minimum character length requirement for the input."
+            "description": "Minimum character length requirement for the input.",
+            "nullable": true
           },
           "value": {
             "type": "string",
-            "description": "The value of the input."
+            "description": "The value of the input.",
+            "nullable": true
           }
         }
       },
@@ -2076,11 +5398,13 @@
         "properties": {
           "label": {
             "type": "string",
-            "description": "The markdown text to display for the checkbox."
+            "description": "The markdown text to display for the checkbox.",
+            "nullable": true
           },
           "value": {
             "type": "boolean",
-            "description": "The value of the checkbox (checked or not)."
+            "description": "The value of the checkbox (checked or not).",
+            "nullable": true
           }
         }
       },
@@ -2102,10 +5426,12 @@
           },
           "optional": {
             "type": "boolean",
-            "description": "Whether the customer is required to complete the field. Defaults to `false`."
+            "description": "Whether the customer is required to complete the field. Defaults to `false`.",
+            "nullable": true
           },
           "text": {
             "description": "Configuration for text field type.",
+            "nullable": true,
             "allOf": [
               {
                 "$ref": "#/components/schemas/Text"
@@ -2114,6 +5440,7 @@
           },
           "checkbox": {
             "description": "Configuration for checkbox field type.",
+            "nullable": true,
             "allOf": [
               {
                 "$ref": "#/components/schemas/Checkbox"
@@ -2167,6 +5494,11 @@
         },
         "required": ["files"]
       },
+      "LicenseStatus": {
+        "type": "string",
+        "description": "The current status of the license key.",
+        "enum": ["inactive", "active", "expired", "disabled"]
+      },
       "LicenseInstanceEntity": {
         "type": "object",
         "properties": {
@@ -2217,10 +5549,8 @@
             "description": "A string representing the object’s type. Objects of the same type share the same value."
           },
           "status": {
-            "type": "string",
-            "description": "The current status of the license key.",
-            "enum": ["inactive", "active", "expired", "disabled"],
-            "example": "active"
+            "example": "active",
+            "$ref": "#/components/schemas/LicenseStatus"
           },
           "key": {
             "type": "string",
@@ -2233,15 +5563,16 @@
             "example": 5
           },
           "activation_limit": {
-            "type": "object",
+            "type": "number",
             "description": "The activation limit. Null if activations are unlimited.",
             "example": 1,
             "nullable": true
           },
           "expires_at": {
-            "type": "object",
+            "type": "string",
             "description": "The date the license key expires. Null if it does not have an expiration date.",
             "example": "2023-09-13T00:00:00Z",
+            "format": "date-time",
             "nullable": true
           },
           "created_at": {
@@ -2276,24 +5607,29 @@
           "id": {
             "type": "string",
             "description": "Unique identifier for the feature.",
-            "example": "feat_abc123"
+            "example": "feat_abc123",
+            "nullable": true
           },
           "description": {
             "type": "string",
             "description": "A brief description of the feature.",
-            "example": "Get access to the full course materials."
+            "example": "Get access to the full course materials.",
+            "nullable": true
           },
           "type": {
             "example": "licenseKey",
+            "nullable": true,
             "$ref": "#/components/schemas/ProductFeatureType"
           },
           "private_note": {
             "type": "string",
             "description": "Private note from the seller. This is only visible to the customer after purchase.",
-            "example": "Thank you for your purchase! Here is your access code: XYZ123"
+            "example": "Thank you for your purchase! Here is your access code: XYZ123",
+            "nullable": true
           },
           "file": {
             "description": "File feature data containing downloadable files.",
+            "nullable": true,
             "allOf": [
               {
                 "$ref": "#/components/schemas/FileFeatureEntity"
@@ -2302,6 +5638,7 @@
           },
           "license_key": {
             "description": "License key issued for the order.",
+            "nullable": true,
             "allOf": [
               {
                 "$ref": "#/components/schemas/LicenseEntity"
@@ -2310,6 +5647,7 @@
           },
           "license": {
             "description": "DEPRECATED: Use `license_key` instead. License key issued for the order.",
+            "nullable": true,
             "deprecated": true,
             "allOf": [
               {
@@ -2727,6 +6065,151 @@
           }
         },
         "required": ["items", "pagination"]
+      },
+      "StatsMetricTotalsEntity": {
+        "type": "object",
+        "properties": {
+          "totalProducts": {
+            "type": "number",
+            "description": "Total number of products in the store",
+            "example": 12
+          },
+          "totalSubscriptions": {
+            "type": "number",
+            "description": "Total number of subscriptions within the queried date range",
+            "example": 48
+          },
+          "totalCustomers": {
+            "type": "number",
+            "description": "Total number of customers within the queried date range",
+            "example": 35
+          },
+          "totalPayments": {
+            "type": "number",
+            "description": "Total number of payments within the queried date range",
+            "example": 62
+          },
+          "activeSubscriptions": {
+            "type": "number",
+            "description": "Number of currently active subscriptions",
+            "example": 21
+          },
+          "totalRevenue": {
+            "type": "number",
+            "description": "Total gross revenue in cents within the queried date range",
+            "example": 553939
+          },
+          "totalNetRevenue": {
+            "type": "number",
+            "description": "Total net revenue in cents within the queried date range (after fees and taxes)",
+            "example": 478094
+          },
+          "netMonthlyRecurringRevenue": {
+            "type": "number",
+            "description": "Net monthly recurring revenue in cents (after estimated fees)",
+            "example": 89500
+          },
+          "monthlyRecurringRevenue": {
+            "type": "number",
+            "description": "Gross monthly recurring revenue in cents",
+            "example": 94200
+          }
+        },
+        "required": [
+          "totalProducts",
+          "totalSubscriptions",
+          "totalCustomers",
+          "totalPayments",
+          "activeSubscriptions",
+          "totalRevenue",
+          "totalNetRevenue",
+          "netMonthlyRecurringRevenue",
+          "monthlyRecurringRevenue"
+        ]
+      },
+      "StatsMetricPeriodEntity": {
+        "type": "object",
+        "properties": {
+          "timestamp": {
+            "type": "number",
+            "description": "Start of the period as a Unix timestamp in milliseconds (e.g. Monday of that week for weekly intervals)",
+            "example": 1765152000000
+          },
+          "grossRevenue": {
+            "type": "number",
+            "description": "Gross revenue in cents for this period",
+            "example": 125958
+          },
+          "netRevenue": {
+            "type": "number",
+            "description": "Net revenue in cents for this period (after fees and taxes)",
+            "example": 122173
+          }
+        },
+        "required": ["timestamp", "grossRevenue", "netRevenue"]
+      },
+      "StatsSummaryEntity": {
+        "type": "object",
+        "properties": {
+          "totals": {
+            "description": "Aggregated totals for the queried date range",
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StatsMetricTotalsEntity"
+              }
+            ]
+          },
+          "periods": {
+            "description": "Time-series data points grouped by the requested interval. Only present when interval, startDate, and endDate are provided.",
+            "example": [
+              {
+                "timestamp": 1763337600000,
+                "grossRevenue": 2999,
+                "netRevenue": 2909
+              },
+              {
+                "timestamp": 1763942400000,
+                "grossRevenue": 32989,
+                "netRevenue": 31998
+              },
+              {
+                "timestamp": 1764547200000,
+                "grossRevenue": 47984,
+                "netRevenue": 46542
+              },
+              {
+                "timestamp": 1765152000000,
+                "grossRevenue": 125958,
+                "netRevenue": 122173
+              },
+              {
+                "timestamp": 1765756800000,
+                "grossRevenue": 343968,
+                "netRevenue": 278372
+              },
+              {
+                "timestamp": 1766361600000,
+                "grossRevenue": 0,
+                "netRevenue": 0
+              },
+              {
+                "timestamp": 1766966400000,
+                "grossRevenue": 0,
+                "netRevenue": 0
+              },
+              {
+                "timestamp": 1767571200000,
+                "grossRevenue": 225240,
+                "netRevenue": 192096
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StatsMetricPeriodEntity"
+            }
+          }
+        },
+        "required": ["totals"]
       }
     }
   },
