@@ -7,6 +7,7 @@ export type BillingPermissions = {
   canCancelSubscription?: boolean;
   canResumeSubscription?: boolean;
   canUpdateSeats?: boolean;
+  canAccessPortal?: boolean;
 };
 
 export type ConnectedBillingApi = {

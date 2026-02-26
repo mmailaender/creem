@@ -21,7 +21,7 @@
   interface Props {
     api: ConnectedBillingApi;
     permissions?: BillingPermissions;
-    className?: string;
+    class?: string;
     successUrl?: string;
     units?: number;
     showSeatPicker?: boolean;
@@ -31,7 +31,7 @@
   let {
     api,
     permissions = undefined,
-    className = "",
+    class: className = "",
     successUrl = undefined,
     units = undefined,
     showSeatPicker = false,

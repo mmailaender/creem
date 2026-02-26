@@ -21,7 +21,7 @@
     api: ConnectedBillingApi;
     permissions?: BillingPermissions;
     transition?: Transition[];
-    className?: string;
+    class?: string;
     successUrl?: string;
     children?: import("svelte").Snippet;
   }
@@ -30,7 +30,7 @@
     api,
     permissions = undefined,
     transition = [],
-    className = "",
+    class: className = "",
     successUrl = undefined,
     children,
   }: Props = $props();

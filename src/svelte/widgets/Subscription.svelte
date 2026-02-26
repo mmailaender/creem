@@ -5,17 +5,18 @@
     SUBSCRIPTION_CONTEXT_KEY,
     type SubscriptionContextValue,
   } from "./subscriptionContext.js";
-  import type { SubscriptionPlanType } from "./types.js";
-
-  interface Props {
+  type BaseProps = {
     planId?: string;
-    type: SubscriptionPlanType;
     title?: string;
     description?: string;
-    contactUrl?: string;
     recommended?: boolean;
-    productIds?: Partial<Record<RecurringCycle, string>>;
-  }
+  };
+
+  type Props =
+    | (BaseProps & { type: "free"; productIds?: undefined; contactUrl?: string })
+    | (BaseProps & { type: "single"; productIds: Partial<Record<RecurringCycle, string>>; contactUrl?: string })
+    | (BaseProps & { type: "seat-based"; productIds: Partial<Record<RecurringCycle, string>>; contactUrl?: string })
+    | (BaseProps & { type: "enterprise"; productIds?: undefined; contactUrl: string });
 
   let {
     planId = undefined,

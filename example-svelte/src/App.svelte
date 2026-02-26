@@ -49,7 +49,7 @@
   </header>
 
   <CheckoutSuccessSummary
-    className="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900"
+    class="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900"
   />
 
   <!-- ─── Section 1: Subscriptions with trial (all 4 billing cycles) ─── -->
@@ -61,7 +61,7 @@
       All four billing cycles are available. The toggle derives from the
       registered plans automatically.
     </p>
-    <Subscription.Root api={connectedApi} className="space-y-4">
+    <Subscription.Root api={connectedApi} class="space-y-4">
       <Subscription.Item
         type="free"
         title="Free"
@@ -132,7 +132,7 @@
     <p class="text-sm text-zinc-600 dark:text-zinc-300">
       Only monthly products registered. The billing toggle should not appear.
     </p>
-    <Subscription.Root api={connectedApi} className="space-y-4">
+    <Subscription.Root api={connectedApi} class="space-y-4">
       <Subscription.Item
         type="free"
         title="Free"
@@ -190,7 +190,7 @@
       Seat-based plans with a quantity picker. The user selects how many seats
       before checkout.
     </p>
-    <Subscription.Root api={connectedApi} className="space-y-4" showSeatPicker>
+    <Subscription.Root api={connectedApi} class="space-y-4" showSeatPicker>
       <Subscription.Item
         type="seat-based"
         productIds={{ "every-month": "prod_1c6ZGcxekHKrVYuWriHs68" }}
@@ -212,7 +212,7 @@
       Same seat-based products but with a fixed unit count (e.g. derived from
       organization member count). No picker shown — hardcoded to 5 seats.
     </p>
-    <Subscription.Root api={connectedApi} className="space-y-4" units={5}>
+    <Subscription.Root api={connectedApi} class="space-y-4" units={5}>
       <Subscription.Item
         type="seat-based"
         productIds={{ "every-month": "prod_1c6ZGcxekHKrVYuWriHs68" }}
