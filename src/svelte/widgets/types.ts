@@ -43,7 +43,6 @@ export type ConnectedBillingModel = {
     trialEnd?: string | null;
   } | null;
   billingSnapshot: BillingSnapshot | null;
-  configuredProducts: Record<string, ConnectedProduct | null>;
   allProducts: ConnectedProduct[];
   ownedProductIds: string[];
   subscriptionProductId: string | null;

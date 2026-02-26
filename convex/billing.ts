@@ -3,32 +3,6 @@ import { api, components } from "./_generated/api";
 import { internalAction, query } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 
-const configuredProductIds = {
-  // Subscriptions with trial (4 cycles)
-  basicTrialMonthly: "prod_4if4apw1SzOXSUAfGL0Jp9",
-  basicTrialQuarterly: "prod_5SxwV6WbbluzUQ2FmZ4trD",
-  basicTrialSemiAnnual: "prod_7Lhs8en6kiBONIywQUlaQC",
-  basicTrialYearly: "prod_KE9mMfH58482NIbKgK4nF",
-  premiumTrialMonthly: "prod_7Cukw2hVIT5DvozmomK67A",
-  premiumTrialQuarterly: "prod_7V5gRIqWgui5wQflemUBOF",
-  premiumTrialSemiAnnual: "prod_4JN9cHsEto3dr0CQpgCxn4",
-  premiumTrialYearly: "prod_6ytx0cFhBvgXLp1jA6CQqH",
-  // Subscriptions without trial (monthly only)
-  basicNoTrialMonthly: "prod_53CU7duHB58lGTUqKlRroI",
-  premiumNoTrialMonthly: "prod_3ymOe55fDzKgmPoZnPEOBq",
-  // Seat-based subscriptions (monthly, no trial)
-  basicSeatMonthly: "prod_1c6ZGcxekHKrVYuWriHs68",
-  premiumSeatMonthly: "prod_3861b06bJDnvpEBcs2uxYv",
-  // One-time purchase
-  oneTimeLicense: "prod_6npEfkzgtr9hSqdWd7fqKG",
-  // Exclusive product group with upgrade
-  groupBasic: "prod_4Di7Lkhf3TXy4UOKsUrGw0",
-  groupPremium: "prod_56sJIyL7piLCVv270n4KBz",
-  groupBasicToPremium: "prod_5LApsYRX8dHbx8QuLJgJ3j",
-  // Repeating (consumable) product
-  creditTopUp: "prod_73CnZ794MaJ1DUn8MU0O5f",
-} as const;
-
 // User query to use in the Creem component.
 // For organization billing, return billingEntityId (e.g. the org ID).
 // If omitted, userId is used as the billing entity.
@@ -49,7 +23,6 @@ export const getUserInfo = query({
 });
 
 export const creem = new Creem(components.creem, {
-  products: configuredProductIds,
   getUserInfo: async (ctx) => {
     const user: { _id: Id<"users">; email: string } = await ctx.runQuery(
       api.billing.getUserInfo,
@@ -75,7 +48,6 @@ export const creem = new Creem(components.creem, {
 // authenticated user's (or org's) billing entity.
 export const {
   // Core queries
-  getConfiguredProducts,
   listAllProducts,
   getCurrentBillingSnapshot,
   getBillingUiModel,

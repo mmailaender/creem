@@ -57,7 +57,6 @@ function PriceDisplay({
 export default function TodoList() {
   const user = useQuery(api.example.getCurrentUser);
   const todos = useQuery(api.example.listTodos);
-  const products = useQuery(api.billing.getConfiguredProducts);
   const allProducts = useQuery(api.billing.listAllProducts);
   const insertTodo = useMutation(api.example.insertTodo).withOptimisticUpdate(
     insertTodoOptimistic,
@@ -79,12 +78,12 @@ export default function TodoList() {
   const todosLength = todos?.length ?? 0;
   const isAtMaxTodos = user?.maxTodos && todosLength >= user.maxTodos;
 
-  const {
-    basicTrialMonthly: premiumMonthly,
-    basicTrialYearly: premiumYearly,
-    premiumTrialMonthly: premiumPlusMonthly,
-    premiumTrialYearly: premiumPlusYearly,
-  } = products ?? {};
+  const findProduct = (name: string) =>
+    allProducts?.find((p: any) => p.name?.toLowerCase().includes(name.toLowerCase()));
+  const premiumMonthly = findProduct("basic trial monthly");
+  const premiumYearly = findProduct("basic trial yearly");
+  const premiumPlusMonthly = findProduct("premium trial monthly");
+  const premiumPlusYearly = findProduct("premium trial yearly");
 
   const checkoutApi = {
     generateCheckoutLink: api.billing.generateCheckoutLink,

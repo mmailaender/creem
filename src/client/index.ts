@@ -23,7 +23,6 @@ import {
   type ApiFromModules,
 } from "convex/server";
 import { type Infer, v } from "convex/values";
-import { mapValues } from "remeda";
 import schema from "../component/schema.js";
 import {
   type RunMutationCtx,
@@ -70,8 +69,7 @@ export type WebhookEventHandlers = Record<
   (ctx: RunMutationCtx, event: CreemWebhookEvent) => Promise<void> | void
 >;
 
-type CreemConfig<Products extends Record<string, string>> = {
-  products?: Products;
+type CreemConfig = {
   getUserInfo: (ctx: RunQueryCtx) => Promise<{
     userId: string;
     email: string;
@@ -138,10 +136,8 @@ const normalizeSignature = (signature: string) => {
 
 export class Creem<
   DataModel extends GenericDataModel = GenericDataModel,
-  Products extends Record<string, string> = Record<string, string>,
 > {
   public sdk: CreemSDK;
-  public products: Products;
   private apiKey: string;
   private webhookSecret: string;
   private serverIdx?: number;
@@ -149,9 +145,8 @@ export class Creem<
 
   constructor(
     public component: ComponentApi,
-    private config: CreemConfig<Products>,
+    private config: CreemConfig,
   ) {
-    this.products = config.products ?? ({} as Products);
     this.apiKey = config.apiKey ?? process.env["CREEM_API_KEY"] ?? "";
     this.webhookSecret =
       config.webhookSecret ?? process.env["CREEM_WEBHOOK_SECRET"] ?? "";
@@ -293,12 +288,8 @@ export class Creem<
     if (!product) {
       throw new Error("Product not found");
     }
-    const productKey = (
-      Object.keys(this.products) as Array<keyof Products>
-    ).find((key) => this.products[key] === subscription.productId);
     return {
       ...subscription,
-      productKey,
       product,
     };
   }
@@ -705,12 +696,6 @@ export class Creem<
    */
   async buildBillingUiModel(ctx: RunQueryCtx, { entityId }: { entityId: string }) {
     const products = await this.listProducts(ctx);
-    const configuredProducts = Object.fromEntries(
-      Object.entries(this.products).map(([key, productId]) => [
-        key,
-        products.find((p) => p.id === productId) ?? null,
-      ]),
-    );
     const [billingSnapshot, subscription, activeSubscriptions, customer, orders] =
       await Promise.all([
         this.getBillingSnapshot(ctx, { entityId }),
@@ -724,7 +709,6 @@ export class Creem<
     ];
     return {
       billingSnapshot,
-      configuredProducts,
       allProducts: products,
       ownedProductIds,
       subscriptionProductId: subscription?.productId ?? null,
@@ -788,15 +772,6 @@ export class Creem<
           await this.resumeSubscription(ctx, { entityId });
         },
       }),
-      getConfiguredProducts: queryGeneric({
-        args: {},
-        handler: async (ctx) => {
-          const products = await this.listProducts(ctx);
-          return mapValues(this.products, (productId) =>
-            products.find((p) => p.id === productId),
-          );
-        },
-      }),
       listAllProducts: queryGeneric({
         args: {},
         handler: async (ctx) => {
@@ -834,14 +809,7 @@ export class Creem<
         args: {},
         returns: v.any(),
         handler: async (ctx) => {
-          // Resolve configured products even when unauthenticated
           const products = await this.listProducts(ctx);
-          const configuredProducts = Object.fromEntries(
-            Object.entries(this.products).map(([key, productId]) => [
-              key,
-              products.find((p) => p.id === productId) ?? null,
-            ]),
-          );
 
           let resolved: { entityId: string; userId: string; email: string } | null = null;
           try {
@@ -854,7 +822,6 @@ export class Creem<
             return {
               user: null,
               billingSnapshot: null,
-              configuredProducts,
               allProducts: products,
               ownedProductIds: [],
               subscriptionProductId: null,

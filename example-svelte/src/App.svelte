@@ -61,8 +61,8 @@
       All four billing cycles are available. The toggle derives from the
       registered plans automatically.
     </p>
-    <Subscription.Group api={connectedApi} className="space-y-4">
-      <Subscription
+    <Subscription.Root api={connectedApi} className="space-y-4">
+      <Subscription.Item
         type="free"
         title="Free"
         description={`✔️ Up to 3 users
@@ -80,7 +80,7 @@
 ✔️ 1-1 calls
 `}
       />
-      <Subscription
+      <Subscription.Item
         planId="basic"
         type="single"
         productIds={{
@@ -90,7 +90,7 @@
           "every-year": "prod_KE9mMfH58482NIbKgK4nF",
         }}
       />
-      <Subscription
+      <Subscription.Item
         planId="premium"
         type="single"
         recommended
@@ -101,7 +101,7 @@
           "every-year": "prod_6ytx0cFhBvgXLp1jA6CQqH",
         }}
       />
-      <Subscription
+      <Subscription.Item
         type="enterprise"
         title="Enterprise"
         description={`✔️ Up to 3 users
@@ -120,7 +120,7 @@
 `}
         contactUrl="https://creem.io"
       />
-    </Subscription.Group>
+    </Subscription.Root>
     <BillingPortal api={connectedApi} />
   </section>
 
@@ -132,8 +132,8 @@
     <p class="text-sm text-zinc-600 dark:text-zinc-300">
       Only monthly products registered. The billing toggle should not appear.
     </p>
-    <Subscription.Group api={connectedApi} className="space-y-4">
-      <Subscription
+    <Subscription.Root api={connectedApi} className="space-y-4">
+      <Subscription.Item
         type="free"
         title="Free"
         description={`✔️ Up to 3 users
@@ -151,15 +151,15 @@
 ✔️ 1-1 calls
 `}
       />
-      <Subscription
+      <Subscription.Item
         type="single"
         productIds={{ "every-month": "prod_53CU7duHB58lGTUqKlRroI" }}
       />
-      <Subscription
+      <Subscription.Item
         type="single"
         productIds={{ "every-month": "prod_3ymOe55fDzKgmPoZnPEOBq" }}
       />
-      <Subscription
+      <Subscription.Item
         type="enterprise"
         title="Enterprise"
         description={`✔️ Up to 3 users
@@ -177,7 +177,7 @@
 ✔️ 1-1 calls`}
         contactUrl="https://creem.io"
       />
-    </Subscription.Group>
+    </Subscription.Root>
     <BillingPortal api={connectedApi} />
   </section>
 
@@ -190,16 +190,16 @@
       Seat-based plans with a quantity picker. The user selects how many seats
       before checkout.
     </p>
-    <Subscription.Group api={connectedApi} className="space-y-4" showSeatPicker>
-      <Subscription
+    <Subscription.Root api={connectedApi} className="space-y-4" showSeatPicker>
+      <Subscription.Item
         type="seat-based"
         productIds={{ "every-month": "prod_1c6ZGcxekHKrVYuWriHs68" }}
       />
-      <Subscription
+      <Subscription.Item
         type="seat-based"
         productIds={{ "every-month": "prod_3861b06bJDnvpEBcs2uxYv" }}
       />
-    </Subscription.Group>
+    </Subscription.Root>
     <BillingPortal api={connectedApi} />
   </section>
 
@@ -212,16 +212,16 @@
       Same seat-based products but with a fixed unit count (e.g. derived from
       organization member count). No picker shown — hardcoded to 5 seats.
     </p>
-    <Subscription.Group api={connectedApi} className="space-y-4" units={5}>
-      <Subscription
+    <Subscription.Root api={connectedApi} className="space-y-4" units={5}>
+      <Subscription.Item
         type="seat-based"
         productIds={{ "every-month": "prod_1c6ZGcxekHKrVYuWriHs68" }}
       />
-      <Subscription
+      <Subscription.Item
         type="seat-based"
         productIds={{ "every-month": "prod_3861b06bJDnvpEBcs2uxYv" }}
       />
-    </Subscription.Group>
+    </Subscription.Root>
   </section>
 
   <!-- ─── Section 4: Standalone one-time product ─── -->
@@ -230,11 +230,12 @@
     <p class="text-sm text-zinc-600 dark:text-zinc-300">
       A standalone product purchased once. Shows "Owned" after purchase.
     </p>
-    <Product
-      api={connectedApi}
-      type="one-time"
-      productId="prod_6npEfkzgtr9hSqdWd7fqKG"
-    />
+    <Product.Root api={connectedApi}>
+      <Product.Item
+        type="one-time"
+        productId="prod_6npEfkzgtr9hSqdWd7fqKG"
+      />
+    </Product.Root>
   </section>
 
   <!-- ─── Section 5: Mutually exclusive product group with upgrade ─── -->
@@ -246,10 +247,10 @@
       then upgrade to Premium.
     </p>
 
-    <Product.Group api={connectedApi} transition={upgradeTransitions}>
-      <Product type="one-time" productId="prod_4Di7Lkhf3TXy4UOKsUrGw0" />
-      <Product type="one-time" productId="prod_56sJIyL7piLCVv270n4KBz" />
-    </Product.Group>
+    <Product.Root api={connectedApi} transition={upgradeTransitions}>
+      <Product.Item type="one-time" productId="prod_4Di7Lkhf3TXy4UOKsUrGw0" />
+      <Product.Item type="one-time" productId="prod_56sJIyL7piLCVv270n4KBz" />
+    </Product.Root>
   </section>
 
   <!-- ─── Section 6: Repeating (consumable) product ─── -->
@@ -259,10 +260,11 @@
       Can be purchased multiple times. No "Owned" badge — always shows the
       purchase button.
     </p>
-    <Product
-      api={connectedApi}
-      type="recurring"
-      productId="prod_73CnZ794MaJ1DUn8MU0O5f"
-    />
+    <Product.Root api={connectedApi}>
+      <Product.Item
+        type="recurring"
+        productId="prod_73CnZ794MaJ1DUn8MU0O5f"
+      />
+    </Product.Root>
   </section>
 </main>
