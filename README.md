@@ -30,14 +30,13 @@ for complete integrations.**
 - [Advanced](#advanced)
   - [Webhook event middleware](#webhook-event-middleware)
   - [Security & Access Control](#security--access-control)
-  - [Custom billing resolver](#custom-billing-resolver)
   - [Custom billing UI model](#custom-billing-ui-model)
   - [Server endpoint overrides](#server-endpoint-overrides)
 - [API Reference](#api-reference)
-  - [Tier 1: `creem.api()` — entity-scoped](#tier-1-creemapi--entity-scoped)
-  - [Tier 2: Class methods — explicit entityId](#tier-2-class-methods--explicit-entityid)
-  - [Utility methods](#utility-methods)
-  - [SDK pass-through](#sdk-pass-through)
+  - [Resource namespaces](#resource-namespaces--creemnamespace)
+  - [`creem.api({ resolve })` — convenience exports](#creemapi-resolve---convenience-exports)
+  - [Infrastructure](#infrastructure)
+  - [Direct API access — `creem.sdk.*`](#direct-api-access--creemsdk)
 - [Component Reference — Svelte](#component-reference--svelte)
   - [Widgets](#widgets)
   - [Presentational components](#presentational-components)
@@ -77,7 +76,54 @@ npx convex env set CREEM_API_KEY <your_creem_api_key>
 npx convex env set CREEM_WEBHOOK_SECRET <your_creem_webhook_signing_secret>
 ```
 
-### 4. Register webhooks
+### 4. Configure billing
+
+```ts
+// convex/billing.ts
+import { Creem, type ApiResolver } from "@mmailaender/convex-creem";
+import { api, components } from "./_generated/api";
+import { query, internalAction } from "./_generated/server";
+
+export const creem = new Creem(components.creem);
+
+// Auth resolver — replace with your own auth logic
+const resolve: ApiResolver = async (ctx) => {
+  const user = await ctx.runQuery(api.users.currentUser);
+  return {
+    userId: user._id,
+    email: user.email,
+    entityId: user._id, // For org billing: user.activeOrgId ?? user._id
+  };
+};
+
+// Generate Convex function exports — each calls resolve(), then delegates
+const {
+  uiModel, snapshot,
+  checkouts, subscriptions, products, customers, orders,
+} = creem.api({ resolve });
+
+export { uiModel, snapshot };
+export const checkoutsCreate = checkouts.create;
+export const subscriptionsUpdate = subscriptions.update;
+export const subscriptionsCancel = subscriptions.cancel;
+export const subscriptionsResume = subscriptions.resume;
+export const subscriptionsPause = subscriptions.pause;
+export const subscriptionsList = subscriptions.list;
+export const subscriptionsListAll = subscriptions.listAll;
+export const productsList = products.list;
+export const productsGet = products.get;
+export const customersRetrieve = customers.retrieve;
+export const customersPortalUrl = customers.portalUrl;
+export const ordersList = orders.list;
+
+// Sync products from Creem (CLI / dashboard only)
+export const syncBillingProducts = internalAction({
+  args: {},
+  handler: async (ctx) => { await creem.syncProducts(ctx); },
+});
+```
+
+### 5. Register webhooks
 
 ```ts
 // convex/http.ts
@@ -97,50 +143,6 @@ Creem dashboard. The component automatically handles `checkout.completed`,
 
 > For custom event handlers (e.g. sending emails on checkout), see
 > [Webhook event middleware](#webhook-event-middleware).
-
-### 5. Configure billing
-
-```ts
-// convex/billing.ts
-import { Creem } from "@mmailaender/convex-creem";
-import { api, components } from "./_generated/api";
-
-export const creem = new Creem(components.creem, {
-  getUserInfo: async (ctx) => {
-    const user = await ctx.runQuery(api.users.currentUser);
-    return {
-      userId: user._id,
-      email: user.email,
-      // For org billing, add: billingEntityId: org._id
-    };
-  },
-});
-
-// Export entity-scoped API — safe to call from the frontend
-export const {
-  listAllProducts,
-  getCurrentBillingSnapshot,
-  getBillingUiModel,
-  generateCheckoutLink,
-  generateCustomerPortalUrl,
-  changeCurrentSubscription,
-  updateSubscriptionSeats,
-  cancelCurrentSubscription,
-  resumeCurrentSubscription,
-  pauseCurrentSubscription,
-  getProduct,
-  getCustomer,
-  listSubscriptions,
-  listOrders,
-} = creem.api();
-
-// Sync products from Creem (CLI / dashboard only)
-import { internalAction } from "./_generated/server";
-export const syncBillingProducts = internalAction({
-  args: {},
-  handler: async (ctx) => { await creem.syncProducts(ctx); },
-});
-```
 
 ### 6. Sync products
 
@@ -190,27 +192,27 @@ directives so Tailwind scans the library's component files automatically.
 
 ## Entity Model
 
-By default, billing is scoped to the **authenticated user** — `userId` from
-`getUserInfo` is used as the billing entity. All `creem.api()` functions, checkout
-metadata, and webhook resolution automatically use this entity.
+By default, billing is scoped to the **authenticated user** — the `entityId`
+returned from your resolver is used as the billing entity. All `creem.api({ resolve })`
+functions, checkout metadata, and webhook resolution automatically use this entity.
 
-For **organization or team billing**, return `billingEntityId` from `getUserInfo`:
+For **organization or team billing**, return the org ID as `entityId`:
 
 ```ts
-getUserInfo: async (ctx) => {
+const resolve: ApiResolver = async (ctx) => {
   const user = await ctx.runQuery(api.users.currentUser);
   const org = await ctx.runQuery(api.orgs.getActiveOrg);
   return {
     userId: user._id,
     email: user.email,
-    billingEntityId: org?._id, // omit for personal billing
+    entityId: org?._id ?? user._id, // org billing or personal billing
   };
-},
+};
 ```
 
-When `billingEntityId` is set, all billing operations scope to that entity.
-Webhooks resolve `convexBillingEntityId` from checkout metadata (falls back to
-`convexUserId`). No other code changes needed.
+All billing operations scope to the `entityId`. Webhooks resolve
+`convexBillingEntityId` from checkout metadata (falls back to `convexUserId`).
+No other code changes needed.
 
 For access control details, see [Security & Access Control](#security--access-control).
 
@@ -239,13 +241,14 @@ layout or page component:
   setupConvex(import.meta.env.VITE_CONVEX_URL);
 
   const billingApi: ConnectedBillingApi = {
-    getBillingUiModel: api.billing.getBillingUiModel,
-    generateCheckoutLink: api.billing.generateCheckoutLink,
-    generateCustomerPortalUrl: api.billing.generateCustomerPortalUrl,
-    changeCurrentSubscription: api.billing.changeCurrentSubscription,
-    updateSubscriptionSeats: api.billing.updateSubscriptionSeats,
-    cancelCurrentSubscription: api.billing.cancelCurrentSubscription,
-    resumeCurrentSubscription: api.billing.resumeCurrentSubscription,
+    uiModel: api.billing.uiModel,
+    checkouts: { create: api.billing.checkoutsCreate },
+    subscriptions: {
+      update: api.billing.subscriptionsUpdate,
+      cancel: api.billing.subscriptionsCancel,
+      resume: api.billing.subscriptionsResume,
+    },
+    customers: { portalUrl: api.billing.customersPortalUrl },
   };
 </script>
 ```
@@ -330,12 +333,12 @@ Two workflows for seat-based pricing:
 </Subscription.Root>
 ```
 
-When `updateSubscriptionSeats` is provided in the API, active seat-based plans
+When `subscriptions.update` is provided in the API, active seat-based plans
 show a "Change seats" control.
 
 > **Tip:** For auto-derived seats, keep the subscription in sync with your data.
-> When your member count changes, call `updateSubscriptionSeats` so the billing reflects the current
-> seat count.
+> When your member count changes, call `subscriptions.update` with the new `units` so the billing
+> reflects the current seat count.
 
 ### 2. Products
 
@@ -508,16 +511,60 @@ The `ctx` is a Convex mutation context — you can read/write to your own tables
 
 ### Security & Access Control
 
-The component's API is split into two security tiers:
+**Auth is the app's responsibility.** The component is a sync engine — it
+reads from Convex DB and writes to the Creem API. Every class method takes
+explicit args; there is no hidden auth layer.
 
-- **Tier 1 (`creem.api()`)** — auto-resolves the billing entity from
-  `getUserInfo`. Safe to export directly. Always operates on the authenticated
-  entity's data (user or organization — see [Entity Model](#entity-model)).
-- **Tier 2 (class methods)** — takes an explicit `entityId`. Not exported.
-  Wrap in your own Convex functions with access control checks.
+**Choose your approach:**
 
-**Access control is the app's responsibility.** The component provides
-`BillingPermissions` to control UI actions:
+- **Quick start** — use [`creem.api({ resolve })`](#4-configure-billing) to
+  generate ready-to-export Convex functions. Each one calls your `resolve`
+  callback to authenticate and determine the `entityId`. The billing entity is
+  derived from the authenticated session, never from client input. See
+  [Step 4: Configure billing](#4-configure-billing) and the
+  [`creem.api({ resolve })` reference](#creemapi-resolve---convenience-exports).
+
+- **Full control** — use the
+  [resource namespaces](#resource-namespaces--creemnamespace)
+  (`creem.subscriptions.*`, `creem.checkouts.*`, etc.) directly in your own
+  Convex functions. You handle auth, entity resolution, and permission checks
+  yourself. Example:
+
+```ts
+// convex/billing.ts
+import { Creem } from "@mmailaender/convex-creem";
+import { ConvexError, v } from "convex/values";
+import { action } from "./_generated/server";
+import { api, components } from "./_generated/api";
+
+const creem = new Creem(components.creem);
+
+async function resolveAuth(ctx) {
+  const session = await ctx.runQuery(api.auth.getSession);
+  if (!session) throw new ConvexError("Not authenticated");
+  const org = await ctx.runQuery(api.orgs.getActiveOrg);
+  return {
+    userId: session.userId,
+    email: session.user.email,
+    entityId: org?._id ?? session.userId,
+    role: session.user.role,
+  };
+}
+
+// Admin-only: cancel subscription
+export const subscriptionsCancel = action({
+  args: { revokeImmediately: v.optional(v.boolean()) },
+  handler: async (ctx, args) => {
+    const auth = await resolveAuth(ctx);
+    if (auth.role !== "admin") throw new ConvexError("Forbidden");
+    await creem.subscriptions.cancel(ctx, { entityId: auth.entityId, ...args });
+  },
+});
+```
+
+**UI-side permissions** — `BillingPermissions` controls which buttons are
+enabled in the widgets. This is cosmetic gating only; enforce real permissions
+server-side.
 
 ```ts
 type BillingPermissions = {
@@ -530,44 +577,7 @@ type BillingPermissions = {
 };
 ```
 
-Pass `permissions` to any entry-point widget:
-
 ```svelte
-<Subscription.Root
-  api={billingApi}
-  permissions={{ canCheckout: true, canCancelSubscription: false }}
-/>
-<Product.Root
-  api={billingApi}
-  permissions={{ canCheckout: false }}
->
-  ...
-</Product.Root>
-```
-
-When a permission is `false`, the button renders as disabled (greyed out).
-When omitted or `undefined`, all actions default to enabled.
-
-**Example: Convex better-auth integration**
-
-```ts
-// convex/billing.ts
-export const creem = new Creem(components.creem, {
-  getUserInfo: async (ctx) => {
-    const session = await ctx.runQuery(api.auth.getSession);
-    if (!session) throw new Error("Not authenticated");
-    const org = await ctx.runQuery(api.orgs.getActiveOrg);
-    return {
-      userId: session.userId,
-      email: session.user.email,
-      billingEntityId: org?._id,
-    };
-  },
-});
-```
-
-```svelte
-<!-- Derive permissions from user role -->
 <script lang="ts">
   const isAdmin = $derived(currentUser?.role === "admin" || currentUser?.role === "owner");
   const permissions = $derived({
@@ -584,37 +594,14 @@ export const creem = new Creem(components.creem, {
 </Subscription.Root>
 ```
 
-### Custom billing resolver
-
-Override how billing state is resolved from subscription data:
-
-```ts
-export const creem = new Creem(components.creem, {
-  getUserInfo: async (ctx) => { /* ... */ },
-  resolvePlan: async (ctx, input) => {
-    // input: { currentSubscription, allSubscriptions, payment, userContext }
-    // Return a BillingSnapshot
-    return {
-      resolvedAt: new Date().toISOString(),
-      activePlanId: input.currentSubscription?.productId ?? null,
-      activeCategory: input.currentSubscription ? "paid" : "free",
-      billingType: input.currentSubscription ? "recurring" : "custom",
-      availableBillingCycles: ["every-month", "every-year"],
-      payment: input.payment ?? null,
-      availableActions: ["checkout", "portal"],
-    };
-  },
-  getUserBillingContext: async (ctx) => {
-    // Return arbitrary data available to resolvePlan
-    return { teamSize: 5, featureFlags: ["beta"] };
-  },
-});
-```
+When a permission is `false`, the button renders as disabled (greyed out).
+When omitted or `undefined`, all actions default to enabled.
 
 ### Custom billing UI model
 
-`getBillingUiModel` (from `creem.api()`) returns everything the connected
-widgets need. If you need app-specific fields, write your own query:
+`uiModel` (from `creem.api({ resolve })`) returns everything the connected
+widgets need. If you need app-specific fields, write your own query using
+`creem.getBillingModel()`:
 
 ```ts
 import { query } from "./_generated/server";
@@ -623,16 +610,14 @@ export const getCustomBillingModel = query({
   args: {},
   handler: async (ctx) => {
     const user = await currentUser(ctx);
-    if (!user) return { user: null, billingSnapshot: null };
-
-    const billingData = await creem.buildBillingUiModel(ctx, {
-      entityId: user._id,
+    const billingData = await creem.getBillingModel(ctx, {
+      entityId: user?._id ?? null,
+      user: user ? { _id: user._id, email: user.email } : null,
     });
     return {
-      user,
       ...billingData,
-      teamSize: user.teamSize,
-      featureFlags: user.featureFlags,
+      teamSize: user?.teamSize,
+      featureFlags: user?.featureFlags,
     };
   },
 });
@@ -654,66 +639,109 @@ Leave both unset to use the default Creem production endpoint.
 
 ## API Reference
 
-### Tier 1: `creem.api()` — entity-scoped
+### Resource namespaces — `creem.<namespace>.*`
 
-These auto-resolve the billing entity from `getUserInfo` and are safe to export
-directly from `convex/billing.ts`.
+All methods take explicit arguments. Use them directly in your own Convex
+functions, or let `creem.api({ resolve })` generate ready-to-export wrappers.
 
-| Export | Type | Description |
+**`creem.subscriptions.*`**
+
+| Method | Data source | Description |
 |---|---|---|
-| `listAllProducts` | query | All active products synced from Creem |
-| `getCurrentBillingSnapshot` | query | Resolved billing state (plan, status, actions) |
-| `getBillingUiModel` | query | Full billing state for widgets |
-| `generateCheckoutLink` | action | Creates a Creem checkout URL. Resolves `successUrl` via: explicit arg → product `defaultSuccessUrl` → `fallbackSuccessUrl` (current page). |
-| `generateCustomerPortalUrl` | action | Customer billing portal URL |
-| `changeCurrentSubscription` | action | Switch to a different subscription product. Proration defaults to your Creem dashboard setting. |
-| `updateSubscriptionSeats` | action | Update seat count with proration |
-| `cancelCurrentSubscription` | action | Cancel subscription (immediate or scheduled) |
-| `resumeCurrentSubscription` | action | Resume a paused or scheduled-cancel subscription |
-| `pauseCurrentSubscription` | action | Pause an active subscription |
-| `getProduct` | query | Single product by ID |
-| `getCustomer` | query | Customer record for current entity |
-| `listSubscriptions` | query | Active subscriptions for current entity |
-| `listOrders` | query | Orders for current entity |
+| `.getCurrent(ctx, { entityId })` | Convex DB | Current active subscription with product join |
+| `.list(ctx, { entityId })` | Convex DB | Active subscriptions (excludes ended + expired trials) |
+| `.listAll(ctx, { entityId })` | Convex DB | All subscriptions including ended |
+| `.update(ctx, { entityId, productId?, units?, updateBehavior? })` | Creem API | Unified plan switch (`productId`) or seat update (`units`). Optional proration override. |
+| `.cancel(ctx, { entityId, revokeImmediately? })` | Creem API | Cancel subscription |
+| `.pause(ctx, { entityId })` | Creem API | Pause an active subscription |
+| `.resume(ctx, { entityId })` | Creem API | Resume a paused or scheduled-cancel subscription |
 
-### Tier 2: Class methods — explicit entityId
+**`creem.checkouts.*`**
 
-These take an explicit `entityId` and are **not** in `creem.api()`. Wrap them in
-your own Convex functions with access control checks.
+| Method | Data source | Description |
+|---|---|---|
+| `.create(ctx, { entityId, userId, email, productId, successUrl?, fallbackSuccessUrl?, units?, metadata?, theme? })` | Creem API | Create checkout URL with 3-tier `successUrl` resolution and optional `theme` |
 
-| Method | Description |
-|---|---|
-| `creem.getCurrentSubscription(ctx, { entityId })` | Current active subscription with product |
-| `creem.listUserSubscriptions(ctx, { entityId })` | Active subscriptions (excludes ended) |
-| `creem.listAllUserSubscriptions(ctx, { entityId })` | All subscriptions including ended |
-| `creem.listUserOrders(ctx, { entityId })` | Paid one-time orders |
-| `creem.getCustomerByEntityId(ctx, entityId)` | Customer record by entity |
-| `creem.getBillingSnapshot(ctx, { entityId, payment? })` | Resolved billing state |
-| `creem.buildBillingUiModel(ctx, { entityId })` | Full billing UI model |
-| `creem.changeSubscription(ctx, { entityId, productId })` | Switch subscription |
-| `creem.updateSubscriptionSeats(ctx, { entityId, units })` | Update seats |
-| `creem.cancelSubscription(ctx, { entityId, revokeImmediately? })` | Cancel subscription |
-| `creem.pauseSubscription(ctx, { entityId })` | Pause subscription |
-| `creem.resumeSubscription(ctx, { entityId })` | Resume subscription |
-| `creem.createCheckoutSession(ctx, { entityId, userId, email, productId, successUrl, units?, metadata? })` | Create checkout |
-| `creem.createCustomerPortalSession(ctx, { entityId })` | Customer portal session |
+**`creem.products.*`**
 
-### Utility methods
+| Method | Data source | Description |
+|---|---|---|
+| `.list(ctx, options?)` | Convex DB | All synced products (public — no `entityId` needed) |
+| `.get(ctx, { productId })` | Convex DB | Single product by ID (public) |
+
+**`creem.customers.*`**
+
+| Method | Data source | Description |
+|---|---|---|
+| `.retrieve(ctx, { entityId })` | Convex DB | Customer record by entity |
+| `.portalUrl(ctx, { entityId })` | Creem API | Customer billing portal URL |
+
+**`creem.orders.*`**
+
+| Method | Data source | Description |
+|---|---|---|
+| `.list(ctx, { entityId })` | Convex DB | Paid one-time orders |
+
+**Composite helpers (top-level methods)**
 
 | Method | Description |
 |---|---|
-| `creem.listProducts(ctx)` | All synced products |
-| `creem.getProduct(ctx, { productId })` | Single product by ID |
-| `creem.syncProducts(ctx)` | Pull products from Creem API |
+| `creem.getBillingModel(ctx, { entityId, user? })` | Aggregates snapshot + products + subscriptions + orders into a single object for widgets. Graceful when `entityId` is null (returns public catalog only). |
+| `creem.getBillingSnapshot(ctx, { entityId })` | Resolved billing state (plan, status, available actions). Uses `resolvePlan` override if configured, otherwise built-in resolver. |
+
+### `creem.api({ resolve })` — convenience exports
+
+Generates ready-to-export Convex function definitions. Each function calls your
+`resolve` callback, then delegates to the corresponding namespace method.
+
+| Export | Wraps | Type | Description |
+|---|---|---|---|
+| `uiModel` | `getBillingModel` | query | Calls `resolve()`, then `getBillingModel`. Graceful when unauthenticated. |
+| `snapshot` | `getBillingSnapshot` | query | Calls `resolve()`, then `getBillingSnapshot`. Returns `null` when unauthenticated. |
+| `checkouts.create` | `checkouts.create` | action | Auto-resolves auth |
+| `subscriptions.update` | `subscriptions.update` | action | Auto-resolves auth |
+| `subscriptions.cancel` | `subscriptions.cancel` | action | Auto-resolves auth |
+| `subscriptions.resume` | `subscriptions.resume` | action | Auto-resolves auth |
+| `subscriptions.pause` | `subscriptions.pause` | action | Auto-resolves auth |
+| `subscriptions.list` | `subscriptions.list` | query | Auto-resolves auth |
+| `subscriptions.listAll` | `subscriptions.listAll` | query | Auto-resolves auth |
+| `products.list` | `products.list` | query | Public, no auth needed |
+| `products.get` | `products.get` | query | Public, no auth needed |
+| `customers.retrieve` | `customers.retrieve` | query | Auto-resolves auth |
+| `customers.portalUrl` | `customers.portalUrl` | action | Auto-resolves auth |
+| `orders.list` | `orders.list` | query | Auto-resolves auth |
+
+### Infrastructure
+
+| Method | Description |
+|---|---|
+| `creem.syncProducts(ctx)` | Pull products from Creem API into Convex DB |
 | `creem.registerRoutes(http, { path?, events? })` | Register webhook HTTP routes |
 
-### SDK pass-through
+### Direct API access — `creem.sdk.*`
 
-For direct Creem API access (products, licenses, discounts, transactions), use
-`creem.sdk.*` in your own Convex action wrappers:
+The resource namespaces above cover all **billing features that stay in sync**
+with Convex via webhooks. Some Creem API resources have no webhook support, so
+the component cannot mirror them in Convex DB. For these, use `creem.sdk.*`
+directly inside your own Convex actions — it's the same Creem SDK client,
+already configured with your API key:
+
+| Resource | Synced to Convex? | Access |
+|---|---|---|
+| Subscriptions | Yes (webhook) | `creem.subscriptions.*` |
+| Checkouts | Yes (webhook) | `creem.checkouts.*` |
+| Products | Yes (webhook + sync) | `creem.products.*` |
+| Customers | Yes (webhook) | `creem.customers.*` |
+| Orders | Yes (webhook) | `creem.orders.*` |
+| **Licenses** | No webhook | `creem.sdk.licenses.*` |
+| **Discounts** | No webhook | `creem.sdk.discounts.*` |
+| **Transactions** | No webhook | `creem.sdk.transactions.*` |
 
 ```ts
-// Example: create a discount
+import { action } from "./_generated/server";
+import { v } from "convex/values";
+
+// Example: create a discount (not synced — Creem has no webhook for discounts)
 export const createDiscount = action({
   args: { code: v.string(), percentage: v.number() },
   handler: async (ctx, args) => {

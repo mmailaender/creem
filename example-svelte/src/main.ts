@@ -1,12 +1,8 @@
 import { mount } from "svelte";
 import App from "./App.svelte";
-import PricingPage from "./pages/PricingPage.svelte";
 import "./app.css";
 
-const pathname = window.location.pathname.replace(/\/+$/, "") || "/";
-const RootComponent = pathname === "/pricing" ? PricingPage : App;
-
-const app = mount(RootComponent, {
+const app = mount(App, {
   target: document.getElementById("app")!,
 });
 

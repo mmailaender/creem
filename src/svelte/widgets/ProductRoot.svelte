@@ -40,7 +40,9 @@
   const client = useConvexClient();
 
   // svelte-ignore state_referenced_locally
-  const { getBillingUiModel: billingUiModelRef, generateCheckoutLink: checkoutLinkRef } = api;
+  const billingUiModelRef = api.uiModel;
+  // svelte-ignore state_referenced_locally
+  const checkoutLinkRef = api.checkouts.create;
 
   const billingModelQuery = useQuery(billingUiModelRef, {});
 

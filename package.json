@@ -19,7 +19,7 @@
     "checkout"
   ],
   "type": "module",
-  "sideEffects": false,
+  "sideEffects": ["./src/client/polyfill.ts", "./dist/client/polyfill.js"],
   "scripts": {
     "dev:react": "concurrently --kill-others --prefix-colors 'blue,yellow,magenta' --names 'frontend,backend,build' 'pnpm dev:frontend:react' 'pnpm dev:backend' 'pnpm dev:build'",
     "dev:svelte": "concurrently --kill-others --prefix-colors 'blue,yellow,magenta' --names 'frontend,backend,build' 'pnpm dev:frontend:svelte' 'pnpm dev:backend' 'pnpm dev:build'",

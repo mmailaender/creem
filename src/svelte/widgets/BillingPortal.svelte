@@ -18,7 +18,9 @@
   const client = useConvexClient();
 
   // svelte-ignore state_referenced_locally
-  const { getBillingUiModel: billingUiModelRef, generateCustomerPortalUrl: portalUrlRef } = api;
+  const billingUiModelRef = api.uiModel;
+  // svelte-ignore state_referenced_locally
+  const portalUrlRef = api.customers?.portalUrl;
 
   const billingModelQuery = useQuery(billingUiModelRef, {});
   const model = $derived(billingModelQuery.data as ConnectedBillingModel | undefined);

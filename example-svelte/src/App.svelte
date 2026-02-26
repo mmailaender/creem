@@ -19,13 +19,18 @@
   setupConvex(convexUrl);
 
   const connectedApi: ConnectedBillingApi = {
-    getBillingUiModel: api.billing.getBillingUiModel,
-    generateCheckoutLink: api.billing.generateCheckoutLink,
-    generateCustomerPortalUrl: api.billing.generateCustomerPortalUrl,
-    changeCurrentSubscription: api.billing.changeCurrentSubscription,
-    updateSubscriptionSeats: api.billing.updateSubscriptionSeats,
-    cancelCurrentSubscription: api.billing.cancelCurrentSubscription,
-    resumeCurrentSubscription: api.billing.resumeCurrentSubscription,
+    uiModel: api.billing.uiModel,
+    checkouts: {
+      create: api.billing.checkoutsCreate,
+    },
+    subscriptions: {
+      update: api.billing.subscriptionsUpdate,
+      cancel: api.billing.subscriptionsCancel,
+      resume: api.billing.subscriptionsResume,
+    },
+    customers: {
+      portalUrl: api.billing.customersPortalUrl,
+    },
   };
 
   const upgradeTransitions: Transition[] = [

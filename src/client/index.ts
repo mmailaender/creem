@@ -14,13 +14,10 @@ import {
 import { Webhook, WebhookVerificationError } from "standardwebhooks";
 import {
   type FunctionReference,
-  type GenericActionCtx,
-  type GenericDataModel,
   type HttpRouter,
   actionGeneric,
   httpActionGeneric,
   queryGeneric,
-  type ApiFromModules,
 } from "convex/server";
 import { type Infer, v } from "convex/values";
 import schema from "../component/schema.js";
@@ -35,9 +32,7 @@ import {
 import type { ComponentApi } from "../component/_generated/component.js";
 import { resolveBillingSnapshot as defaultResolveBillingSnapshot } from "../core/resolver.js";
 import type {
-  BillingResolverInput,
   BillingSnapshot,
-  BillingUserContext,
   PaymentSnapshot,
   SubscriptionSnapshot,
 } from "../core/types.js";
@@ -53,10 +48,6 @@ export type SubscriptionHandler = FunctionReference<
   { subscription: Subscription }
 >;
 
-export type CreemComponentApi = ApiFromModules<{
-  checkout: ReturnType<Creem["api"]>;
-}>["checkout"];
-
 export type CreemWebhookEvent = {
   type?: string;
   eventType?: string;
@@ -69,21 +60,13 @@ export type WebhookEventHandlers = Record<
   (ctx: RunMutationCtx, event: CreemWebhookEvent) => Promise<void> | void
 >;
 
+export type ApiResolver = (ctx: RunQueryCtx) => Promise<{
+  userId: string;
+  email: string;
+  entityId: string;
+}>;
+
 type CreemConfig = {
-  getUserInfo: (ctx: RunQueryCtx) => Promise<{
-    userId: string;
-    email: string;
-    billingEntityId?: string;
-  }>;
-  getUserBillingContext?:
-    | ((ctx: RunQueryCtx) => Promise<BillingUserContext> | BillingUserContext)
-    | undefined;
-  resolvePlan?:
-    | ((
-        ctx: RunQueryCtx,
-        input: BillingResolverInput,
-      ) => Promise<BillingSnapshot> | BillingSnapshot)
-    | undefined;
   /** Default cancel mode for subscriptions. Omit to use Creem's store-level default. */
   cancelMode?: "immediate" | "scheduled";
   apiKey?: string;
@@ -134,9 +117,7 @@ const normalizeSignature = (signature: string) => {
   return trimmed.toLowerCase();
 };
 
-export class Creem<
-  DataModel extends GenericDataModel = GenericDataModel,
-> {
+export class Creem {
   public sdk: CreemSDK;
   private apiKey: string;
   private webhookSecret: string;
@@ -145,7 +126,7 @@ export class Creem<
 
   constructor(
     public component: ComponentApi,
-    private config: CreemConfig,
+    private config: CreemConfig = {},
   ) {
     this.apiKey = config.apiKey ?? process.env["CREEM_API_KEY"] ?? "";
     this.webhookSecret =
@@ -163,19 +144,10 @@ export class Creem<
       ...(this.serverURL ? { serverURL: this.serverURL } : {}),
     });
   }
-  getCustomerByEntityId(ctx: RunQueryCtx, entityId: string) {
+  private getCustomerByEntityId(ctx: RunQueryCtx, entityId: string) {
     return ctx.runQuery(this.component.lib.getCustomerByEntityId, { entityId });
   }
 
-  /** Resolve the billing entity ID from getUserInfo. Returns billingEntityId ?? userId. */
-  private async resolveEntityId(ctx: RunQueryCtx): Promise<{ entityId: string; userId: string; email: string }> {
-    const info = await this.config.getUserInfo(ctx);
-    return {
-      entityId: info.billingEntityId ?? info.userId,
-      userId: info.userId,
-      email: info.email,
-    };
-  }
   async syncProducts(ctx: RunActionCtx) {
     await ctx.runAction(this.component.lib.syncProducts, {
       apiKey: this.apiKey,
@@ -184,7 +156,7 @@ export class Creem<
     });
   }
 
-  async createCheckoutSession(
+  private async createCheckoutSession(
     ctx: RunMutationCtx,
     {
       productId,
@@ -242,8 +214,8 @@ export class Creem<
     return checkout;
   }
 
-  async createCustomerPortalSession(
-    ctx: GenericActionCtx<DataModel>,
+  private async createCustomerPortalSession(
+    ctx: RunActionCtx,
     { entityId }: { entityId: string },
   ) {
     const customer = await ctx.runQuery(
@@ -261,7 +233,7 @@ export class Creem<
     return { url: portal.customerPortalLink };
   }
 
-  listProducts(
+  private listProducts(
     ctx: RunQueryCtx,
     { includeArchived }: { includeArchived?: boolean } = {},
   ) {
@@ -269,7 +241,7 @@ export class Creem<
       includeArchived,
     });
   }
-  async getCurrentSubscription(
+  private async getCurrentSubscription(
     ctx: RunQueryCtx,
     { entityId }: { entityId: string },
   ) {
@@ -294,29 +266,29 @@ export class Creem<
     };
   }
   /** Return active subscriptions for an entity, excluding ended and expired trials. */
-  listUserSubscriptions(ctx: RunQueryCtx, { entityId }: { entityId: string }) {
+  private listUserSubscriptions(ctx: RunQueryCtx, { entityId }: { entityId: string }) {
     return ctx.runQuery(this.component.lib.listUserSubscriptions, {
       entityId,
     });
   }
   /** Return paid one-time orders for an entity. */
-  listUserOrders(ctx: RunQueryCtx, { entityId }: { entityId: string }) {
+  private listUserOrders(ctx: RunQueryCtx, { entityId }: { entityId: string }) {
     return ctx.runQuery(this.component.lib.listUserOrders, {
       entityId,
     });
   }
   /** Return all subscriptions for an entity, including ended and expired trials. */
-  listAllUserSubscriptions(ctx: RunQueryCtx, { entityId }: { entityId: string }) {
+  private listAllUserSubscriptions(ctx: RunQueryCtx, { entityId }: { entityId: string }) {
     return ctx.runQuery(this.component.lib.listAllUserSubscriptions, {
       entityId,
     });
   }
-  getProduct(ctx: RunQueryCtx, { productId }: { productId: string }) {
+  private getProduct(ctx: RunQueryCtx, { productId }: { productId: string }) {
     return ctx.runQuery(this.component.lib.getProduct, { id: productId });
   }
-  async changeSubscription(
-    ctx: GenericActionCtx<DataModel>,
-    { entityId, productId }: { entityId: string; productId: string },
+  private async changeSubscription(
+    ctx: RunActionCtx,
+    { entityId, productId, updateBehavior }: { entityId: string; productId: string; updateBehavior?: "proration-charge-immediately" | "proration-charge" | "proration-none" },
   ) {
     const subscription = await this.getCurrentSubscription(ctx, { entityId });
     if (!subscription) {
@@ -329,14 +301,15 @@ export class Creem<
       subscription.id,
       {
         productId,
+        ...(updateBehavior ? { updateBehavior } : {}),
       },
     );
     return updatedSubscription;
   }
 
-  async updateSubscriptionSeats(
-    ctx: GenericActionCtx<DataModel>,
-    { entityId, units }: { entityId: string; units: number },
+  private async updateSubscriptionSeats(
+    ctx: RunActionCtx,
+    { entityId, units, updateBehavior }: { entityId: string; units: number; updateBehavior?: "proration-charge-immediately" | "proration-charge" | "proration-none" },
   ) {
     if (units < 1) {
       throw new Error("Units must be at least 1");
@@ -355,6 +328,7 @@ export class Creem<
       subscription.id,
       {
         items: [{ id: item.id, units }],
+        ...(updateBehavior ? { updateBehavior } : {}),
       },
     );
     return updatedSubscription;
@@ -385,14 +359,13 @@ export class Creem<
       payment?: PaymentSnapshot | null;
     },
   ): Promise<BillingSnapshot> {
-    const [userContext, currentSubscription, allSubscriptions] =
+    const [currentSubscription, allSubscriptions] =
       await Promise.all([
-        this.config.getUserBillingContext?.(ctx),
         this.getCurrentSubscription(ctx, { entityId }),
         this.listAllUserSubscriptions(ctx, { entityId }),
       ]);
 
-    const resolverInput: BillingResolverInput = {
+    return defaultResolveBillingSnapshot({
       currentSubscription: currentSubscription
         ? this.toSubscriptionSnapshot(currentSubscription)
         : null,
@@ -400,20 +373,14 @@ export class Creem<
         this.toSubscriptionSnapshot(subscription),
       ),
       payment: payment ?? null,
-      userContext,
-    };
-
-    if (this.config.resolvePlan) {
-      return await this.config.resolvePlan(ctx, resolverInput);
-    }
-
-    return defaultResolveBillingSnapshot(resolverInput);
+      userContext: undefined,
+    });
   }
 
   /** Cancel an active or trialing subscription.
    *  Uses `config.cancelMode` as default when `revokeImmediately` is not specified.
    *  When neither is set, omits the mode so Creem's store-level default applies. */
-  async cancelSubscription(
+  private async cancelSubscription(
     ctx: RunActionCtx,
     { entityId, revokeImmediately }: { entityId: string; revokeImmediately?: boolean },
   ) {
@@ -451,7 +418,7 @@ export class Creem<
   }
 
   /** Pause an active subscription. */
-  async pauseSubscription(ctx: RunActionCtx, { entityId }: { entityId: string }) {
+  private async pauseSubscription(ctx: RunActionCtx, { entityId }: { entityId: string }) {
     const subscription = await this.getCurrentSubscription(ctx, { entityId });
     if (!subscription) {
       throw new Error("Subscription not found");
@@ -463,7 +430,7 @@ export class Creem<
   }
 
   /** Resume a subscription that is in scheduled_cancel or paused state. */
-  async resumeSubscription(ctx: RunActionCtx, { entityId }: { entityId: string }) {
+  private async resumeSubscription(ctx: RunActionCtx, { entityId }: { entityId: string }) {
     const subscription = await this.getCurrentSubscription(ctx, { entityId });
     if (!subscription) {
       throw new Error("Subscription not found");
@@ -689,13 +656,153 @@ export class Creem<
     }
   }
 
+  // ── Namespace getters (public API) ─────────────────────────
+
+  get subscriptions() {
+    type UpdateBehavior = "proration-charge-immediately" | "proration-charge" | "proration-none";
+    return {
+      getCurrent: (ctx: RunQueryCtx, { entityId }: { entityId: string }) =>
+        this.getCurrentSubscription(ctx, { entityId }),
+      list: (ctx: RunQueryCtx, { entityId }: { entityId: string }) =>
+        this.listUserSubscriptions(ctx, { entityId }),
+      listAll: (ctx: RunQueryCtx, { entityId }: { entityId: string }) =>
+        this.listAllUserSubscriptions(ctx, { entityId }),
+      update: async (
+        ctx: RunActionCtx,
+        args: { entityId: string; productId?: string; units?: number; updateBehavior?: UpdateBehavior },
+      ) => {
+        if (args.productId && args.units) throw new Error("Provide productId OR units, not both");
+        if (!args.productId && !args.units) throw new Error("Provide productId or units");
+        if (args.productId) {
+          return await this.changeSubscription(ctx, {
+            entityId: args.entityId,
+            productId: args.productId,
+            updateBehavior: args.updateBehavior,
+          });
+        }
+        return await this.updateSubscriptionSeats(ctx, {
+          entityId: args.entityId,
+          units: args.units!,
+          updateBehavior: args.updateBehavior,
+        });
+      },
+      cancel: (ctx: RunActionCtx, args: { entityId: string; revokeImmediately?: boolean }) =>
+        this.cancelSubscription(ctx, args),
+      pause: (ctx: RunActionCtx, { entityId }: { entityId: string }) =>
+        this.pauseSubscription(ctx, { entityId }),
+      resume: (ctx: RunActionCtx, { entityId }: { entityId: string }) =>
+        this.resumeSubscription(ctx, { entityId }),
+    };
+  }
+
+  get checkouts() {
+    return {
+      create: async (
+        ctx: RunActionCtx,
+        args: {
+          entityId: string;
+          userId: string;
+          email: string;
+          productId: string;
+          successUrl?: string;
+          fallbackSuccessUrl?: string;
+          units?: number;
+          metadata?: Record<string, string>;
+          discountCode?: string;
+          theme?: "light" | "dark";
+        },
+      ): Promise<{ url: string }> => {
+        // 3-tier successUrl resolution
+        let resolvedSuccessUrl = args.successUrl;
+        if (!resolvedSuccessUrl) {
+          const product = await ctx.runQuery(this.component.lib.getProduct, { id: args.productId });
+          resolvedSuccessUrl = product?.defaultSuccessUrl ?? undefined;
+        }
+        if (!resolvedSuccessUrl) {
+          resolvedSuccessUrl = args.fallbackSuccessUrl;
+        }
+
+        const checkout = await this.createCheckoutSession(ctx, {
+          productId: args.productId,
+          entityId: args.entityId,
+          userId: args.userId,
+          email: args.email,
+          ...(resolvedSuccessUrl ? { successUrl: resolvedSuccessUrl } : {}),
+          units: args.units,
+          metadata: args.metadata,
+        });
+        let checkoutUrl = checkout.checkoutUrl;
+        if (!checkoutUrl) throw new Error("Checkout URL missing from Creem response");
+        if (args.theme) {
+          const separator = checkoutUrl.includes("?") ? "&" : "?";
+          checkoutUrl = `${checkoutUrl}${separator}theme=${args.theme}`;
+        }
+        return { url: checkoutUrl };
+      },
+    };
+  }
+
+  get products() {
+    return {
+      list: (ctx: RunQueryCtx, options?: { includeArchived?: boolean }) =>
+        this.listProducts(ctx, options),
+      get: (ctx: RunQueryCtx, { productId }: { productId: string }) =>
+        this.getProduct(ctx, { productId }),
+    };
+  }
+
+  get customers() {
+    return {
+      retrieve: (ctx: RunQueryCtx, { entityId }: { entityId: string }) =>
+        this.getCustomerByEntityId(ctx, entityId),
+      portalUrl: (ctx: RunActionCtx, { entityId }: { entityId: string }) =>
+        this.createCustomerPortalSession(ctx, { entityId }),
+    };
+  }
+
+  get orders() {
+    return {
+      list: (ctx: RunQueryCtx, { entityId }: { entityId: string }) =>
+        this.listUserOrders(ctx, { entityId }),
+    };
+  }
+
+  // ── Component helpers (public, flat) ──────────────────────
+
   /**
-   * Build the generic billing UI model for a given user.
-   * Returns all data the connected widgets need minus app-specific fields.
-   * Use this in your own query if you need to add app-specific fields (e.g. ownedProductIds).
+   * Composite billing model for connected widgets.
+   * Graceful when `entityId` is null — returns public product catalog only.
+   * Pass `user` to include user context in the response (widgets expect this).
    */
-  async buildBillingUiModel(ctx: RunQueryCtx, { entityId }: { entityId: string }) {
+  async getBillingModel(
+    ctx: RunQueryCtx,
+    { entityId, user }: {
+      entityId: string | null;
+      user?: { _id: string; email: string } | null;
+    },
+  ) {
     const products = await this.listProducts(ctx);
+    if (!entityId) {
+      return {
+        user: user ?? null,
+        billingSnapshot: null as BillingSnapshot | null,
+        allProducts: products,
+        ownedProductIds: [] as string[],
+        subscriptionProductId: null as string | null,
+        activeSubscriptions: [] as Array<{
+          id: string;
+          productId: string;
+          status: string;
+          cancelAtPeriodEnd: boolean;
+          currentPeriodEnd: string | null;
+          currentPeriodStart: string;
+          seats: number | null;
+          recurringInterval: string | null;
+          trialEnd: string | null;
+        }>,
+        hasCreemCustomer: false,
+      };
+    }
     const [billingSnapshot, subscription, activeSubscriptions, customer, orders] =
       await Promise.all([
         this.getBillingSnapshot(ctx, { entityId }),
@@ -704,10 +811,9 @@ export class Creem<
         this.getCustomerByEntityId(ctx, entityId),
         this.listUserOrders(ctx, { entityId }),
       ]);
-    const ownedProductIds = [
-      ...new Set(orders.map((o) => o.productId)),
-    ];
+    const ownedProductIds = [...new Set(orders.map((o) => o.productId))];
     return {
+      user: user ?? null,
       billingSnapshot,
       allProducts: products,
       ownedProductIds,
@@ -727,227 +833,171 @@ export class Creem<
     };
   }
 
-  api() {
-    return {
-      changeCurrentSubscription: actionGeneric({
-        args: {
-          productId: v.string(),
-        },
-        handler: async (ctx, args) => {
-          const { entityId } = await this.resolveEntityId(ctx);
-          await this.changeSubscription(ctx, {
-            entityId,
-            productId: args.productId,
-          });
-        },
-      }),
-      updateSubscriptionSeats: actionGeneric({
-        args: {
-          units: v.number(),
-        },
-        handler: async (ctx, args) => {
-          const { entityId } = await this.resolveEntityId(ctx);
-          await this.updateSubscriptionSeats(ctx, {
-            entityId,
-            units: args.units,
-          });
-        },
-      }),
-      cancelCurrentSubscription: actionGeneric({
-        args: {
-          revokeImmediately: v.optional(v.boolean()),
-        },
-        handler: async (ctx, args) => {
-          const { entityId } = await this.resolveEntityId(ctx);
-          await this.cancelSubscription(ctx, {
-            entityId,
-            revokeImmediately: args.revokeImmediately,
-          });
-        },
-      }),
-      resumeCurrentSubscription: actionGeneric({
-        args: {},
-        handler: async (ctx) => {
-          const { entityId } = await this.resolveEntityId(ctx);
-          await this.resumeSubscription(ctx, { entityId });
-        },
-      }),
-      listAllProducts: queryGeneric({
-        args: {},
-        handler: async (ctx) => {
-          return await this.listProducts(ctx);
-        },
-      }),
-      listAllSubscriptions: queryGeneric({
-        args: {},
-        returns: v.array(
-          v.object({
-            ...schema.tables.subscriptions.validator.fields,
-            product: v.union(schema.tables.products.validator, v.null()),
-          }),
-        ),
-        handler: async (ctx) => {
-          const { entityId } = await this.resolveEntityId(ctx);
-          return await this.listAllUserSubscriptions(ctx, { entityId });
-        },
-      }),
-      getCurrentBillingSnapshot: queryGeneric({
-        args: {},
-        returns: v.any(),
-        handler: async (ctx) => {
-          const { entityId } = await this.resolveEntityId(ctx);
-          return await this.getBillingSnapshot(ctx, { entityId });
-        },
-      }),
-      /**
-       * Returns the full billing UI model for connected widgets.
-       * Handles unauthenticated state gracefully (returns user: null).
-       * If you need app-specific fields (ownedProductIds, policy), write your own
-       * query using creem.buildBillingUiModel() and extend the result.
-       */
-      getBillingUiModel: queryGeneric({
-        args: {},
-        returns: v.any(),
-        handler: async (ctx) => {
-          const products = await this.listProducts(ctx);
+  // ── api({ resolve }) convenience ──────────────────────────
 
-          let resolved: { entityId: string; userId: string; email: string } | null = null;
+  /**
+   * Generate ready-to-export Convex function definitions.
+   * Each function calls the `resolve` callback to determine the authenticated
+   * user and billing entity, then delegates to the corresponding class method.
+   *
+   * For full control, use the namespace getters directly instead
+   * (e.g. `creem.subscriptions.cancel(ctx, { entityId })`).
+   */
+  api({ resolve }: { resolve: ApiResolver }) {
+    return {
+      uiModel: queryGeneric({
+        args: {},
+        returns: v.any(),
+        handler: async (ctx) => {
+          let resolved: { userId: string; email: string; entityId: string } | null = null;
           try {
-            resolved = await this.resolveEntityId(ctx);
+            resolved = await resolve(ctx);
           } catch {
             // No authenticated user — return unauthenticated model
           }
-
-          if (!resolved) {
-            return {
-              user: null,
-              billingSnapshot: null,
-              allProducts: products,
-              ownedProductIds: [],
-              subscriptionProductId: null,
-              hasCreemCustomer: false,
-            };
-          }
-
-          const billingData = await this.buildBillingUiModel(ctx, {
-            entityId: resolved.entityId,
+          return await this.getBillingModel(ctx, {
+            entityId: resolved?.entityId ?? null,
+            user: resolved ? { _id: resolved.userId, email: resolved.email } : null,
           });
-          return {
-            user: { _id: resolved.userId, email: resolved.email },
-            ...billingData,
-          };
         },
       }),
-      generateCheckoutLink: actionGeneric({
-        args: {
-          productId: v.string(),
-          successUrl: v.optional(v.string()),
-          fallbackSuccessUrl: v.optional(v.string()),
-          units: v.optional(v.number()),
-          metadata: v.optional(v.record(v.string(), v.string())),
-          theme: v.optional(v.union(v.literal("light"), v.literal("dark"))),
-        },
-        returns: v.object({
-          url: v.string(),
-        }),
-        handler: async (ctx, args) => {
-          const { entityId, userId, email } = await this.resolveEntityId(ctx);
-
-          // 3-tier successUrl resolution:
-          // 1. Explicit successUrl arg (from widget prop)
-          // 2. Product's defaultSuccessUrl from Convex DB
-          // 3. fallbackSuccessUrl (current page origin, from widget)
-          let resolvedSuccessUrl = args.successUrl;
-          if (!resolvedSuccessUrl) {
-            const product = await ctx.runQuery(
-              this.component.lib.getProduct,
-              { id: args.productId },
-            );
-            resolvedSuccessUrl = product?.defaultSuccessUrl ?? undefined;
-          }
-          if (!resolvedSuccessUrl) {
-            resolvedSuccessUrl = args.fallbackSuccessUrl;
-          }
-
-          const checkout = await this.createCheckoutSession(ctx, {
-            productId: args.productId,
-            entityId,
-            userId,
-            email,
-            ...(resolvedSuccessUrl ? { successUrl: resolvedSuccessUrl } : {}),
-            units: args.units,
-            metadata: args.metadata,
-          });
-          let checkoutUrl = checkout.checkoutUrl;
-          if (!checkoutUrl) {
-            throw new Error("Checkout URL missing from Creem response");
-          }
-          // Append theme preference to checkout URL
-          if (args.theme) {
-            const separator = checkoutUrl.includes("?") ? "&" : "?";
-            checkoutUrl = `${checkoutUrl}${separator}theme=${args.theme}`;
-          }
-          return { url: checkoutUrl };
-        },
-      }),
-      generateCustomerPortalUrl: actionGeneric({
-        args: {},
-        returns: v.object({ url: v.string() }),
-        handler: async (ctx) => {
-          const { entityId } = await this.resolveEntityId(ctx);
-          const { url } = await this.createCustomerPortalSession(ctx, {
-            entityId,
-          });
-          return { url };
-        },
-      }),
-
-      // ── Entity-scoped queries ──────────────────────────────
-      getProduct: queryGeneric({
-        args: { productId: v.string() },
-        returns: v.union(schema.tables.products.validator, v.null()),
-        handler: async (ctx, args) => {
-          return await this.getProduct(ctx, { productId: args.productId });
-        },
-      }),
-      getCustomer: queryGeneric({
-        args: {},
-        returns: v.union(schema.tables.customers.validator, v.null()),
-        handler: async (ctx) => {
-          const { entityId } = await this.resolveEntityId(ctx);
-          return await this.getCustomerByEntityId(ctx, entityId);
-        },
-      }),
-      listSubscriptions: queryGeneric({
+      snapshot: queryGeneric({
         args: {},
         returns: v.any(),
         handler: async (ctx) => {
-          const { entityId } = await this.resolveEntityId(ctx);
-          return await this.listUserSubscriptions(ctx, { entityId });
+          let resolved: { entityId: string } | null = null;
+          try {
+            resolved = await resolve(ctx);
+          } catch {
+            return null;
+          }
+          if (!resolved) return null;
+          return await this.getBillingSnapshot(ctx, { entityId: resolved.entityId });
         },
       }),
-      listOrders: queryGeneric({
-        args: {},
-        returns: v.array(schema.tables.orders.validator),
-        handler: async (ctx) => {
-          const { entityId } = await this.resolveEntityId(ctx);
-          return await this.listUserOrders(ctx, { entityId });
-        },
-      }),
-
-      // ── Entity-scoped actions ────────────
-      pauseCurrentSubscription: actionGeneric({
-        args: {},
-        handler: async (ctx) => {
-          const { entityId } = await this.resolveEntityId(ctx);
-          await this.pauseSubscription(ctx, { entityId });
-        },
-      }),
+      checkouts: {
+        create: actionGeneric({
+          args: {
+            productId: v.string(),
+            successUrl: v.optional(v.string()),
+            fallbackSuccessUrl: v.optional(v.string()),
+            units: v.optional(v.number()),
+            metadata: v.optional(v.record(v.string(), v.string())),
+            discountCode: v.optional(v.string()),
+            theme: v.optional(v.union(v.literal("light"), v.literal("dark"))),
+          },
+          returns: v.object({ url: v.string() }),
+          handler: async (ctx, args) => {
+            const { entityId, userId, email } = await resolve(ctx);
+            return await this.checkouts.create(ctx, {
+              entityId, userId, email, ...args,
+            });
+          },
+        }),
+      },
+      subscriptions: {
+        update: actionGeneric({
+          args: {
+            productId: v.optional(v.string()),
+            units: v.optional(v.number()),
+            updateBehavior: v.optional(v.union(
+              v.literal("proration-charge-immediately"),
+              v.literal("proration-charge"),
+              v.literal("proration-none"),
+            )),
+          },
+          handler: async (ctx, args) => {
+            const { entityId } = await resolve(ctx);
+            await this.subscriptions.update(ctx, { entityId, ...args });
+          },
+        }),
+        cancel: actionGeneric({
+          args: { revokeImmediately: v.optional(v.boolean()) },
+          handler: async (ctx, args) => {
+            const { entityId } = await resolve(ctx);
+            await this.subscriptions.cancel(ctx, { entityId, ...args });
+          },
+        }),
+        resume: actionGeneric({
+          args: {},
+          handler: async (ctx) => {
+            const { entityId } = await resolve(ctx);
+            await this.subscriptions.resume(ctx, { entityId });
+          },
+        }),
+        pause: actionGeneric({
+          args: {},
+          handler: async (ctx) => {
+            const { entityId } = await resolve(ctx);
+            await this.subscriptions.pause(ctx, { entityId });
+          },
+        }),
+        list: queryGeneric({
+          args: {},
+          returns: v.any(),
+          handler: async (ctx) => {
+            const { entityId } = await resolve(ctx);
+            return await this.subscriptions.list(ctx, { entityId });
+          },
+        }),
+        listAll: queryGeneric({
+          args: {},
+          returns: v.array(
+            v.object({
+              ...schema.tables.subscriptions.validator.fields,
+              product: v.union(schema.tables.products.validator, v.null()),
+            }),
+          ),
+          handler: async (ctx) => {
+            const { entityId } = await resolve(ctx);
+            return await this.subscriptions.listAll(ctx, { entityId });
+          },
+        }),
+      },
+      products: {
+        list: queryGeneric({
+          args: {},
+          handler: async (ctx) => {
+            return await this.products.list(ctx);
+          },
+        }),
+        get: queryGeneric({
+          args: { productId: v.string() },
+          returns: v.union(schema.tables.products.validator, v.null()),
+          handler: async (ctx, args) => {
+            return await this.products.get(ctx, { productId: args.productId });
+          },
+        }),
+      },
+      customers: {
+        retrieve: queryGeneric({
+          args: {},
+          returns: v.union(schema.tables.customers.validator, v.null()),
+          handler: async (ctx) => {
+            const { entityId } = await resolve(ctx);
+            return await this.customers.retrieve(ctx, { entityId });
+          },
+        }),
+        portalUrl: actionGeneric({
+          args: {},
+          returns: v.object({ url: v.string() }),
+          handler: async (ctx) => {
+            const { entityId } = await resolve(ctx);
+            return await this.customers.portalUrl(ctx, { entityId });
+          },
+        }),
+      },
+      orders: {
+        list: queryGeneric({
+          args: {},
+          returns: v.array(schema.tables.orders.validator),
+          handler: async (ctx) => {
+            const { entityId } = await resolve(ctx);
+            return await this.orders.list(ctx, { entityId });
+          },
+        }),
+      },
     };
-  }
-
-  checkoutApi() {
-    return this.api();
   }
 
   registerRoutes(
