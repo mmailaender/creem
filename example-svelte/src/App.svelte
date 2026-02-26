@@ -94,8 +94,6 @@
       <Subscription
         planId="premium"
         type="single"
-        title="Premium"
-        description="Advanced subscription plan."
         recommended
         productIds={{
           "every-month": "prod_7Cukw2hVIT5DvozmomK67A",
@@ -119,14 +117,10 @@
       <Subscription type="free" title="Free" description="No-cost tier" />
       <Subscription
         type="single"
-        title="Basic"
-        description="Monthly subscription, no trial"
         productIds={{ "every-month": "prod_53CU7duHB58lGTUqKlRroI" }}
       />
       <Subscription
         type="single"
-        title="Premium"
-        description="Monthly subscription, no trial"
         productIds={{ "every-month": "prod_3ymOe55fDzKgmPoZnPEOBq" }}
       />
       <Subscription type="enterprise" title="Enterprise" contactUrl="https://creem.io" />
@@ -144,14 +138,10 @@
     <Subscription.Group api={connectedApi} className="space-y-4" showSeatPicker>
       <Subscription
         type="seat-based"
-        title="Basic (per seat)"
-        description="Per-seat monthly subscription"
         productIds={{ "every-month": "prod_1c6ZGcxekHKrVYuWriHs68" }}
       />
       <Subscription
         type="seat-based"
-        title="Premium (per seat)"
-        description="Per-seat monthly subscription"
         productIds={{ "every-month": "prod_3861b06bJDnvpEBcs2uxYv" }}
       />
     </Subscription.Group>
@@ -168,14 +158,10 @@
     <Subscription.Group api={connectedApi} className="space-y-4" units={5}>
       <Subscription
         type="seat-based"
-        title="Basic"
-        description="Per-seat monthly subscription"
         productIds={{ "every-month": "prod_1c6ZGcxekHKrVYuWriHs68" }}
       />
       <Subscription
         type="seat-based"
-        title="Premium"
-        description="Per-seat monthly subscription"
         productIds={{ "every-month": "prod_3861b06bJDnvpEBcs2uxYv" }}
       />
     </Subscription.Group>
@@ -191,8 +177,6 @@
       api={connectedApi}
       type="one-time"
       productId="prod_6npEfkzgtr9hSqdWd7fqKG"
-      title="Lifetime License"
-      description="Buy once and own it forever."
     />
   </section>
 
@@ -208,14 +192,10 @@
       <Product
         type="one-time"
         productId="prod_4Di7Lkhf3TXy4UOKsUrGw0"
-        title="Basic"
-        description="Entry-level one-time product"
       />
       <Product
         type="one-time"
         productId="prod_56sJIyL7piLCVv270n4KBz"
-        title="Premium"
-        description="Higher-tier one-time product"
       />
     </Product.Group>
   </section>
@@ -231,8 +211,6 @@
       api={connectedApi}
       type="recurring"
       productId="prod_73CnZ794MaJ1DUn8MU0O5f"
-      title="Credit Top-Up"
-      description="Buy credits any time you need more."
     />
   </section>
 </main>

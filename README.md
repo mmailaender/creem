@@ -267,7 +267,7 @@ renders a pricing card.
 | `type`        | `"free" \| "single" \| "seat-based" \| "enterprise"` | **Required.** Plan type.                                        |
 | `planId`      | `string`                                             | Unique plan identifier. Defaults to first product ID or `type`. |
 | `title`       | `string`                                             | Plan title. Auto-resolves from product data if omitted.         |
-| `description` | `string`                                             | Plan subtitle. Auto-resolves from product data if omitted.      |
+| `description` | `string`                                             | Plan subtitle (supports Markdown). Auto-resolves from product data if omitted. |
 | `contactUrl`  | `string`                                             | "Contact sales" link for enterprise plans.                      |
 | `productIds`  | `Record<RecurringCycle, string>`                     | Creem product IDs keyed by billing cycle.                       |
 | `api`         | `ConnectedBillingApi`                                | Required in standalone mode only.                               |
@@ -334,7 +334,7 @@ renders a full card with checkout.
 | `productId`   | `string`                    | **Required.** Creem product ID.                      |
 | `type`        | `"one-time" \| "recurring"` | **Required.** One-time shows "Owned" after purchase. |
 | `title`       | `string`                    | Card title. Auto-resolves from product data.         |
-| `description` | `string`                    | Card subtitle. Auto-resolves from product data.      |
+| `description` | `string`                    | Card subtitle (supports Markdown). Auto-resolves from product data. |
 | `api`         | `ConnectedBillingApi`       | Required in standalone mode only.                    |
 | `permissions` | `BillingPermissions`        | Optional. Disable checkout based on user role.       |
 | `successUrl`  | `string`                    | Standalone mode only. Redirect after checkout.       |

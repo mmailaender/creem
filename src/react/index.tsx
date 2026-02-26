@@ -11,6 +11,7 @@ import {
   hasBillingAction,
   hasCheckoutSuccessParams,
   parseCheckoutSuccessParams,
+  renderMarkdown,
   type AvailableAction,
   type BillingSnapshot,
   type CheckoutSuccessParams,
@@ -260,9 +261,10 @@ export const PricingCard = ({
       </div>
 
       {plan.description && (
-        <p className="mb-3 text-sm text-zinc-600 dark:text-zinc-300">
-          {plan.description}
-        </p>
+        <div
+          className="creem-prose mb-3 text-sm text-zinc-600 dark:text-zinc-300"
+          dangerouslySetInnerHTML={{ __html: renderMarkdown(plan.description) }}
+        />
       )}
 
       {plan.billingCycles && plan.billingCycles.length > 0 && (

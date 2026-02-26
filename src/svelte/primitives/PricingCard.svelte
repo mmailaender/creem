@@ -3,6 +3,7 @@
   import type { UIPlanEntry, RecurringCycle } from "../../core/types.js";
   import type { ConnectedProduct } from "../widgets/types.js";
   import { resolveProductIdForPlan, formatPriceWithInterval, formatSeatPrice } from "./shared.js";
+  import { renderMarkdown } from "../../core/markdown.js";
 
   interface Props {
     plan: UIPlanEntry;
@@ -142,9 +143,10 @@
   </h3>
 
   {#if plan.description}
-    <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
-      {plan.description}
-    </p>
+    <div class="creem-prose mt-1 text-sm text-zinc-600 dark:text-zinc-300">
+      <!-- eslint-disable-next-line svelte/no-at-html-tags — merchant-authored markdown from Creem -->
+      {@html renderMarkdown(plan.description)}
+    </div>
   {/if}
 
   <div class="mt-3 mb-4">

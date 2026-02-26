@@ -12,4 +12,5 @@
 @import './rounded/utilities.css';
 @import './typography/utilities.css';
 @import './components/buttons.css';
+@import './components/prose.css';
 @import './components/segment-control.css';

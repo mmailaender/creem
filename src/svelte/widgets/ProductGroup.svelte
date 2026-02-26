@@ -15,6 +15,7 @@
     Transition,
   } from "./types.js";
     import { SvelteSet } from "svelte/reactivity";
+    import { renderMarkdown } from "../../core/markdown.js";
 
   interface Props {
     api: ConnectedBillingApi;
@@ -178,9 +179,10 @@
           {resolvedTitle}
         </h3>
         {#if resolvedDescription}
-          <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
-            {resolvedDescription}
-          </p>
+          <div class="creem-prose mt-1 text-sm text-zinc-600 dark:text-zinc-300">
+            <!-- eslint-disable-next-line svelte/no-at-html-tags — merchant-authored markdown from Creem -->
+            {@html renderMarkdown(resolvedDescription)}
+          </div>
         {/if}
 
         {#if resolvedPrice}

@@ -8,6 +8,7 @@
     type ProductGroupContextValue,
   } from "./productGroupContext.js";
   import type { BillingPermissions, ConnectedBillingApi, ConnectedBillingModel, ProductType } from "./types.js";
+  import { renderMarkdown } from "../../core/markdown.js";
 
   interface Props {
     api?: ConnectedBillingApi;
@@ -127,9 +128,10 @@
   <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
     {resolvedTitle}
   </h3>
-  <p class="mt-1 text-sm text-zinc-600 dark:text-zinc-300">
-    {resolvedDescription}
-  </p>
+  <div class="creem-prose mt-1 text-sm text-zinc-600 dark:text-zinc-300">
+    <!-- eslint-disable-next-line svelte/no-at-html-tags — merchant-authored markdown from Creem -->
+    {@html renderMarkdown(resolvedDescription)}
+  </div>
 
   {#if resolvedPrice}
     <p class="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-100">

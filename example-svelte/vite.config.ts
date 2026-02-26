@@ -23,6 +23,6 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    exclude: ["@mmailaender/creem/svelte"],
+    exclude: ["@mmailaender/convex-creem/svelte"],
   },
 });
