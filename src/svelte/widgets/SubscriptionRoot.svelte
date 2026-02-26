@@ -26,6 +26,7 @@
     units?: number;
     showSeatPicker?: boolean;
     twoColumnLayout?: boolean;
+    updateBehavior?: "proration-charge-immediately" | "proration-charge" | "proration-none";
     children?: import("svelte").Snippet;
   }
 
@@ -37,6 +38,7 @@
     units = undefined,
     showSeatPicker = false,
     twoColumnLayout = false,
+    updateBehavior = "proration-charge-immediately",
     children,
   }: Props = $props();
 
@@ -235,7 +237,11 @@
     isActionLoading = true;
     actionError = null;
     try {
-      await client.action(updateRef, { units: payload.units });
+      await client.action(updateRef, {
+        units: payload.units,
+        ...(matchedSubscription?.id ? { subscriptionId: matchedSubscription.id } : {}),
+        updateBehavior,
+      });
     } catch (error) {
       actionError = error instanceof Error ? error.message : "Seat update failed";
     } finally {

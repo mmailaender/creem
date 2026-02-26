@@ -309,28 +309,43 @@ export class Creem {
 
   private async updateSubscriptionSeats(
     ctx: RunActionCtx,
-    { entityId, units, updateBehavior }: { entityId: string; units: number; updateBehavior?: "proration-charge-immediately" | "proration-charge" | "proration-none" },
+    { entityId, units, subscriptionId, updateBehavior }: { entityId: string; units: number; subscriptionId?: string; updateBehavior?: "proration-charge-immediately" | "proration-charge" | "proration-none" },
   ) {
     if (units < 1) {
       throw new Error("Units must be at least 1");
     }
-    const subscription = await this.getCurrentSubscription(ctx, { entityId });
-    if (!subscription) {
-      throw new Error("Subscription not found");
+    let subscription;
+    if (subscriptionId) {
+      const sub = await ctx.runQuery(this.component.lib.getSubscription, { id: subscriptionId });
+      if (!sub) throw new Error(`Subscription not found: ${subscriptionId}`);
+      const product = await ctx.runQuery(this.component.lib.getProduct, { id: sub.productId });
+      if (!product) throw new Error("Product not found");
+      subscription = { ...sub, product };
+    } else {
+      subscription = await this.getCurrentSubscription(ctx, { entityId });
+      if (!subscription) throw new Error("Subscription not found");
     }
+    console.log(`[creem-seats] targeting sub=${subscription.id} product=${subscription.productId} currentSeats=${subscription.seats} → newUnits=${units}`);
     // Fetch live subscription from Creem to get item IDs
     const live = await this.sdk.subscriptions.get(subscription.id);
     const item = live.items?.[0];
     if (!item) {
       throw new Error("Subscription has no items");
     }
+    console.log(`[creem-seats] item=${item.id} productId=${item.productId} priceId=${item.priceId}`);
+    // Note: The Creem SDK defaults updateBehavior to "proration-charge" which defers
+    // seat changes to the next billing cycle. Callers should explicitly pass
+    // "proration-charge-immediately" for changes to take effect right away.
+    console.log(`[creem-seats] sending update: items=[{id: ${item.id}, productId: ${item.productId}, priceId: ${item.priceId}, units: ${units}}] updateBehavior=${updateBehavior ?? "(sdk-default: proration-charge)"}`);
     const updatedSubscription = await this.sdk.subscriptions.update(
       subscription.id,
       {
-        items: [{ id: item.id, units }],
+        items: [{ id: item.id, productId: item.productId, priceId: item.priceId, units }],
         ...(updateBehavior ? { updateBehavior } : {}),
       },
     );
+    const responseItems = updatedSubscription.items?.map(i => ({ id: i.id, units: i.units }));
+    console.log(`[creem-seats] API response: status=${updatedSubscription.status} items=${JSON.stringify(responseItems)}`);
     return updatedSubscription;
   }
 
@@ -669,7 +684,7 @@ export class Creem {
         this.listAllUserSubscriptions(ctx, { entityId }),
       update: async (
         ctx: RunActionCtx,
-        args: { entityId: string; productId?: string; units?: number; updateBehavior?: UpdateBehavior },
+        args: { entityId: string; subscriptionId?: string; productId?: string; units?: number; updateBehavior?: UpdateBehavior },
       ) => {
         if (args.productId && args.units) throw new Error("Provide productId OR units, not both");
         if (!args.productId && !args.units) throw new Error("Provide productId or units");
@@ -682,6 +697,7 @@ export class Creem {
         }
         return await this.updateSubscriptionSeats(ctx, {
           entityId: args.entityId,
+          subscriptionId: args.subscriptionId,
           units: args.units!,
           updateBehavior: args.updateBehavior,
         });
@@ -898,6 +914,7 @@ export class Creem {
       subscriptions: {
         update: actionGeneric({
           args: {
+            subscriptionId: v.optional(v.string()),
             productId: v.optional(v.string()),
             units: v.optional(v.number()),
             updateBehavior: v.optional(v.union(

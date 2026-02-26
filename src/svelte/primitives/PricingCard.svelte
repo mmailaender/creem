@@ -126,7 +126,7 @@
           : "Subscribe",
   );
   const handleCheckout = (payload: { productId: string }) => {
-    if (isSiblingPlan && onSwitchPlan) {
+    if ((isSiblingPlan || isActivePlanOtherCycle) && onSwitchPlan) {
       onSwitchPlan({ plan, productId: payload.productId, units: isSeatPlan ? (subscribedSeats ?? effectiveUnits) : effectiveUnits });
     } else {
       onCheckout?.({ plan, productId: payload.productId, units: effectiveUnits });
@@ -285,7 +285,7 @@
       </button>
     {:else if isActiveProduct || isActiveFreePlan}
       <!-- Keep CTA row height but intentionally empty when current plan has no action -->
-    {:else if isSiblingPlan && productId}
+    {:else if (isSiblingPlan || isActivePlanOtherCycle) && productId}
       <CheckoutButton
         {productId}
         disabled={disableSwitch}

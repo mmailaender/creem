@@ -651,7 +651,7 @@ functions, or let `creem.api({ resolve })` generate ready-to-export wrappers.
 | `.getCurrent(ctx, { entityId })` | Convex DB | Current active subscription with product join |
 | `.list(ctx, { entityId })` | Convex DB | Active subscriptions (excludes ended + expired trials) |
 | `.listAll(ctx, { entityId })` | Convex DB | All subscriptions including ended |
-| `.update(ctx, { entityId, productId?, units?, updateBehavior? })` | Creem API | Unified plan switch (`productId`) or seat update (`units`). Optional proration override. |
+| `.update(ctx, { entityId, subscriptionId?, productId?, units?, updateBehavior? })` | Creem API | Unified plan switch (`productId`) or seat update (`units`). Pass `subscriptionId` when the entity has multiple active subscriptions. Optional proration override. |
 | `.cancel(ctx, { entityId, revokeImmediately? })` | Creem API | Cancel subscription |
 | `.pause(ctx, { entityId })` | Creem API | Pause an active subscription |
 | `.resume(ctx, { entityId })` | Creem API | Resume a paused or scheduled-cancel subscription |
