@@ -1,6 +1,2 @@
 @import "tailwindcss";
-@import '../../src/design-system/index.css';
-
-@source "./**/*.{svelte,ts}";
-@source "../../src/svelte/primitives/**/*.{svelte,ts}";
-@source "../../src/svelte/widgets/**/*.{svelte,ts}";
+@import "@mmailaender/convex-creem/styles";

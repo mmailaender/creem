@@ -63,6 +63,7 @@
       "svelte": "./dist/svelte/index.js",
       "default": "./dist/svelte/index.js"
     },
+    "./styles": "./src/library.css",
     "./test": "./src/test.ts",
     "./_generated/component.js": {
       "types": "./dist/component/_generated/component.d.ts"
