@@ -4,6 +4,7 @@ export {
 } from "../core/payments.js";
 export { default as BillingToggle } from "./primitives/BillingToggle.svelte";
 export { default as Badge } from "./primitives/Badge.svelte";
+export { default as SegmentGroup } from "./primitives/SegmentGroup.svelte";
 export { default as SegmentControl } from "./primitives/SegmentControl.svelte";
 export { default as IconButton } from "./primitives/IconButton.svelte";
 export { default as Input } from "./primitives/Input.svelte";

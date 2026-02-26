@@ -175,7 +175,6 @@
     };
   };
 
-  const CHECK_ICON_URL = "https://files.svgcdn.io/ph/check-bold.svg";
 </script>
 
 <div class="hidden" aria-hidden="true">
@@ -271,8 +270,21 @@
               <ul class="space-y-2">
                 {#each descriptionLines as feature (feature)}
                   <li class="flex items-center gap-2">
-                    <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center">
-                      <img alt="" aria-hidden="true" class="h-4 w-4" src={CHECK_ICON_URL} />
+                    <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center text-foreground-muted">
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        class="h-4 w-4"
+                      >
+                        <path
+                          d="M20 6L9 17L4 12"
+                          stroke="currentColor"
+                          stroke-width="2.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
                     </span>
                     <span class="body-m text-foreground-default">{feature}</span>
                   </li>

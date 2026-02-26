@@ -2,7 +2,7 @@
   /* global $props */
   import type { RecurringCycle } from "../../core/types.js";
   import { formatRecurringCycle } from "./shared.js";
-  import SegmentControl from "./SegmentControl.svelte";
+  import SegmentGroup from "./SegmentGroup.svelte";
 
   interface Props {
     cycles?: RecurringCycle[];
@@ -15,7 +15,7 @@
 </script>
 
 {#if cycles.length > 1}
-  <SegmentControl
+  <SegmentGroup
     items={cycles.map((cycle) => ({
       value: cycle,
       label: formatRecurringCycle(cycle),

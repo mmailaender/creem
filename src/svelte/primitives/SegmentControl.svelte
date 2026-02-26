@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { SegmentGroup } from "@ark-ui/svelte/segment-group";
+  import SegmentGroup from "./SegmentGroup.svelte";
 
   export type SegmentControlItem = {
     label: string;
@@ -27,26 +27,12 @@
 </script>
 
 {#if items.length > 1}
-  <SegmentGroup.Root
+  <SegmentGroup
+    {items}
     {value}
     {defaultValue}
     {disabled}
-    class={`segment-control ${className}`}
-    onValueChange={(details: { value: string }) => onValueChange?.(details.value)}
-  >
-    <SegmentGroup.Indicator class="segment-control-indicator" />
-    {#each items as item (item.value)}
-      <SegmentGroup.Item
-        value={item.value}
-        disabled={item.disabled}
-        class="segment-control-item"
-      >
-        <SegmentGroup.ItemText class="segment-control-item-text label-m">
-          {item.label}
-        </SegmentGroup.ItemText>
-        <SegmentGroup.ItemControl class="segment-control-item-control" />
-        <SegmentGroup.ItemHiddenInput />
-      </SegmentGroup.Item>
-    {/each}
-  </SegmentGroup.Root>
+    {onValueChange}
+    className={className}
+  />
 {/if}
