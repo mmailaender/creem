@@ -88,13 +88,19 @@
     if (!model) return null;
     // Use this component's matched subscription product ID, not the global one
     const subProductId = localSubscriptionProductId;
-    if (!subProductId) return null;
-
-    const matchedPlan = registeredPlans.find((plan) => {
-      const values = Object.values(plan.productIds ?? {}).filter(Boolean) as string[];
-      return values.includes(subProductId);
-    });
-    return matchedPlan?.planId ?? null;
+    if (subProductId) {
+      const matchedPlan = registeredPlans.find((plan) => {
+        const values = Object.values(plan.productIds ?? {}).filter(Boolean) as string[];
+        return values.includes(subProductId);
+      });
+      return matchedPlan?.planId ?? null;
+    }
+    // No active subscription — if user is signed in, treat the free plan as active
+    if (model.user) {
+      const freePlan = plans.find((p) => p.category === "free");
+      if (freePlan) return freePlan.planId;
+    }
+    return null;
   });
 
   const allProducts = $derived(model?.allProducts ?? []);

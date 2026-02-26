@@ -84,6 +84,7 @@
   const resolvedPrice = $derived(
     formatPriceWithInterval(productId, model?.allProducts ?? []),
   );
+  const resolvedImageUrl = $derived(matchedProduct?.imageUrl ?? null);
 
   const getSuccessUrl = () => {
     if (successUrl) return successUrl;
@@ -125,13 +126,17 @@
 <section
   class={`rounded-xl border border-zinc-200 bg-white p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 ${className}`}
 >
+  {#if resolvedImageUrl}
+    <img
+      src={resolvedImageUrl}
+      alt={resolvedTitle}
+      class="mb-4 aspect-video w-full rounded-lg object-cover"
+    />
+  {/if}
+
   <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
     {resolvedTitle}
   </h3>
-  <div class="creem-prose mt-1 text-sm text-zinc-600 dark:text-zinc-300">
-    <!-- eslint-disable-next-line svelte/no-at-html-tags — merchant-authored markdown from Creem -->
-    {@html renderMarkdown(resolvedDescription)}
-  </div>
 
   {#if resolvedPrice}
     <p class="mt-2 text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -160,5 +165,12 @@
       </CheckoutButton>
     {/if}
   </div>
+
+  {#if resolvedDescription}
+    <div class="creem-prose mt-4 text-sm text-zinc-600 dark:text-zinc-300">
+      <!-- eslint-disable-next-line svelte/no-at-html-tags — merchant-authored markdown from Creem -->
+      {@html renderMarkdown(resolvedDescription)}
+    </div>
+  {/if}
 </section>
 {/if}

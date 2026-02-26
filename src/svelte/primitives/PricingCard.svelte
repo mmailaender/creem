@@ -74,6 +74,10 @@
 
   const productId = $derived(resolveProductIdForPlan(plan, selectedCycle));
   const priceLabel = $derived(formatPriceWithInterval(productId, products));
+  const imageUrl = $derived.by(() => {
+    if (!productId || !products.length) return null;
+    return products.find((p) => p.id === productId)?.imageUrl ?? null;
+  });
 
   // Exact match: user is subscribed to THIS specific product (plan + cycle)
   const isActiveProduct = $derived(
@@ -90,6 +94,10 @@
   // Same plan but different billing cycle — offer to switch interval
   const isActivePlanOtherCycle = $derived(
     !isActiveProduct && activePlanId === plan.planId && productId != null,
+  );
+  // Free plan is active when activePlanId matches and the plan has no product (no subscription)
+  const isActiveFreePlan = $derived(
+    !isActiveProduct && plan.category === "free" && activePlanId === plan.planId,
   );
   // Sibling plan in the same <Subscription> group that already has a subscription
   const isSiblingPlan = $derived(
@@ -138,18 +146,19 @@
     </span>
   {/if}
 
+  {#if imageUrl}
+    <img
+      src={imageUrl}
+      alt={plan.title ?? plan.planId}
+      class="mb-4 aspect-video w-full rounded-lg object-cover"
+    />
+  {/if}
+
   <h3 class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
     {plan.title ?? plan.planId}
   </h3>
 
-  {#if plan.description}
-    <div class="creem-prose mt-1 text-sm text-zinc-600 dark:text-zinc-300">
-      <!-- eslint-disable-next-line svelte/no-at-html-tags — merchant-authored markdown from Creem -->
-      {@html renderMarkdown(plan.description)}
-    </div>
-  {/if}
-
-  <div class="mt-3 mb-4">
+  <div class="mt-2 mb-4">
     {#if plan.category === "free"}
       <span class="text-3xl font-bold text-zinc-900 dark:text-zinc-100">Free</span>
     {:else if plan.category === "enterprise"}
@@ -225,7 +234,7 @@
     {/if}
   {/if}
 
-  <div class="mt-auto">
+  <div>
     {#if isActiveProduct && isTrialing}
       <div class="space-y-1">
         <span
@@ -234,7 +243,7 @@
           Free trial{#if trialDaysLeft != null}&ensp;·&ensp;{trialDaysLeft} day{trialDaysLeft === 1 ? '' : 's'} left{/if}
         </span>
       </div>
-    {:else if isActiveProduct}
+    {:else if isActiveProduct || isActiveFreePlan}
       <span
         class="inline-flex rounded-md bg-emerald-100 px-3 py-2 text-sm font-medium text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300"
       >
@@ -271,4 +280,11 @@
       </span>
     {/if}
   </div>
+
+  {#if plan.description}
+    <div class="creem-prose mt-4 text-sm text-zinc-600 dark:text-zinc-300">
+      <!-- eslint-disable-next-line svelte/no-at-html-tags — merchant-authored markdown from Creem -->
+      {@html renderMarkdown(plan.description)}
+    </div>
+  {/if}
 </section>

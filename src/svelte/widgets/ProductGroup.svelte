@@ -172,18 +172,21 @@
       {@const resolvedTitle = item.title ?? matchedProduct?.name ?? item.productId}
       {@const resolvedDescription = item.description ?? matchedProduct?.description}
       {@const resolvedPrice = formatPriceWithInterval(item.productId, allProducts)}
+      {@const resolvedImageUrl = matchedProduct?.imageUrl ?? null}
       <article
         class={`rounded-xl border p-4 shadow-sm ${isIncluded ? "border-zinc-100 bg-zinc-50 opacity-60 dark:border-zinc-800 dark:bg-zinc-900" : "border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950"}`}
       >
+        {#if resolvedImageUrl}
+          <img
+            src={resolvedImageUrl}
+            alt={resolvedTitle}
+            class="mb-4 aspect-video w-full rounded-lg object-cover"
+          />
+        {/if}
+
         <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
           {resolvedTitle}
         </h3>
-        {#if resolvedDescription}
-          <div class="creem-prose mt-1 text-sm text-zinc-600 dark:text-zinc-300">
-            <!-- eslint-disable-next-line svelte/no-at-html-tags — merchant-authored markdown from Creem -->
-            {@html renderMarkdown(resolvedDescription)}
-          </div>
-        {/if}
 
         {#if resolvedPrice}
           <p class={`mt-2 text-2xl font-bold ${isIncluded ? "text-zinc-400 dark:text-zinc-500" : "text-zinc-900 dark:text-zinc-100"}`}>
@@ -222,6 +225,13 @@
             </CheckoutButton>
           {/if}
         </div>
+
+        {#if resolvedDescription}
+          <div class="creem-prose mt-4 text-sm text-zinc-600 dark:text-zinc-300">
+            <!-- eslint-disable-next-line svelte/no-at-html-tags — merchant-authored markdown from Creem -->
+            {@html renderMarkdown(resolvedDescription)}
+          </div>
+        {/if}
       </article>
     {/each}
   </div>
