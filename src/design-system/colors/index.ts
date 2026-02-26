@@ -1,2 +1,2 @@
-export * from './config';
-export * from './color-utils';
+export * from './config.js';
+export * from './color-utils.js';

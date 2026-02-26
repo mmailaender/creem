@@ -1,2 +1,2 @@
-export * from './config';
-export * from './tokens';
+export * from './config.js';
+export * from './tokens.js';

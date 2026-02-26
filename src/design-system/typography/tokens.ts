@@ -1,4 +1,4 @@
-import { ROLE_DEFINITIONS, SEMANTIC_TEXT_TOKENS, TYPOGRAPHY_FOUNDATION, type RoleDefinition, type RoleGroup, type ViewportKey } from './config';
+import { ROLE_DEFINITIONS, SEMANTIC_TEXT_TOKENS, TYPOGRAPHY_FOUNDATION, type RoleDefinition, type RoleGroup, type ViewportKey } from './config.js';
 
 export type ResolvedRoleToken = {
 	id: string;
@@ -93,7 +93,7 @@ export const typographyRoles: ResolvedRoleToken[] = ROLE_DEFINITIONS.map(resolve
 export const typographyById = Object.fromEntries(typographyRoles.map((role) => [role.id, role]));
 
 export const semanticTypography = Object.fromEntries(
-	Object.entries(SEMANTIC_TEXT_TOKENS).map(([semanticName, roleId]) => [semanticName, typographyById[roleId]])
+	Object.entries(SEMANTIC_TEXT_TOKENS).map(([semanticName, roleId]) => [semanticName, typographyById[roleId as string]])
 );
 
 export function toCssVariables(role: ResolvedRoleToken): Record<string, string> {
