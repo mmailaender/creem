@@ -125,6 +125,20 @@
       <Subscription
         type="enterprise"
         title="Enterprise"
+        description={`✔️ Up to 3 users
+
+✔️ Basic task management
+
+✔️ Drag & drop builder
+
+✔️ Task deadlines & reminders
+
+✔️ Mobile access
+
+✔️ Priority support
+
+✔️ 1-1 calls
+`}
         contactUrl="https://creem.io"
       />
     </Subscription.Group>
@@ -169,6 +183,19 @@
       <Subscription
         type="enterprise"
         title="Enterprise"
+        description={`✔️ Up to 3 users
+
+✔️ Basic task management
+
+✔️ Drag & drop builder
+
+✔️ Task deadlines & reminders
+
+✔️ Mobile access
+
+✔️ Priority support
+
+✔️ 1-1 calls`}
         contactUrl="https://creem.io"
       />
     </Subscription.Group>
