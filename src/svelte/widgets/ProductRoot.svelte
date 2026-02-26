@@ -125,9 +125,8 @@
     return toProductId;
   };
 
-  const getSuccessUrl = () => {
-    if (successUrl) return successUrl;
-    if (typeof window === "undefined") return "";
+  const getFallbackSuccessUrl = (): string | undefined => {
+    if (typeof window === "undefined") return undefined;
     return `${window.location.origin}${window.location.pathname}`;
   };
 
@@ -142,7 +141,8 @@
     try {
       const { url } = await client.action(checkoutLinkRef, {
         productId: checkoutProductId,
-        successUrl: getSuccessUrl(),
+        ...(successUrl ? { successUrl } : {}),
+        fallbackSuccessUrl: getFallbackSuccessUrl(),
         theme: getPreferredTheme(),
       });
       window.location.href = url;

@@ -290,7 +290,7 @@ The billing toggle auto-derives from the cycles present in registered plans.
 - Pricing cards with auto-resolved titles, descriptions (rendered as Markdown), and prices from Creem product data
 - Billing cycle toggle (monthly/yearly) — hidden when all plans share a single cycle
 - "Current plan" badge on the active subscription
-- Plan switching (when `changeCurrentSubscription` is provided) — proration defaults to your Creem dashboard setting
+- Plan switching
 - Trial countdown badge
 - Cancel / resume subscription (with confirmation dialog)
 - Scheduled cancellation banner with "Undo" button
@@ -664,7 +664,7 @@ directly from `convex/billing.ts`.
 | `listAllProducts` | query | All active products synced from Creem |
 | `getCurrentBillingSnapshot` | query | Resolved billing state (plan, status, actions) |
 | `getBillingUiModel` | query | Full billing state for widgets |
-| `generateCheckoutLink` | action | Creates a Creem checkout URL |
+| `generateCheckoutLink` | action | Creates a Creem checkout URL. Resolves `successUrl` via: explicit arg → product `defaultSuccessUrl` → `fallbackSuccessUrl` (current page). |
 | `generateCustomerPortalUrl` | action | Customer billing portal URL |
 | `changeCurrentSubscription` | action | Switch to a different subscription product. Proration defaults to your Creem dashboard setting. |
 | `updateSubscriptionSeats` | action | Update seat count with proration |
@@ -751,7 +751,7 @@ plan switching, cancellation, and seat management.
 | `api` | `ConnectedBillingApi` | — | **Required.** Backend function references |
 | `permissions` | `BillingPermissions` | all enabled | Disable actions based on user role |
 | `class` | `string` | `""` | Wrapper CSS class |
-| `successUrl` | `string` | current page | Redirect after checkout |
+| `successUrl` | `string` | product's `defaultSuccessUrl` → current page | Override redirect after checkout. When omitted, uses the product's `defaultSuccessUrl` from Creem; if that is also unset, falls back to the current page. |
 | `units` | `number` | — | Auto-derived seat count for seat-based plans |
 | `showSeatPicker` | `boolean` | `false` | Show quantity picker on seat-based cards |
 | `children` | `Snippet` | — | `<Subscription.Item>` children |
@@ -788,7 +788,7 @@ upgrade transitions, and checkout.
 | `permissions` | `BillingPermissions` | all enabled | Disable actions based on user role |
 | `transition` | `Transition[]` | `[]` | Upgrade path rules between products |
 | `class` | `string` | `""` | Wrapper CSS class |
-| `successUrl` | `string` | current page | Redirect after checkout |
+| `successUrl` | `string` | product's `defaultSuccessUrl` → current page | Override redirect after checkout. When omitted, uses the product's `defaultSuccessUrl` from Creem; if that is also unset, falls back to the current page. |
 | `children` | `Snippet` | — | `<Product.Item>` children |
 
 **Transition types:**

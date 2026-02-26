@@ -173,9 +173,8 @@
   const localSubscriptionState = $derived(matchedSubscription?.status ?? null);
   const localSubscribedSeats = $derived(matchedSubscription?.seats ?? null);
 
-  const getSuccessUrl = () => {
-    if (successUrl) return successUrl;
-    if (typeof window === "undefined") return "";
+  const getFallbackSuccessUrl = (): string | undefined => {
+    if (typeof window === "undefined") return undefined;
     return `${window.location.origin}${window.location.pathname}`;
   };
 
@@ -190,7 +189,8 @@
     try {
       const { url } = await client.action(checkoutLinkRef, {
         productId,
-        successUrl: getSuccessUrl(),
+        ...(successUrl ? { successUrl } : {}),
+        fallbackSuccessUrl: getFallbackSuccessUrl(),
         theme: getPreferredTheme(),
         ...(checkoutUnits != null ? { units: checkoutUnits } : {}),
       });

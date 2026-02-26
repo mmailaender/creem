@@ -199,7 +199,7 @@ export class Creem<
       entityId: string;
       userId: string;
       email: string;
-      successUrl: string;
+      successUrl?: string;
       units?: number;
       metadata?: Record<string, string>;
     },
@@ -213,7 +213,7 @@ export class Creem<
 
     const checkout = await this.sdk.checkouts.create({
       productId,
-      successUrl,
+      ...(successUrl ? { successUrl } : {}),
       units,
       metadata: {
         ...(metadata ?? {}),
@@ -841,7 +841,8 @@ export class Creem<
       generateCheckoutLink: actionGeneric({
         args: {
           productId: v.string(),
-          successUrl: v.string(),
+          successUrl: v.optional(v.string()),
+          fallbackSuccessUrl: v.optional(v.string()),
           units: v.optional(v.number()),
           metadata: v.optional(v.record(v.string(), v.string())),
           theme: v.optional(v.union(v.literal("light"), v.literal("dark"))),
@@ -851,12 +852,29 @@ export class Creem<
         }),
         handler: async (ctx, args) => {
           const { entityId, userId, email } = await this.resolveEntityId(ctx);
+
+          // 3-tier successUrl resolution:
+          // 1. Explicit successUrl arg (from widget prop)
+          // 2. Product's defaultSuccessUrl from Convex DB
+          // 3. fallbackSuccessUrl (current page origin, from widget)
+          let resolvedSuccessUrl = args.successUrl;
+          if (!resolvedSuccessUrl) {
+            const product = await ctx.runQuery(
+              this.component.lib.getProduct,
+              { id: args.productId },
+            );
+            resolvedSuccessUrl = product?.defaultSuccessUrl ?? undefined;
+          }
+          if (!resolvedSuccessUrl) {
+            resolvedSuccessUrl = args.fallbackSuccessUrl;
+          }
+
           const checkout = await this.createCheckoutSession(ctx, {
             productId: args.productId,
             entityId,
             userId,
             email,
-            successUrl: args.successUrl,
+            ...(resolvedSuccessUrl ? { successUrl: resolvedSuccessUrl } : {}),
             units: args.units,
             metadata: args.metadata,
           });

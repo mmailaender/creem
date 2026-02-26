@@ -147,7 +147,7 @@
   ) => {
     const productId = resolveProductId(productIds, cycle);
     if (!productId) return null;
-    const product = allProducts.find((p) => p.id === productId);
+    const product = allProducts.find((p: { id: string }) => p.id === productId);
     if (!product || product.price == null || !product.currency) return null;
     return {
       amount: formatPrice(product.price, product.currency),
@@ -167,7 +167,7 @@
   );
 
   const matchedSubscription = $derived(
-    activeSubscriptions.find((sub) => allKnownPlanProductIds.has(sub.productId)) ?? null,
+    activeSubscriptions.find((sub: { productId: string }) => allKnownPlanProductIds.has(sub.productId)) ?? null,
   );
 
   const activePlanId = $derived(
@@ -185,18 +185,12 @@
       : "light";
   };
 
-  const getSuccessUrl = () => {
-    if (typeof window === "undefined") return "";
-    return `${window.location.origin}${window.location.pathname}`;
-  };
-
   const startCheckout = async (productId: string) => {
     isActionLoading = true;
     actionError = null;
     try {
       const { url } = await client.action(connectedApi.generateCheckoutLink, {
         productId,
-        successUrl: getSuccessUrl(),
         theme: getPreferredTheme(),
       });
       window.location.href = url;
