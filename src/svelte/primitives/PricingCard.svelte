@@ -104,6 +104,9 @@
   const showSeatCheckoutControls = $derived(
     isSeatPlan && showSeatPicker && !isActiveProduct && !isSiblingPlan,
   );
+  const reserveSeatActionHeight = $derived(
+    isSeatPlan && showSeatPicker && (isActiveProduct || isSiblingPlan || isActivePlanOtherCycle),
+  );
 
   const seatPriceLabel = $derived(
     isActiveProduct && isSeatPlan && subscribedSeats
@@ -225,7 +228,11 @@
       </div>
     {/if}
 
-    <div class={showSeatCheckoutControls ? "w-full" : "flex min-h-8 items-start w-full"}>
+    <div
+      class={`${showSeatCheckoutControls ? "w-full" : "flex min-h-8 items-start w-full"} ${
+        reserveSeatActionHeight ? "min-h-[4.5rem]" : ""
+      }`}
+    >
     {#if isActiveProduct && isSeatPlan && showSeatPicker && onUpdateSeats}
       <div class="flex w-full flex-col gap-2">
         {#if editingSeats}
@@ -241,23 +248,21 @@
               }}
             />
           </div>
-          <div class="flex items-center gap-2">
-            {#if seatsChanged}
-              <button
-                type="button"
-                disabled={disableSeats}
-                class="button-filled h-8"
-                onclick={() => onUpdateSeats?.({ units: seatAdjustCount })}
-              >
-                Update
-              </button>
-            {/if}
+          <div class="flex w-full items-center gap-2">
             <button
               type="button"
-              class="label-m text-foreground-muted transition hover:text-foreground-default"
+              class="button-faded h-8 w-full"
               onclick={() => { seatAdjustCount = subscribedSeats ?? 1; editingSeats = false; }}
             >
               Cancel
+            </button>
+            <button
+              type="button"
+              disabled={disableSeats || !seatsChanged}
+              class="button-filled h-8 w-full disabled:cursor-not-allowed disabled:opacity-50"
+              onclick={() => onUpdateSeats?.({ units: seatAdjustCount })}
+            >
+              Update
             </button>
           </div>
         {:else}
@@ -322,7 +327,7 @@
 
   {#if featureLines.length > 0}
     <div class="w-full pt-4">
-      <p class="title-s mb-4 text-foreground-default">Plan includes:</p>
+      <p class="label-m mb-4 font-semibold text-foreground-default">What's included:</p>
       <ul class="space-y-2">
         {#each featureLines as feature (feature)}
           <li class="flex items-center gap-2">

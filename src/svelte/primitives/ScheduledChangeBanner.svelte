@@ -21,21 +21,26 @@
 
 {#if show}
   <div
-    class={`flex items-center justify-between gap-3 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-200 ${className}`}
+    class={`rounded-xl bg-surface-base p-6 ${className}`}
   >
-    <span>
-      Plan cancellation scheduled {#if currentPeriodEnd}
-        for {new Date(currentPeriodEnd).toLocaleDateString()}{/if}.
-    </span>
-    {#if onResume}
-      <button
-        type="button"
-        class="shrink-0 rounded-md border border-amber-400 bg-amber-100 px-3 py-1.5 text-xs font-medium text-amber-800 transition hover:bg-amber-200 disabled:opacity-50 dark:border-amber-700 dark:bg-amber-900/60 dark:text-amber-200 dark:hover:bg-amber-800/60"
-        disabled={isLoading}
-        onclick={onResume}
-      >
-        {isLoading ? "Resuming…" : "Undo cancellation"}
-      </button>
-    {/if}
+    <div class="flex flex-col gap-6 md:flex-row md:items-start md:justify-between md:gap-4">
+      <div class="space-y-2">
+        <p class="title-s text-foreground-default">Cancellation scheduled</p>
+        <p class="body-m text-foreground-muted">
+          You will continue to have access until the end of your current billing period
+          {#if currentPeriodEnd} ({new Date(currentPeriodEnd).toLocaleDateString()}){/if}.
+        </p>
+      </div>
+      {#if onResume}
+        <button
+          type="button"
+          class="button-faded h-8 shrink-0 disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={isLoading}
+          onclick={onResume}
+        >
+          {isLoading ? "Resuming…" : "Undo cancellation"}
+        </button>
+      {/if}
+    </div>
   </div>
 {/if}

@@ -337,9 +337,7 @@
 
             {#if descriptionLines.length > 0}
               <div class="w-full pt-4">
-                <p class="title-s mb-4 text-foreground-default">
-                  Plan includes:
-                </p>
+                <p class="label-m mb-4 font-semibold text-foreground-default">What's included:</p>
                 <ul class="space-y-2">
                   {#each descriptionLines as feature (feature)}
                     <li class="flex items-center gap-2">
