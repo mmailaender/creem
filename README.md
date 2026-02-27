@@ -597,6 +597,65 @@ type BillingPermissions = {
 When a permission is `false`, the button renders as disabled (greyed out).
 When omitted or `undefined`, all actions default to enabled.
 
+### Pre-checkout gate — `onBeforeCheckout`
+
+Both `<Subscription.Root>` and `<Product.Root>` accept an `onBeforeCheckout`
+callback that fires **before** the widget calls `checkouts.create`. Return
+`true` to proceed, `false` to abort silently.
+
+This is a generic hook — use it for authentication gates, terms acceptance,
+confirmation dialogs, analytics, or any logic that must run before checkout.
+
+```svelte
+<Subscription.Root
+  api={billingApi}
+  onBeforeCheckout={(intent) => {
+    if (!currentUser) {
+      pendingCheckout.save(intent);
+      openSignInDialog();
+      return false;
+    }
+    return true;
+  }}
+>
+  ...
+</Subscription.Root>
+```
+
+**`CheckoutIntent`** — the object passed to the callback:
+
+```ts
+type CheckoutIntent = {
+  productId: string;
+  units?: number;
+};
+```
+
+#### Auto-resume after sign-in
+
+The widget automatically resumes a pending checkout when the user becomes
+authenticated. The full flow:
+
+1. Unauthenticated user clicks "Subscribe" → `onBeforeCheckout` fires
+2. Your callback saves the intent via `pendingCheckout.save(intent)`, opens
+   your sign-in dialog/redirect, and returns `false`
+3. After sign-in, the Convex query re-fires → `model.user` becomes non-null
+4. The widget detects the pending checkout and auto-triggers `checkouts.create`
+
+This works for both **modal auth** (Clerk, Auth0 popup) and **redirect auth**
+(OAuth) — no manual resume code needed.
+
+`pendingCheckout` is a tiny sessionStorage-based helper exported from the
+library:
+
+```ts
+import { pendingCheckout } from "@mmailaender/convex-creem/svelte";
+
+pendingCheckout.save(intent);  // store before sign-in
+pendingCheckout.load();        // read + auto-clear (used internally by widgets)
+pendingCheckout.clear();       // manual clear if needed
+```
+
 ### Custom billing UI model
 
 `uiModel` (from `creem.api({ resolve })`) returns everything the connected
@@ -651,7 +710,7 @@ functions, or let `creem.api({ resolve })` generate ready-to-export wrappers.
 | `.getCurrent(ctx, { entityId })` | Convex DB | Current active subscription with product join |
 | `.list(ctx, { entityId })` | Convex DB | Active subscriptions (excludes ended + expired trials) |
 | `.listAll(ctx, { entityId })` | Convex DB | All subscriptions including ended |
-| `.update(ctx, { entityId, productId?, units?, updateBehavior? })` | Creem API | Unified plan switch (`productId`) or seat update (`units`). Optional proration override. |
+| `.update(ctx, { entityId, subscriptionId?, productId?, units?, updateBehavior? })` | Creem API | Unified plan switch (`productId`) or seat update (`units`). Pass `subscriptionId` when the entity has multiple active subscriptions. Optional proration override. |
 | `.cancel(ctx, { entityId, revokeImmediately? })` | Creem API | Cancel subscription |
 | `.pause(ctx, { entityId })` | Creem API | Pause an active subscription |
 | `.resume(ctx, { entityId })` | Creem API | Resume a paused or scheduled-cancel subscription |
@@ -782,6 +841,7 @@ plan switching, cancellation, and seat management.
 | `successUrl` | `string` | product's `defaultSuccessUrl` → current page | Override redirect after checkout. When omitted, uses the product's `defaultSuccessUrl` from Creem; if that is also unset, falls back to the current page. |
 | `units` | `number` | — | Auto-derived seat count for seat-based plans |
 | `showSeatPicker` | `boolean` | `false` | Show quantity picker on seat-based cards |
+| `onBeforeCheckout` | `(intent: CheckoutIntent) => Promise<boolean> \| boolean` | — | Gate checkout (auth, terms, etc.). Return `false` to abort. |
 | `children` | `Snippet` | — | `<Subscription.Item>` children |
 
 #### `<Subscription.Item>`
@@ -817,6 +877,7 @@ upgrade transitions, and checkout.
 | `transition` | `Transition[]` | `[]` | Upgrade path rules between products |
 | `class` | `string` | `""` | Wrapper CSS class |
 | `successUrl` | `string` | product's `defaultSuccessUrl` → current page | Override redirect after checkout. When omitted, uses the product's `defaultSuccessUrl` from Creem; if that is also unset, falls back to the current page. |
+| `onBeforeCheckout` | `(intent: CheckoutIntent) => Promise<boolean> \| boolean` | — | Gate checkout (auth, terms, etc.). Return `false` to abort. |
 | `children` | `Snippet` | — | `<Product.Item>` children |
 
 **Transition types:**

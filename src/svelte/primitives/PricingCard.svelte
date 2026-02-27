@@ -126,7 +126,7 @@
           : "Subscribe",
   );
   const handleCheckout = (payload: { productId: string }) => {
-    if (isSiblingPlan && onSwitchPlan) {
+    if ((isSiblingPlan || isActivePlanOtherCycle) && onSwitchPlan) {
       onSwitchPlan({ plan, productId: payload.productId, units: isSeatPlan ? (subscribedSeats ?? effectiveUnits) : effectiveUnits });
     } else {
       onCheckout?.({ plan, productId: payload.productId, units: effectiveUnits });
@@ -176,17 +176,17 @@
     <h3 class={CARD_TYPOGRAPHY.title}>
       {plan.title ?? plan.planId}
     </h3>
-    {#if plan.recommended}
-      <Badge color="primary" variant="filled" size={CARD_BADGE_SIZE}>
-        Recommended
-      </Badge>
-    {:else if isActiveProduct || isActiveFreePlan}
+    {#if isActiveProduct || isActiveFreePlan}
       <Badge color="neutral" variant="faded" size={CARD_BADGE_SIZE}>
         {#if isTrialing}
           Free trial{#if trialDaysLeft != null}&ensp;·&ensp;{trialDaysLeft} day{trialDaysLeft === 1 ? '' : 's'} left{/if}
         {:else}
           Current plan
         {/if}
+      </Badge>
+    {:else if plan.recommended}
+      <Badge color="primary" variant="filled" size={CARD_BADGE_SIZE}>
+        Recommended
       </Badge>
     {/if}
   </div>
@@ -266,7 +266,30 @@
     {/if}
 
     <div class={showSeatCheckoutControls ? "w-full" : "flex min-h-8 items-start w-full"}>
-      {#if isActiveProduct && isSeatPlan && showSeatPicker && onUpdateSeats && !editingSeats}
+    {#if isActiveProduct && onCancelSubscription}
+      <button type="button" class="button-outline w-full" onclick={onCancelSubscription}>
+        Cancel subscription
+      </button>
+    {:else if isActiveProduct || isActiveFreePlan}
+      <!-- Keep CTA row height but intentionally empty when current plan has no action -->
+    {:else if (isSiblingPlan || isActivePlanOtherCycle) && productId}
+      <CheckoutButton
+        {productId}
+        disabled={disableSwitch}
+        onCheckout={handleCheckout}
+        className={`${plan.recommended ? "button-filled" : "button-faded"} w-full`}
+      >
+        {checkoutLabel}
+      </CheckoutButton>
+    {:else if plan.category === "enterprise"}
+      {#if plan.contactUrl}
+        <a
+          href={plan.contactUrl}
+          class="button-outline w-full"
+        >
+          Contact sales
+        </a>
+      {:else if onContactSales}
         <button
           type="button"
           disabled={disableSeats}

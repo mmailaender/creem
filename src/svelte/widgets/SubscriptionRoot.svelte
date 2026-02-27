@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { setContext } from "svelte";
+  import { setContext, untrack } from "svelte";
   import { useConvexClient, useQuery } from "convex-svelte";
   import PricingSection from "../primitives/PricingSection.svelte";
   import PaymentWarningBanner from "../primitives/PaymentWarningBanner.svelte";
@@ -12,11 +12,13 @@
   } from "./subscriptionContext.js";
   import type {
     BillingPermissions,
+    CheckoutIntent,
     ConnectedBillingApi,
     ConnectedBillingModel,
     SubscriptionPlanRegistration,
   } from "./types.js";
     import { SvelteSet } from "svelte/reactivity";
+    import { pendingCheckout } from "../../core/pendingCheckout.js";
 
   interface Props {
     api: ConnectedBillingApi;
@@ -26,6 +28,8 @@
     units?: number;
     showSeatPicker?: boolean;
     twoColumnLayout?: boolean;
+    updateBehavior?: "proration-charge-immediately" | "proration-charge" | "proration-none";
+    onBeforeCheckout?: (intent: CheckoutIntent) => Promise<boolean> | boolean;
     children?: import("svelte").Snippet;
   }
 
@@ -37,6 +41,8 @@
     units = undefined,
     showSeatPicker = false,
     twoColumnLayout = false,
+    updateBehavior = "proration-charge-immediately",
+    onBeforeCheckout = undefined,
     children,
   }: Props = $props();
 
@@ -86,6 +92,16 @@
 
   const model = $derived((billingModelQuery.data ?? null) as ConnectedBillingModel | null);
   const snapshot = $derived(model?.billingSnapshot ?? null);
+
+  $effect(() => {
+    if (!model?.user) return;
+    untrack(() => {
+      const pending = pendingCheckout.load();
+      if (pending) {
+        startCheckout(pending.productId, pending.units);
+      }
+    });
+  });
 
   const activePlanId = $derived.by<string | null>(() => {
     if (!model) return null;
@@ -187,6 +203,10 @@
   };
 
   const startCheckout = async (productId: string, checkoutUnits?: number) => {
+    if (onBeforeCheckout) {
+      const proceed = await onBeforeCheckout({ productId, units: checkoutUnits });
+      if (!proceed) return;
+    }
     isActionLoading = true;
     actionError = null;
     try {
@@ -219,27 +239,54 @@
     units?: number;
   }) => {
     if (!updateRef) return;
-    isActionLoading = true;
     actionError = null;
     try {
-      await client.action(updateRef, { productId: payload.productId });
+      await client.mutation(updateRef, { productId: payload.productId }, {
+        optimisticUpdate: (store) => {
+          const current = store.getQuery(billingUiModelRef, {});
+          if (current) {
+            const m = current as ConnectedBillingModel;
+            store.setQuery(billingUiModelRef, {}, {
+              ...m,
+              activeSubscriptions: (m.activeSubscriptions ?? []).map((s) =>
+                ownProductIds.has(s.productId)
+                  ? { ...s, productId: payload.productId }
+                  : s
+              ),
+            });
+          }
+        },
+      });
     } catch (error) {
       actionError = error instanceof Error ? error.message : "Switch failed";
-    } finally {
-      isActionLoading = false;
     }
   };
 
   const handleUpdateSeats = async (payload: { units: number }) => {
     if (!updateRef) return;
-    isActionLoading = true;
+    const subId = matchedSubscription?.id;
     actionError = null;
     try {
-      await client.action(updateRef, { units: payload.units });
+      await client.mutation(updateRef, {
+        units: payload.units,
+        ...(subId ? { subscriptionId: subId } : {}),
+        updateBehavior,
+      }, {
+        optimisticUpdate: (store) => {
+          const current = store.getQuery(billingUiModelRef, {});
+          if (current) {
+            const m = current as ConnectedBillingModel;
+            store.setQuery(billingUiModelRef, {}, {
+              ...m,
+              activeSubscriptions: (m.activeSubscriptions ?? []).map((s) =>
+                s.id === subId ? { ...s, seats: payload.units } : s
+              ),
+            });
+          }
+        },
+      });
     } catch (error) {
       actionError = error instanceof Error ? error.message : "Seat update failed";
-    } finally {
-      isActionLoading = false;
     }
   };
 
@@ -333,6 +380,7 @@
       onCheckout={canCheckout ? handlePricingCheckout : undefined}
       onSwitchPlan={updateRef && canChange ? handleSwitchPlan : undefined}
       onUpdateSeats={updateRef && canUpdateSeats ? handleUpdateSeats : undefined}
+      onCancelSubscription={cancelRef && canCancel && ownsActiveSubscription && !localCancelAtPeriodEnd ? openCancelDialog : undefined}
     />
 
     <div class="flex flex-wrap items-center gap-3">

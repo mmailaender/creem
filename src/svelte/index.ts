@@ -2,6 +2,7 @@ export {
   parseCheckoutSuccessParams,
   hasCheckoutSuccessParams,
 } from "../core/payments.js";
+export { pendingCheckout } from "../core/pendingCheckout.js";
 export { default as BillingToggle } from "./primitives/BillingToggle.svelte";
 export { default as Badge } from "./primitives/Badge.svelte";
 export { default as SegmentGroup } from "./primitives/SegmentGroup.svelte";
@@ -38,6 +39,7 @@ export {
 } from "../core/selectors.js";
 export type {
   BillingPermissions,
+  CheckoutIntent,
   ConnectedBillingApi,
   ConnectedBillingModel,
   ProductType,

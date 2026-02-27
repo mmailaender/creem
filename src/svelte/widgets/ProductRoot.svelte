@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { setContext } from "svelte";
+  import { setContext, untrack } from "svelte";
   import { useConvexClient, useQuery } from "convex-svelte";
   import CheckoutButton from "../primitives/CheckoutButton.svelte";
   import Badge from "../primitives/Badge.svelte";
@@ -11,6 +11,7 @@
   } from "./productGroupContext.js";
   import type {
     BillingPermissions,
+    CheckoutIntent,
     ConnectedBillingApi,
     ConnectedBillingModel,
     ProductItemRegistration,
@@ -18,6 +19,7 @@
   } from "./types.js";
     import { SvelteSet } from "svelte/reactivity";
     import { renderMarkdown } from "../../core/markdown.js";
+    import { pendingCheckout } from "../../core/pendingCheckout.js";
 
   interface Props {
     api: ConnectedBillingApi;
@@ -29,6 +31,7 @@
     showImages?: boolean;
     pricingCtaVariant?: "filled" | "faded";
     successUrl?: string;
+    onBeforeCheckout?: (intent: CheckoutIntent) => Promise<boolean> | boolean;
     children?: import("svelte").Snippet;
   }
 
@@ -42,6 +45,7 @@
     showImages = false,
     pricingCtaVariant = "faded",
     successUrl = undefined,
+    onBeforeCheckout = undefined,
     children,
   }: Props = $props();
 
@@ -79,6 +83,16 @@
   const model = $derived((billingModelQuery.data ?? null) as ConnectedBillingModel | null);
   const allProducts = $derived(model?.allProducts ?? []);
   const rawOwnedProductIds = $derived(model?.ownedProductIds ?? []);
+
+  $effect(() => {
+    if (!model?.user) return;
+    untrack(() => {
+      const pending = pendingCheckout.load();
+      if (pending) {
+        startCheckout(pending.productId);
+      }
+    });
+  });
 
   // Resolve effective ownership by applying transition rules.
   // If the user purchased a "via_product" (upgrade delta), they effectively
@@ -148,6 +162,10 @@
   };
 
   const startCheckout = async (checkoutProductId: string) => {
+    if (onBeforeCheckout) {
+      const proceed = await onBeforeCheckout({ productId: checkoutProductId });
+      if (!proceed) return;
+    }
     isLoading = true;
     error = null;
     try {
