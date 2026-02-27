@@ -10,6 +10,7 @@
     type Transition,
   } from "@mmailaender/convex-creem/svelte";
   import { api } from "../../convex/_generated/api.js";
+  import creemLogoUrl from "./assets/creem-grey.svg";
   import convexLogoUrl from "./assets/convex-grey.svg";
   import svelteLogoUrl from "./assets/svelte-grey.svg";
 
@@ -60,7 +61,9 @@
           model.
         </p>
         <div class="flex items-center gap-4 pt-8 text-foreground-placeholder">
-          <span class="label-l">CREEM</span>
+          <span class="inline-flex h-8 items-center justify-center opacity-70">
+            <img src={creemLogoUrl} alt="Creem" class="h-7 w-auto" />
+          </span>
           <span class="inline-flex h-8 w-8 items-center justify-center opacity-70">
             <img src={convexLogoUrl} alt="Convex" class="h-7 w-7" />
           </span>
