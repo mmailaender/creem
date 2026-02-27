@@ -209,44 +209,6 @@
     <p class="mb-4 body-m text-foreground-muted">{leadDescription}</p>
   {/if}
 
-  {#if isActiveProduct && isSeatPlan && showSeatPicker && onUpdateSeats}
-    {#if editingSeats}
-      <div class="mb-2 flex items-center justify-between rounded-xl bg-surface-subtle py-2 pl-4 pr-2">
-        <span class="label-m text-foreground-default">Seats:</span>
-        <NumberInput
-          value={seatAdjustCount}
-          min={1}
-          compact
-          disabled={disableSeats}
-          onValueChange={(next) => {
-            if (next > 0) seatAdjustCount = next;
-          }}
-        />
-      </div>
-      <div class="mb-4 flex items-center gap-2">
-        {#if seatsChanged}
-          <button
-            type="button"
-            disabled={disableSeats}
-            class="button-filled h-8"
-            onclick={() => onUpdateSeats?.({ units: seatAdjustCount })}
-          >
-            Update
-          </button>
-        {/if}
-        <button
-          type="button"
-          class="label-m text-foreground-muted transition hover:text-foreground-default"
-          onclick={() => { seatAdjustCount = subscribedSeats ?? 1; editingSeats = false; }}
-        >
-          Cancel
-        </button>
-      </div>
-    {:else}
-      <!-- Render "Change seats" in the main CTA row for alignment with other card actions. -->
-    {/if}
-  {/if}
-
   <div class={`mb-4 mt-6 ${showSeatCheckoutControls ? "flex flex-col gap-2" : "flex min-h-8 items-start"}`}>
     {#if showSeatCheckoutControls}
       <div class="flex w-full items-center justify-between rounded-xl bg-surface-subtle py-2 pl-4 pr-2">
@@ -264,7 +226,52 @@
     {/if}
 
     <div class={showSeatCheckoutControls ? "w-full" : "flex min-h-8 items-start w-full"}>
-    {#if isActiveProduct && onCancelSubscription}
+    {#if isActiveProduct && isSeatPlan && showSeatPicker && onUpdateSeats}
+      <div class="flex w-full flex-col gap-2">
+        {#if editingSeats}
+          <div class="flex w-full items-center justify-between rounded-xl bg-surface-subtle py-2 pl-4 pr-2">
+            <span class="label-m text-foreground-default">Seats:</span>
+            <NumberInput
+              value={seatAdjustCount}
+              min={1}
+              compact
+              disabled={disableSeats}
+              onValueChange={(next) => {
+                if (next > 0) seatAdjustCount = next;
+              }}
+            />
+          </div>
+          <div class="flex items-center gap-2">
+            {#if seatsChanged}
+              <button
+                type="button"
+                disabled={disableSeats}
+                class="button-filled h-8"
+                onclick={() => onUpdateSeats?.({ units: seatAdjustCount })}
+              >
+                Update
+              </button>
+            {/if}
+            <button
+              type="button"
+              class="label-m text-foreground-muted transition hover:text-foreground-default"
+              onclick={() => { seatAdjustCount = subscribedSeats ?? 1; editingSeats = false; }}
+            >
+              Cancel
+            </button>
+          </div>
+        {:else}
+          <button type="button" class="button-faded w-full" onclick={() => editingSeats = true}>
+            Change seats
+          </button>
+          {#if onCancelSubscription}
+            <button type="button" class="button-outline w-full" onclick={onCancelSubscription}>
+              Cancel subscription
+            </button>
+          {/if}
+        {/if}
+      </div>
+    {:else if isActiveProduct && onCancelSubscription}
       <button type="button" class="button-outline w-full" onclick={onCancelSubscription}>
         Cancel subscription
       </button>
