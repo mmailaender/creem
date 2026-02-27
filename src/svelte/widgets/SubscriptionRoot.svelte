@@ -54,7 +54,6 @@
     children,
   }: Props = $props();
 
-  const canCheckout = $derived(permissions?.canCheckout !== false);
   const canChange = $derived(permissions?.canChangeSubscription !== false);
   const canCancel = $derived(permissions?.canCancelSubscription !== false);
   const canResume = $derived(permissions?.canResumeSubscription !== false);
@@ -108,15 +107,23 @@
   const model = $derived(
     (billingModelQuery.data ?? null) as ConnectedBillingModel | null,
   );
+  const canCheckout = $derived(
+    !model?.user && onBeforeCheckout != null
+      ? true
+      : permissions?.canCheckout !== false,
+  );
   const snapshot = $derived(model?.billingSnapshot ?? null);
 
   $effect(() => {
     if (!model?.user) return;
     untrack(() => {
       const pending = pendingCheckout.load();
-      if (pending) {
-        startCheckout(pending.productId, pending.units);
+      if (!pending) return;
+      if ((model!.activeSubscriptions ?? []).length > 0) {
+        pendingCheckout.clear();
+        return;
       }
+      startCheckout(pending.productId, pending.units);
     });
   });
 
@@ -252,6 +259,18 @@
         theme: getPreferredTheme(),
         ...(checkoutUnits != null ? { units: checkoutUnits } : {}),
       });
+      // Suppress Convex client's beforeunload dialog during checkout redirect.
+      // Convex registers via addEventListener, so onbeforeunload=null has no effect.
+      // A capture-phase listener fires before non-capture listeners on the same target
+      // in modern browsers, and stopImmediatePropagation() blocks all subsequent handlers.
+      window.addEventListener(
+        "beforeunload",
+        (e) => {
+          e.stopImmediatePropagation();
+        },
+        { capture: true, once: true },
+      );
+      window.location.href = url;
       window.location.href = url;
     } catch (error) {
       actionError = error instanceof Error ? error.message : "Checkout failed";

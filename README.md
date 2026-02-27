@@ -547,13 +547,13 @@ args; there is no hidden auth layer.
   The library exports **shared arg validators** that match exactly what the
   connected widgets send. Use them to keep your custom functions in sync:
 
-  | Export                     | Used by                      |
-  | -------------------------- | ---------------------------- |
-  | `checkoutCreateArgs`       | `<Subscription.Root>`, `<Product.Root>` |
-  | `subscriptionUpdateArgs`   | `<Subscription.Root>` (plan switch, seat update) |
-  | `subscriptionCancelArgs`   | `<Subscription.Root>` (cancel button) |
-  | `subscriptionResumeArgs`   | `<Subscription.Root>` (resume button) |
-  | `subscriptionPauseArgs`    | `<Subscription.Root>` (pause button) |
+  | Export                   | Used by                                          |
+  | ------------------------ | ------------------------------------------------ |
+  | `checkoutCreateArgs`     | `<Subscription.Root>`, `<Product.Root>`          |
+  | `subscriptionUpdateArgs` | `<Subscription.Root>` (plan switch, seat update) |
+  | `subscriptionCancelArgs` | `<Subscription.Root>` (cancel button)            |
+  | `subscriptionResumeArgs` | `<Subscription.Root>` (resume button)            |
+  | `subscriptionPauseArgs`  | `<Subscription.Root>` (pause button)             |
 
   Example:
 

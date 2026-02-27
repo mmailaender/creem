@@ -4,7 +4,10 @@
   import CheckoutButton from "../primitives/CheckoutButton.svelte";
   import Badge from "../primitives/Badge.svelte";
   import { formatPriceWithInterval } from "../primitives/shared.js";
-  import { CARD_BADGE_SIZE, CARD_TYPOGRAPHY } from "../primitives/cardTokens.js";
+  import {
+    CARD_BADGE_SIZE,
+    CARD_TYPOGRAPHY,
+  } from "../primitives/cardTokens.js";
   import {
     PRODUCT_GROUP_CONTEXT_KEY,
     type ProductGroupContextValue,
@@ -17,9 +20,9 @@
     ProductItemRegistration,
     Transition,
   } from "./types.js";
-    import { SvelteSet } from "svelte/reactivity";
-    import { renderMarkdown } from "../../core/markdown.js";
-    import { pendingCheckout } from "../../core/pendingCheckout.js";
+  import { SvelteSet } from "svelte/reactivity";
+  import { renderMarkdown } from "../../core/markdown.js";
+  import { pendingCheckout } from "../../core/pendingCheckout.js";
 
   interface Props {
     api: ConnectedBillingApi;
@@ -49,8 +52,6 @@
     children,
   }: Props = $props();
 
-  const canCheckout = $derived(permissions?.canCheckout !== false);
-
   const client = useConvexClient();
 
   // svelte-ignore state_referenced_locally
@@ -67,7 +68,9 @@
   const contextValue: ProductGroupContextValue = {
     registerItem: (item) => {
       registeredItems = [
-        ...registeredItems.filter((candidate) => candidate.productId !== item.productId),
+        ...registeredItems.filter(
+          (candidate) => candidate.productId !== item.productId,
+        ),
         item,
       ];
       return () => {
@@ -80,7 +83,14 @@
 
   setContext(PRODUCT_GROUP_CONTEXT_KEY, contextValue);
 
-  const model = $derived((billingModelQuery.data ?? null) as ConnectedBillingModel | null);
+  const model = $derived(
+    (billingModelQuery.data ?? null) as ConnectedBillingModel | null,
+  );
+  const canCheckout = $derived(
+    !model?.user && onBeforeCheckout != null
+      ? true
+      : permissions?.canCheckout !== false,
+  );
   const allProducts = $derived(model?.allProducts ?? []);
   const rawOwnedProductIds = $derived(model?.ownedProductIds ?? []);
 
@@ -88,9 +98,12 @@
     if (!model?.user) return;
     untrack(() => {
       const pending = pendingCheckout.load();
-      if (pending) {
-        startCheckout(pending.productId);
+      if (!pending) return;
+      if ((model!.ownedProductIds ?? []).includes(pending.productId)) {
+        pendingCheckout.clear();
+        return;
       }
+      startCheckout(pending.productId);
     });
   });
 
@@ -109,7 +122,9 @@
   });
 
   const activeOwnedProductId = $derived(
-    registeredItems.find((item) => effectiveOwnedProductIds.includes(item.productId))?.productId ?? null,
+    registeredItems.find((item) =>
+      effectiveOwnedProductIds.includes(item.productId),
+    )?.productId ?? null,
   );
 
   // Determine if a product is a lower tier than the target by traversing the
@@ -132,7 +147,10 @@
     return false;
   };
 
-  const resolveTransitionTarget = (fromProductId: string, toProductId: string) =>
+  const resolveTransitionTarget = (
+    fromProductId: string,
+    toProductId: string,
+  ) =>
     transition.find(
       (rule) => rule.from === fromProductId && rule.to === toProductId,
     );
@@ -158,7 +176,9 @@
 
   const getPreferredTheme = (): "light" | "dark" => {
     if (typeof window === "undefined") return "light";
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
   };
 
   const startCheckout = async (checkoutProductId: string) => {
@@ -175,15 +195,31 @@
         fallbackSuccessUrl: getFallbackSuccessUrl(),
         theme: getPreferredTheme(),
       });
+      // Suppress Convex client's beforeunload dialog during checkout redirect.
+      // Convex registers via addEventListener, so onbeforeunload=null has no effect.
+      // A capture-phase listener fires before non-capture listeners on the same target
+      // in modern browsers, and stopImmediatePropagation() blocks all subsequent handlers.
+      window.addEventListener(
+        "beforeunload",
+        (e) => {
+          e.stopImmediatePropagation();
+        },
+        { capture: true, once: true },
+      );
       window.location.href = url;
     } catch (checkoutError) {
-      error = checkoutError instanceof Error ? checkoutError.message : "Checkout failed";
+      error =
+        checkoutError instanceof Error
+          ? checkoutError.message
+          : "Checkout failed";
     } finally {
       isLoading = false;
     }
   };
 
-  const splitPriceLabel = (value: string | null): { main: string; suffix: string | null; tail: string } | null => {
+  const splitPriceLabel = (
+    value: string | null,
+  ): { main: string; suffix: string | null; tail: string } | null => {
     if (!value) return null;
     const match = value.match(/^(.*?)(\/[a-z0-9]+)(.*)$/i);
     if (!match) return { main: value, suffix: null, tail: "" };
@@ -193,30 +229,43 @@
       tail: match[3]?.trim() ?? "",
     };
   };
-
 </script>
 
 <div class="hidden" aria-hidden="true">
   {@render children?.()}
 </div>
 
-<section class={`${styleVariant === "pricing" ? "space-y-0" : "space-y-3"} ${className}`}>
+<section
+  class={`${styleVariant === "pricing" ? "space-y-0" : "space-y-3"} ${className}`}
+>
   {#if error}
     <p class="text-sm text-red-600">{error}</p>
   {/if}
 
-  <div class={styleVariant === "pricing"
-    ? (layout === "single" ? "flex justify-center" : "grid grid-cols-1 gap-1 lg:grid-cols-2")
-    : `flex gap-3 ${layout === "single" ? "justify-center" : "flex-wrap items-center"}`}>
+  <div
+    class={styleVariant === "pricing"
+      ? layout === "single"
+        ? "flex justify-center"
+        : "grid grid-cols-1 gap-1 lg:grid-cols-2"
+      : `flex gap-3 ${layout === "single" ? "justify-center" : "flex-wrap items-center"}`}
+  >
     {#each registeredItems as item (item.productId)}
       {@const isOwned = effectiveOwnedProductIds.includes(item.productId)}
-      {@const isIncluded = !isOwned && activeOwnedProductId != null && isLowerTierThan(item.productId, activeOwnedProductId)}
+      {@const isIncluded =
+        !isOwned &&
+        activeOwnedProductId != null &&
+        isLowerTierThan(item.productId, activeOwnedProductId)}
       {@const checkoutProductId = resolveCheckoutProductId(item.productId)}
       {@const matchedProduct = allProducts.find((p) => p.id === item.productId)}
-      {@const resolvedTitle = item.title ?? matchedProduct?.name ?? item.productId}
-      {@const resolvedDescription = item.description ?? matchedProduct?.description}
+      {@const resolvedTitle =
+        item.title ?? matchedProduct?.name ?? item.productId}
+      {@const resolvedDescription =
+        item.description ?? matchedProduct?.description}
       {@const resolvedImageUrl = matchedProduct?.imageUrl}
-      {@const resolvedPrice = formatPriceWithInterval(item.productId, allProducts)}
+      {@const resolvedPrice = formatPriceWithInterval(
+        item.productId,
+        allProducts,
+      )}
       {@const splitPrice = splitPriceLabel(resolvedPrice)}
       {@const descriptionLines = (resolvedDescription ?? "")
         .split(/\r?\n/)
@@ -224,9 +273,11 @@
         .filter(Boolean)
         .map((line) => line.replace(/^(?:[-*]\s+|[✔✓]\s*)/, "").trim())
         .filter(Boolean)}
-      <article class={styleVariant === "pricing"
-        ? `w-full ${layout === "single" ? "max-w-[680px]" : "max-w-none"} rounded-2xl bg-surface-base ${isIncluded ? "opacity-60" : ""}`
-        : `max-w-sm rounded-xl border p-4 shadow-sm ${isIncluded ? "border-zinc-100 bg-zinc-50 opacity-60 dark:border-zinc-800 dark:bg-zinc-900" : "border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950"}`}>
+      <article
+        class={styleVariant === "pricing"
+          ? `w-full ${layout === "single" ? "max-w-[680px]" : "max-w-none"} rounded-2xl bg-surface-base ${isIncluded ? "opacity-60" : ""}`
+          : `max-w-sm rounded-xl border p-4 shadow-sm ${isIncluded ? "border-zinc-100 bg-zinc-50 opacity-60 dark:border-zinc-800 dark:bg-zinc-900" : "border-zinc-200 bg-zinc-50 dark:border-zinc-800 dark:bg-zinc-950"}`}
+      >
         {#if styleVariant === "pricing"}
           {#if showImages && resolvedImageUrl}
             <div class="p-1">
@@ -240,77 +291,91 @@
           {/if}
 
           <div class="px-6 pb-6 pt-6">
-          <div class="mb-3 flex min-h-6 items-center justify-between gap-2">
-            <h3 class={CARD_TYPOGRAPHY.title}>{resolvedTitle}</h3>
-            {#if isOwned}
-              <Badge color="neutral" variant="faded" size={CARD_BADGE_SIZE}>Owned</Badge>
-            {:else if isIncluded}
-              <Badge color="neutral" variant="faded" size={CARD_BADGE_SIZE}>Included</Badge>
-            {/if}
-          </div>
-
-          {#if splitPrice}
-            <div class="flex items-baseline gap-1">
-              <span class={CARD_TYPOGRAPHY.price}>{splitPrice.main}</span>
-              {#if splitPrice.suffix}
-                <span class={CARD_TYPOGRAPHY.priceSuffix}>{splitPrice.suffix}</span>
-              {/if}
-              {#if splitPrice.tail}
-                <span class={CARD_TYPOGRAPHY.priceSuffix}>{splitPrice.tail}</span>
+            <div class="mb-3 flex min-h-6 items-center justify-between gap-2">
+              <h3 class={CARD_TYPOGRAPHY.title}>{resolvedTitle}</h3>
+              {#if isOwned}
+                <Badge color="neutral" variant="faded" size={CARD_BADGE_SIZE}
+                  >Owned</Badge
+                >
+              {:else if isIncluded}
+                <Badge color="neutral" variant="faded" size={CARD_BADGE_SIZE}
+                  >Included</Badge
+                >
               {/if}
             </div>
-          {/if}
 
-          <div class="mb-4 mt-6 flex min-h-8 items-start">
-            {#if checkoutProductId && !isOwned && !isIncluded}
-              <CheckoutButton
-                productId={checkoutProductId}
-                disabled={isLoading || !canCheckout}
-                onCheckout={() => startCheckout(checkoutProductId)}
-                className={`${pricingCtaVariant === "filled" ? "button-filled" : "button-faded"} w-full`}
-              >
-                {activeOwnedProductId ? "Upgrade" : "Buy now"}
-              </CheckoutButton>
-            {:else if !isOwned && !isIncluded}
-              <CheckoutButton
-                productId={item.productId}
-                disabled={isLoading || !canCheckout}
-                onCheckout={() => startCheckout(item.productId)}
-                className={`${pricingCtaVariant === "filled" ? "button-filled" : "button-faded"} w-full`}
-              >
-                Buy now
-              </CheckoutButton>
+            {#if splitPrice}
+              <div class="flex items-baseline gap-1">
+                <span class={CARD_TYPOGRAPHY.price}>{splitPrice.main}</span>
+                {#if splitPrice.suffix}
+                  <span class={CARD_TYPOGRAPHY.priceSuffix}
+                    >{splitPrice.suffix}</span
+                  >
+                {/if}
+                {#if splitPrice.tail}
+                  <span class={CARD_TYPOGRAPHY.priceSuffix}
+                    >{splitPrice.tail}</span
+                  >
+                {/if}
+              </div>
             {/if}
-          </div>
 
-          {#if descriptionLines.length > 0}
-            <div class="w-full pt-4">
-              <p class="title-s mb-4 text-foreground-default">Plan includes:</p>
-              <ul class="space-y-2">
-                {#each descriptionLines as feature (feature)}
-                  <li class="flex items-center gap-2">
-                    <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center text-foreground-muted">
-                      <svg
-                        aria-hidden="true"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        class="h-4 w-4"
+            <div class="mb-4 mt-6 flex min-h-8 items-start">
+              {#if checkoutProductId && !isOwned && !isIncluded}
+                <CheckoutButton
+                  productId={checkoutProductId}
+                  disabled={isLoading || !canCheckout}
+                  onCheckout={() => startCheckout(checkoutProductId)}
+                  className={`${pricingCtaVariant === "filled" ? "button-filled" : "button-faded"} w-full`}
+                >
+                  {activeOwnedProductId ? "Upgrade" : "Buy now"}
+                </CheckoutButton>
+              {:else if !isOwned && !isIncluded}
+                <CheckoutButton
+                  productId={item.productId}
+                  disabled={isLoading || !canCheckout}
+                  onCheckout={() => startCheckout(item.productId)}
+                  className={`${pricingCtaVariant === "filled" ? "button-filled" : "button-faded"} w-full`}
+                >
+                  Buy now
+                </CheckoutButton>
+              {/if}
+            </div>
+
+            {#if descriptionLines.length > 0}
+              <div class="w-full pt-4">
+                <p class="title-s mb-4 text-foreground-default">
+                  Plan includes:
+                </p>
+                <ul class="space-y-2">
+                  {#each descriptionLines as feature (feature)}
+                    <li class="flex items-center gap-2">
+                      <span
+                        class="inline-flex h-5 w-5 shrink-0 items-center justify-center text-foreground-muted"
                       >
-                        <path
-                          d="M20 6L9 17L4 12"
-                          stroke="currentColor"
-                          stroke-width="2.5"
-                          stroke-linecap="round"
-                          stroke-linejoin="round"
-                        />
-                      </svg>
-                    </span>
-                    <span class="body-m text-foreground-default">{feature}</span>
-                  </li>
-                {/each}
-              </ul>
-            </div>
-          {/if}
+                        <svg
+                          aria-hidden="true"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          class="h-4 w-4"
+                        >
+                          <path
+                            d="M20 6L9 17L4 12"
+                            stroke="currentColor"
+                            stroke-width="2.5"
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                          />
+                        </svg>
+                      </span>
+                      <span class="body-m text-foreground-default"
+                        >{feature}</span
+                      >
+                    </li>
+                  {/each}
+                </ul>
+              </div>
+            {/if}
           </div>
         {:else}
           <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100">
@@ -318,7 +383,9 @@
           </h3>
 
           {#if resolvedPrice}
-            <p class={`mt-2 text-2xl font-bold ${isIncluded ? "text-zinc-400 dark:text-zinc-500" : "text-zinc-900 dark:text-zinc-100"}`}>
+            <p
+              class={`mt-2 text-2xl font-bold ${isIncluded ? "text-zinc-400 dark:text-zinc-500" : "text-zinc-900 dark:text-zinc-100"}`}
+            >
               {resolvedPrice}
             </p>
           {/if}
@@ -356,7 +423,9 @@
           </div>
 
           {#if resolvedDescription}
-            <div class="creem-prose mt-4 text-sm text-zinc-600 dark:text-zinc-300">
+            <div
+              class="creem-prose mt-4 text-sm text-zinc-600 dark:text-zinc-300"
+            >
               <!-- eslint-disable-next-line svelte/no-at-html-tags — merchant-authored markdown from Creem -->
               {@html renderMarkdown(resolvedDescription)}
             </div>
