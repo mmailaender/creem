@@ -107,10 +107,7 @@ export const insertTodo = mutation({
     if (!user.subscription && todoCount >= MAX_FREE_TODOS) {
       throw new Error("Reached maximum number of todos for free plan");
     }
-    if (
-      user.isBasic &&
-      todoCount >= MAX_PREMIUM_TODOS
-    ) {
+    if (user.isBasic && todoCount >= MAX_PREMIUM_TODOS) {
       throw new Error("Reached maximum number of todos for basic plan");
     }
     await ctx.db.insert("todos", {

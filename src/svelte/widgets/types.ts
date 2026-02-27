@@ -102,4 +102,3 @@ export type ProductItemRegistration = {
   title?: string;
   description?: string;
 };
-

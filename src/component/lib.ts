@@ -34,7 +34,8 @@ export const insertCustomer = mutation({
       const patch: Record<string, unknown> = {};
       if (args.email && !existingCustomer.email) patch.email = args.email;
       if (args.name && !existingCustomer.name) patch.name = args.name;
-      if (args.country && !existingCustomer.country) patch.country = args.country;
+      if (args.country && !existingCustomer.country)
+        patch.country = args.country;
       if (args.mode) patch.mode = args.mode;
       if (args.updatedAt) patch.updatedAt = args.updatedAt;
       if (Object.keys(patch).length > 0) {
@@ -226,9 +227,7 @@ export const listProducts = query({
     const q = ctx.db.query("products");
     const products = args.includeArchived
       ? await q.collect()
-      : await q
-          .withIndex("status", (q) => q.eq("status", "active"))
-          .collect();
+      : await q.withIndex("status", (q) => q.eq("status", "active")).collect();
     return products.map((product) => omitSystemFields(product));
   },
 });
@@ -279,34 +278,53 @@ export const updateSubscription = mutation({
 
     // Optimistic-update guard: if a recent patchSubscription set optimistic
     // fields, don't let intermediate webhook events revert those values.
-    const existingMeta = (existingSubscription.metadata ?? {}) as Record<string, unknown>;
+    const existingMeta = (existingSubscription.metadata ?? {}) as Record<
+      string,
+      unknown
+    >;
     const pendingAt = existingMeta._optimisticPendingAt as number | undefined;
-    const optimisticFields = existingMeta._optimisticFields as string[] | undefined;
-    const isOptimisticPending = pendingAt != null && (Date.now() - pendingAt < 30_000);
+    const optimisticFields = existingMeta._optimisticFields as
+      | string[]
+      | undefined;
+    const isOptimisticPending =
+      pendingAt != null && Date.now() - pendingAt < 30_000;
 
     const subscriptionToWrite = { ...args.subscription };
 
     if (isOptimisticPending && optimisticFields?.length) {
-      console.debug(`[creem] optimistic guard active for sub=${args.subscription.id}`, {
-        guardFields: optimisticFields,
-        guardAge: `${Math.round((Date.now() - (pendingAt ?? 0)) / 1000)}s`,
-        incoming: { productId: args.subscription.productId, seats: args.subscription.seats },
-        db: { productId: existingSubscription.productId, seats: existingSubscription.seats },
-      });
+      console.debug(
+        `[creem] optimistic guard active for sub=${args.subscription.id}`,
+        {
+          guardFields: optimisticFields,
+          guardAge: `${Math.round((Date.now() - (pendingAt ?? 0)) / 1000)}s`,
+          incoming: {
+            productId: args.subscription.productId,
+            seats: args.subscription.seats,
+          },
+          db: {
+            productId: existingSubscription.productId,
+            seats: existingSubscription.seats,
+          },
+        },
+      );
       let allConfirmed = true;
 
       if (optimisticFields.includes("seats")) {
         if (args.subscription.seats !== existingSubscription.seats) {
           subscriptionToWrite.seats = existingSubscription.seats;
           allConfirmed = false;
-          console.log(`[creem] guard: preserving optimistic seats=${existingSubscription.seats} (webhook sent ${args.subscription.seats})`);
+          console.log(
+            `[creem] guard: preserving optimistic seats=${existingSubscription.seats} (webhook sent ${args.subscription.seats})`,
+          );
         }
       }
       if (optimisticFields.includes("productId")) {
         if (args.subscription.productId !== existingSubscription.productId) {
           subscriptionToWrite.productId = existingSubscription.productId;
           allConfirmed = false;
-          console.log(`[creem] guard: preserving optimistic productId=${existingSubscription.productId} (webhook sent ${args.subscription.productId})`);
+          console.log(
+            `[creem] guard: preserving optimistic productId=${existingSubscription.productId} (webhook sent ${args.subscription.productId})`,
+          );
         }
       }
 
@@ -314,10 +332,19 @@ export const updateSubscription = mutation({
       // Partial matches are not trusted — Creem sends intermediate states where
       // some fields update temporarily before reverting (e.g. subscription.product
       // changes on upgrade but items[0].product_id stays stale).
-      const incomingMeta = (args.subscription.metadata ?? {}) as Record<string, unknown>;
+      const incomingMeta = (args.subscription.metadata ?? {}) as Record<
+        string,
+        unknown
+      >;
       if (allConfirmed) {
-        console.log(`[creem] guard: all optimistic fields confirmed for sub=${args.subscription.id} — clearing`);
-        const { _optimisticPendingAt: _, _optimisticFields: __, ...cleanMeta } = { ...existingMeta, ...incomingMeta };
+        console.log(
+          `[creem] guard: all optimistic fields confirmed for sub=${args.subscription.id} — clearing`,
+        );
+        const {
+          _optimisticPendingAt: _,
+          _optimisticFields: __,
+          ...cleanMeta
+        } = { ...existingMeta, ...incomingMeta };
         subscriptionToWrite.metadata = cleanMeta;
       } else {
         subscriptionToWrite.metadata = {
@@ -501,24 +528,43 @@ export const patchSubscription = mutation({
       .query("subscriptions")
       .withIndex("id", (q) => q.eq("id", args.subscriptionId))
       .unique();
-    if (!sub) throw new ConvexError(`Subscription not found: ${args.subscriptionId}`);
+    if (!sub)
+      throw new ConvexError(`Subscription not found: ${args.subscriptionId}`);
     const patch: Record<string, unknown> = {};
     const optimisticFields: string[] = [];
-    if (args.seats !== undefined) { patch.seats = args.seats; optimisticFields.push("seats"); }
-    if (args.productId !== undefined) { patch.productId = args.productId; optimisticFields.push("productId"); }
+    if (args.seats !== undefined) {
+      patch.seats = args.seats;
+      optimisticFields.push("seats");
+    }
+    if (args.productId !== undefined) {
+      patch.productId = args.productId;
+      optimisticFields.push("productId");
+    }
     if (args.status !== undefined) patch.status = args.status;
-    if (args.cancelAtPeriodEnd !== undefined) patch.cancelAtPeriodEnd = args.cancelAtPeriodEnd;
+    if (args.cancelAtPeriodEnd !== undefined)
+      patch.cancelAtPeriodEnd = args.cancelAtPeriodEnd;
 
     // Track optimistic fields so updateSubscription can guard against stale webhooks.
     // Merge with any existing optimistic fields (cumulative across consecutive patches).
     const existingMeta = (sub.metadata ?? {}) as Record<string, unknown>;
     if (args.clearOptimistic) {
-      const { _optimisticPendingAt: _, _optimisticFields: __, ...cleanMeta } = existingMeta;
+      const {
+        _optimisticPendingAt: _,
+        _optimisticFields: __,
+        ...cleanMeta
+      } = existingMeta;
       patch.metadata = cleanMeta;
     } else if (optimisticFields.length > 0) {
-      const existingOptimistic = (existingMeta._optimisticFields as string[] | undefined) ?? [];
-      const mergedOptimistic = [...new Set([...existingOptimistic, ...optimisticFields])];
-      patch.metadata = { ...existingMeta, _optimisticPendingAt: Date.now(), _optimisticFields: mergedOptimistic };
+      const existingOptimistic =
+        (existingMeta._optimisticFields as string[] | undefined) ?? [];
+      const mergedOptimistic = [
+        ...new Set([...existingOptimistic, ...optimisticFields]),
+      ];
+      patch.metadata = {
+        ...existingMeta,
+        _optimisticPendingAt: Date.now(),
+        _optimisticFields: mergedOptimistic,
+      };
     }
 
     if (Object.keys(patch).length > 0) {
@@ -526,7 +572,9 @@ export const patchSubscription = mutation({
         console.log(`[creem] optimistic patch sub=${args.subscriptionId}`, {
           fields: optimisticFields,
           ...(args.seats !== undefined ? { seats: args.seats } : {}),
-          ...(args.productId !== undefined ? { productId: args.productId } : {}),
+          ...(args.productId !== undefined
+            ? { productId: args.productId }
+            : {}),
           ...(args.clearOptimistic ? { clear: true } : {}),
         });
       }
@@ -562,7 +610,12 @@ export const executeSubscriptionUpdate = action({
         await sdk.subscriptions.upgrade(args.subscriptionId, {
           productId: args.productId,
           ...(args.updateBehavior
-            ? { updateBehavior: args.updateBehavior as "proration-charge-immediately" | "proration-charge" | "proration-none" }
+            ? {
+                updateBehavior: args.updateBehavior as
+                  | "proration-charge-immediately"
+                  | "proration-charge"
+                  | "proration-none",
+              }
             : {}),
         });
       } else if (args.units !== undefined) {
@@ -571,9 +624,21 @@ export const executeSubscriptionUpdate = action({
         const item = live.items?.[0];
         if (!item) throw new ConvexError("Subscription has no items");
         await sdk.subscriptions.update(args.subscriptionId, {
-          items: [{ id: item.id, productId: item.productId, priceId: item.priceId, units: args.units }],
+          items: [
+            {
+              id: item.id,
+              productId: item.productId,
+              priceId: item.priceId,
+              units: args.units,
+            },
+          ],
           ...(args.updateBehavior
-            ? { updateBehavior: args.updateBehavior as "proration-charge-immediately" | "proration-charge" | "proration-none" }
+            ? {
+                updateBehavior: args.updateBehavior as
+                  | "proration-charge-immediately"
+                  | "proration-charge"
+                  | "proration-none",
+              }
             : {}),
         });
       }
@@ -582,8 +647,12 @@ export const executeSubscriptionUpdate = action({
       // Revert optimistic state and clear the optimistic guard so webhooks write normally
       await ctx.runMutation(api.lib.patchSubscription, {
         subscriptionId: args.subscriptionId,
-        ...(args.previousSeats !== undefined ? { seats: args.previousSeats } : {}),
-        ...(args.previousProductId ? { productId: args.previousProductId } : {}),
+        ...(args.previousSeats !== undefined
+          ? { seats: args.previousSeats }
+          : {}),
+        ...(args.previousProductId
+          ? { productId: args.previousProductId }
+          : {}),
         clearOptimistic: true,
       });
     }
@@ -598,7 +667,11 @@ export const executeSubscriptionLifecycle = action({
     serverIdx: v.optional(v.number()),
     serverURL: v.optional(v.string()),
     subscriptionId: v.string(),
-    operation: v.union(v.literal("cancel"), v.literal("resume"), v.literal("pause")),
+    operation: v.union(
+      v.literal("cancel"),
+      v.literal("resume"),
+      v.literal("pause"),
+    ),
     cancelMode: v.optional(v.string()),
     // For reverting on error:
     previousStatus: v.optional(v.string()),
@@ -629,8 +702,12 @@ export const executeSubscriptionLifecycle = action({
       // Revert optimistic state
       await ctx.runMutation(api.lib.patchSubscription, {
         subscriptionId: args.subscriptionId,
-        ...(args.previousStatus !== undefined ? { status: args.previousStatus } : {}),
-        ...(args.previousCancelAtPeriodEnd !== undefined ? { cancelAtPeriodEnd: args.previousCancelAtPeriodEnd } : {}),
+        ...(args.previousStatus !== undefined
+          ? { status: args.previousStatus }
+          : {}),
+        ...(args.previousCancelAtPeriodEnd !== undefined
+          ? { cancelAtPeriodEnd: args.previousCancelAtPeriodEnd }
+          : {}),
       });
     }
   },

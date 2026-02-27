@@ -49,7 +49,9 @@ function PriceDisplay({
   return (
     <span>
       ${price / 100}
-      {billingPeriod ? (intervalLabel[billingPeriod] ?? `/${billingPeriod}`) : ""}
+      {billingPeriod
+        ? (intervalLabel[billingPeriod] ?? `/${billingPeriod}`)
+        : ""}
     </span>
   );
 }
@@ -79,7 +81,9 @@ export default function TodoList() {
   const isAtMaxTodos = user?.maxTodos && todosLength >= user.maxTodos;
 
   const findProduct = (name: string) =>
-    allProducts?.find((p: any) => p.name?.toLowerCase().includes(name.toLowerCase()));
+    allProducts?.find((p: any) =>
+      p.name?.toLowerCase().includes(name.toLowerCase()),
+    );
   const premiumMonthly = findProduct("basic trial monthly");
   const premiumYearly = findProduct("basic trial yearly");
   const premiumPlusMonthly = findProduct("premium trial monthly");
@@ -368,8 +372,7 @@ export default function TodoList() {
                 {user?.subscription && (
                   <CustomerPortalLink
                     creemApi={{
-                      portalUrl:
-                        api.billing.customersPortalUrl,
+                      portalUrl: api.billing.customersPortalUrl,
                     }}
                     className="text-sm text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
                   >
@@ -565,8 +568,7 @@ export default function TodoList() {
                             <div className="flex items-center gap-3">
                               <CheckoutLink
                                 creemApi={{
-                                  create:
-                                    api.billing.checkoutsCreate,
+                                  create: api.billing.checkoutsCreate,
                                 }}
                                 productId={premiumMonthly.id}
                                 className="text-sm text-green-600 hover:text-green-700 dark:text-green-400 dark:hover:text-green-300"
@@ -575,8 +577,7 @@ export default function TodoList() {
                               </CheckoutLink>
                               <CheckoutLink
                                 creemApi={{
-                                  create:
-                                    api.billing.checkoutsCreate,
+                                  create: api.billing.checkoutsCreate,
                                 }}
                                 productId={premiumMonthly.id}
                                 className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
@@ -627,8 +628,7 @@ export default function TodoList() {
                         (user?.isFree ? (
                           <CheckoutLink
                             creemApi={{
-                              create:
-                                api.billing.checkoutsCreate,
+                              create: api.billing.checkoutsCreate,
                             }}
                             productId={premiumPlusMonthly.id}
                             className="text-sm text-indigo-600 hover:text-indigo-700 dark:text-indigo-400 dark:hover:text-indigo-300"
@@ -678,10 +678,12 @@ export default function TodoList() {
                           {product.name}
                         </h3>
                         {product.billingType && (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
-                              {product.billingType === "recurring" ? product.billingPeriod : "one-time"}
-                            </span>
-                          )}
+                          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300">
+                            {product.billingType === "recurring"
+                              ? product.billingPeriod
+                              : "one-time"}
+                          </span>
+                        )}
                       </div>
                       {product.description && (
                         <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -720,8 +722,7 @@ export default function TodoList() {
                         <div className="pt-2">
                           <OneTimeCheckoutLink
                             creemApi={{
-                              create:
-                                api.billing.checkoutsCreate,
+                              create: api.billing.checkoutsCreate,
                             }}
                             productId={product.id}
                             lazy

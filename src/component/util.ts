@@ -98,7 +98,8 @@ export const convertToDatabaseSubscription = (
     amount: product?.price ?? null,
     currency: product?.currency ?? null,
     recurringInterval: product?.billingPeriod ?? null,
-    currentPeriodStart: periodStartStr ?? toIsoStringOrNow(subscription.createdAt),
+    currentPeriodStart:
+      periodStartStr ?? toIsoStringOrNow(subscription.createdAt),
     currentPeriodEnd: periodEndStr,
     cancelAtPeriodEnd: isScheduledCancel,
     startedAt: periodStartStr ?? toIsoString(subscription.createdAt),
@@ -181,8 +182,10 @@ export const convertToOrder = (
     affiliate: order.affiliate ?? null,
     mode: order.mode,
     metadata: (options?.metadata as Record<string, string>) ?? undefined,
-    createdAt: toIsoString(order.createdAt) ?? toIsoString(order.created_at) ?? now,
-    updatedAt: toIsoString(order.updatedAt) ?? toIsoString(order.updated_at) ?? now,
+    createdAt:
+      toIsoString(order.createdAt) ?? toIsoString(order.created_at) ?? now,
+    updatedAt:
+      toIsoString(order.updatedAt) ?? toIsoString(order.updated_at) ?? now,
   };
 };
 

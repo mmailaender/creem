@@ -14,7 +14,7 @@
    production builds, unlike @source paths that traverse above the consumer's
    project root with ../../.                                                 */
 
-@import './design-system/index.css';
+@import "./design-system/index.css";
 
 @source "./svelte/**/*.{svelte,ts}";
 @source "./react/**/*.{tsx,ts}";

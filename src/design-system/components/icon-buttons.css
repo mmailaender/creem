@@ -1,66 +1,90 @@
 /* Components: Icon Buttons */
 
 @utility icon-button {
-	position: relative;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	border-radius: var(--et-radius-m);
-	cursor: pointer;
-	user-select: none;
-	overflow: hidden;
-	text-decoration: none;
-	color: var(--et-color-foreground-on-tonal);
-	background-color: var(--et-color-surface-tonal);
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--et-radius-m);
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--et-color-foreground-on-tonal);
+  background-color: var(--et-color-surface-tonal);
 
-	&::after {
-		content: '';
-		position: absolute;
-		inset: 0;
-		border-radius: inherit;
-		background: color-mix(in oklab, var(--et-color-foreground-default) 0%, transparent);
-		transition: background-color 120ms ease;
-		pointer-events: none;
-	}
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 0%,
+      transparent
+    );
+    transition: background-color 120ms ease;
+    pointer-events: none;
+  }
 
-	&:hover::after {
-		background: color-mix(in oklab, var(--et-color-foreground-default) 8%, transparent);
-	}
+  &:hover::after {
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 8%,
+      transparent
+    );
+  }
 
-	&:active::after {
-		background: color-mix(in oklab, var(--et-color-foreground-default) 10%, transparent);
-	}
+  &:active::after {
+    background: color-mix(
+      in oklab,
+      var(--et-color-foreground-default) 10%,
+      transparent
+    );
+  }
 
-	&:focus-visible {
-		outline: none;
-		box-shadow: 0 0 0 2px var(--et-color-border-default);
-	}
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--et-color-border-default);
+  }
 
-	&:disabled,
-	&[aria-disabled='true'] {
-		cursor: not-allowed;
-		opacity: 0.5;
-	}
+  &:disabled,
+  &[aria-disabled="true"] {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
 
-	@variant dark {
-		color: var(--et-color-foreground-on-tonal-dark);
-		background-color: var(--et-color-surface-tonal-dark);
+  @variant dark {
+    color: var(--et-color-foreground-on-tonal-dark);
+    background-color: var(--et-color-surface-tonal-dark);
 
-		&::after {
-			background: color-mix(in oklab, var(--et-color-foreground-default-dark) 0%, transparent);
-		}
+    &::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 0%,
+        transparent
+      );
+    }
 
-		&:hover::after {
-			background: color-mix(in oklab, var(--et-color-foreground-default-dark) 8%, transparent);
-		}
+    &:hover::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 8%,
+        transparent
+      );
+    }
 
-		&:active::after {
-			background: color-mix(in oklab, var(--et-color-foreground-default-dark) 10%, transparent);
-		}
-	}
+    &:active::after {
+      background: color-mix(
+        in oklab,
+        var(--et-color-foreground-default-dark) 10%,
+        transparent
+      );
+    }
+  }
 }
 
 @utility icon-button-sm {
-	inline-size: 1.5rem;
-	block-size: 1.5rem;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
 }
