@@ -18,6 +18,9 @@ export type RunMutationCtx = {
   runQuery: GenericQueryCtx<GenericDataModel>["runQuery"];
   runMutation: GenericMutationCtx<GenericDataModel>["runMutation"];
 };
+export type RunSchedulerMutationCtx = RunMutationCtx & {
+  scheduler: GenericMutationCtx<GenericDataModel>["scheduler"];
+};
 export type RunActionCtx = {
   runQuery: GenericQueryCtx<GenericDataModel>["runQuery"];
   runMutation: GenericMutationCtx<GenericDataModel>["runMutation"];
