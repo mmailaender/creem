@@ -57,7 +57,6 @@
   const canChange = $derived(permissions?.canChangeSubscription !== false);
   const canCancel = $derived(permissions?.canCancelSubscription !== false);
   const canResume = $derived(permissions?.canResumeSubscription !== false);
-  const canUpdateSeats = $derived(permissions?.canUpdateSeats !== false);
 
   const client = useConvexClient();
 
@@ -111,6 +110,11 @@
     !model?.user && onBeforeCheckout != null
       ? true
       : permissions?.canCheckout !== false,
+  );
+  const canUpdateSeats = $derived(
+    !model?.user && onBeforeCheckout != null
+      ? true
+      : permissions?.canUpdateSeats !== false,
   );
   const snapshot = $derived(model?.billingSnapshot ?? null);
 
@@ -531,8 +535,16 @@
         <Dialog.Backdrop class="dialog-backdrop" />
         <Dialog.Positioner class="dialog-positioner">
           <Dialog.Content class="dialog-content">
-            <Dialog.CloseTrigger class="icon-button-ghost-sm absolute right-2 top-2" aria-label="Close dialog">
-              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" class="h-4 w-4">
+            <Dialog.CloseTrigger
+              class="icon-button-ghost-sm absolute right-2 top-2"
+              aria-label="Close dialog"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                class="h-4 w-4"
+              >
                 <path
                   d="M18 6L6 18M6 6L18 18"
                   stroke="currentColor"
@@ -578,8 +590,16 @@
         <Dialog.Backdrop class="dialog-backdrop" />
         <Dialog.Positioner class="dialog-positioner">
           <Dialog.Content class="dialog-content">
-            <Dialog.CloseTrigger class="icon-button-ghost-sm absolute right-2 top-2" aria-label="Close dialog">
-              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" class="h-4 w-4">
+            <Dialog.CloseTrigger
+              class="icon-button-ghost-sm absolute right-2 top-2"
+              aria-label="Close dialog"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                class="h-4 w-4"
+              >
                 <path
                   d="M18 6L6 18M6 6L18 18"
                   stroke="currentColor"

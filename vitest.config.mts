@@ -9,5 +9,16 @@ export default defineConfig({
         return false;
       }
     },
+    coverage: {
+      provider: "v8",
+      include: ["src/component/**", "src/core/**"],
+      exclude: [
+        "src/**/_generated/**",
+        "src/core/pendingCheckout.ts",
+        "src/core/index.ts",
+        "src/core/types.ts",
+        "**/*.d.ts",
+      ],
+    },
   },
 });

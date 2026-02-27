@@ -957,3 +957,399 @@ describe("listAllUserSubscriptions query", () => {
     ]);
   });
 });
+
+// Helper to create a minimal valid order for testing
+type DbOrder = Infer<typeof schema.tables.orders.validator>;
+function createTestOrder(overrides: Partial<DbOrder> = {}): DbOrder {
+  return {
+    id: "ord_123",
+    customerId: "cust_123",
+    productId: "prod_789",
+    amount: 2999,
+    currency: "USD",
+    status: "paid",
+    type: "onetime",
+    createdAt: "2025-01-15T10:00:00.000Z",
+    updatedAt: "2025-01-15T10:00:00.000Z",
+    ...overrides,
+  };
+}
+
+describe("createOrder mutation", () => {
+  let t: TestConvex<typeof schema>;
+
+  beforeEach(() => {
+    t = convexTest(schema, modules);
+  });
+
+  it("inserts a new order", async () => {
+    await t.mutation(api.lib.createOrder, {
+      order: createTestOrder(),
+    });
+    await t.mutation(api.lib.createOrder, {
+      order: createTestOrder({ id: "ord_456", amount: 5000 }),
+    });
+    // Verify by inserting a customer + querying orders
+    await t.mutation(api.lib.insertCustomer, createTestCustomer());
+    const orders = await t.query(api.lib.listUserOrders, {
+      entityId: "user_456",
+    });
+    expect(orders).toHaveLength(2);
+  });
+
+  it("updates existing order when incoming is newer", async () => {
+    await t.mutation(api.lib.createOrder, {
+      order: createTestOrder({ updatedAt: "2025-01-15T10:00:00.000Z" }),
+    });
+    await t.mutation(api.lib.createOrder, {
+      order: createTestOrder({
+        updatedAt: "2025-01-16T10:00:00.000Z",
+        amount: 5000,
+      }),
+    });
+    await t.mutation(api.lib.insertCustomer, createTestCustomer());
+    const orders = await t.query(api.lib.listUserOrders, {
+      entityId: "user_456",
+    });
+    expect(orders).toHaveLength(1);
+    expect(orders[0].amount).toBe(5000);
+  });
+
+  it("does not update when existing is newer", async () => {
+    await t.mutation(api.lib.createOrder, {
+      order: createTestOrder({ updatedAt: "2025-01-16T10:00:00.000Z" }),
+    });
+    await t.mutation(api.lib.createOrder, {
+      order: createTestOrder({
+        updatedAt: "2025-01-15T10:00:00.000Z",
+        amount: 5000,
+      }),
+    });
+    await t.mutation(api.lib.insertCustomer, createTestCustomer());
+    const orders = await t.query(api.lib.listUserOrders, {
+      entityId: "user_456",
+    });
+    expect(orders).toHaveLength(1);
+    expect(orders[0].amount).toBe(2999);
+  });
+});
+
+describe("listUserOrders query", () => {
+  let t: TestConvex<typeof schema>;
+
+  beforeEach(() => {
+    t = convexTest(schema, modules);
+  });
+
+  it("returns empty array when no customer exists", async () => {
+    const orders = await t.query(api.lib.listUserOrders, {
+      entityId: "user_nonexistent",
+    });
+    expect(orders).toEqual([]);
+  });
+
+  it("filters to only paid onetime orders", async () => {
+    await t.mutation(api.lib.insertCustomer, createTestCustomer());
+    // Paid onetime — should be included
+    await t.mutation(api.lib.createOrder, {
+      order: createTestOrder({
+        id: "ord_paid",
+        status: "paid",
+        type: "onetime",
+      }),
+    });
+    // Pending onetime — should be excluded
+    await t.mutation(api.lib.createOrder, {
+      order: createTestOrder({
+        id: "ord_pending",
+        status: "pending",
+        type: "onetime",
+      }),
+    });
+    // Paid recurring — should be excluded
+    await t.mutation(api.lib.createOrder, {
+      order: createTestOrder({
+        id: "ord_recurring",
+        status: "paid",
+        type: "recurring",
+      }),
+    });
+    const orders = await t.query(api.lib.listUserOrders, {
+      entityId: "user_456",
+    });
+    expect(orders).toHaveLength(1);
+    expect(orders[0].id).toBe("ord_paid");
+  });
+});
+
+describe("updateProducts mutation", () => {
+  let t: TestConvex<typeof schema>;
+
+  beforeEach(() => {
+    t = convexTest(schema, modules);
+  });
+
+  it("inserts new products", async () => {
+    await t.mutation(api.lib.updateProducts, {
+      products: [
+        createTestProduct({ id: "prod_a", name: "Product A" }),
+        createTestProduct({ id: "prod_b", name: "Product B" }),
+      ],
+    });
+    const products = await t.query(api.lib.listProducts, {});
+    expect(products).toHaveLength(2);
+  });
+
+  it("patches existing products", async () => {
+    await t.mutation(api.lib.createProduct, {
+      product: createTestProduct({ id: "prod_a", name: "Old Name" }),
+    });
+    await t.mutation(api.lib.updateProducts, {
+      products: [
+        createTestProduct({ id: "prod_a", name: "New Name" }),
+      ],
+    });
+    const products = await t.query(api.lib.listProducts, {});
+    expect(products).toHaveLength(1);
+    expect(products[0].name).toBe("New Name");
+  });
+});
+
+describe("patchSubscription mutation", () => {
+  let t: TestConvex<typeof schema>;
+
+  beforeEach(() => {
+    t = convexTest(schema, modules);
+  });
+
+  it("throws when subscription not found", async () => {
+    await expect(
+      t.mutation(api.lib.patchSubscription, {
+        subscriptionId: "sub_nonexistent",
+      }),
+    ).rejects.toThrow("Subscription not found");
+  });
+
+  it("patches seats and sets optimistic metadata", async () => {
+    await t.mutation(api.lib.createSubscription, {
+      subscription: createTestSubscription({ id: "sub_1", seats: 3 }),
+    });
+    await t.mutation(api.lib.patchSubscription, {
+      subscriptionId: "sub_1",
+      seats: 5,
+    });
+    const sub = await t.query(api.lib.getSubscription, { id: "sub_1" });
+    expect(sub).not.toBeNull();
+    expect(sub!.seats).toBe(5);
+    const meta = sub!.metadata as Record<string, unknown>;
+    expect(meta._optimisticFields).toContain("seats");
+    expect(meta._optimisticPendingAt).toBeDefined();
+  });
+
+  it("patches productId and sets optimistic metadata", async () => {
+    await t.mutation(api.lib.createSubscription, {
+      subscription: createTestSubscription({ id: "sub_1" }),
+    });
+    await t.mutation(api.lib.patchSubscription, {
+      subscriptionId: "sub_1",
+      productId: "prod_new",
+    });
+    const sub = await t.query(api.lib.getSubscription, { id: "sub_1" });
+    expect(sub!.productId).toBe("prod_new");
+    const meta = sub!.metadata as Record<string, unknown>;
+    expect(meta._optimisticFields).toContain("productId");
+  });
+
+  it("clears optimistic metadata with clearOptimistic flag", async () => {
+    await t.mutation(api.lib.createSubscription, {
+      subscription: createTestSubscription({ id: "sub_1" }),
+    });
+    await t.mutation(api.lib.patchSubscription, {
+      subscriptionId: "sub_1",
+      seats: 10,
+    });
+    await t.mutation(api.lib.patchSubscription, {
+      subscriptionId: "sub_1",
+      clearOptimistic: true,
+    });
+    const sub = await t.query(api.lib.getSubscription, { id: "sub_1" });
+    const meta = sub!.metadata as Record<string, unknown>;
+    expect(meta._optimisticPendingAt).toBeUndefined();
+    expect(meta._optimisticFields).toBeUndefined();
+  });
+
+  it("patches status and cancelAtPeriodEnd", async () => {
+    await t.mutation(api.lib.createSubscription, {
+      subscription: createTestSubscription({ id: "sub_1" }),
+    });
+    await t.mutation(api.lib.patchSubscription, {
+      subscriptionId: "sub_1",
+      status: "scheduled_cancel",
+      cancelAtPeriodEnd: true,
+    });
+    const sub = await t.query(api.lib.getSubscription, { id: "sub_1" });
+    expect(sub!.status).toBe("scheduled_cancel");
+    expect(sub!.cancelAtPeriodEnd).toBe(true);
+  });
+
+  it("merges optimistic fields from consecutive patches", async () => {
+    await t.mutation(api.lib.createSubscription, {
+      subscription: createTestSubscription({ id: "sub_1", seats: 3 }),
+    });
+    await t.mutation(api.lib.patchSubscription, {
+      subscriptionId: "sub_1",
+      seats: 5,
+    });
+    await t.mutation(api.lib.patchSubscription, {
+      subscriptionId: "sub_1",
+      productId: "prod_new",
+    });
+    const sub = await t.query(api.lib.getSubscription, { id: "sub_1" });
+    const meta = sub!.metadata as Record<string, unknown>;
+    const fields = meta._optimisticFields as string[];
+    expect(fields).toContain("seats");
+    expect(fields).toContain("productId");
+  });
+});
+
+describe("updateSubscription optimistic guard", () => {
+  let t: TestConvex<typeof schema>;
+
+  beforeEach(() => {
+    t = convexTest(schema, modules);
+  });
+
+  it("preserves optimistic seats when webhook sends stale value", async () => {
+    // Insert subscription with seats=3
+    await t.mutation(api.lib.createSubscription, {
+      subscription: createTestSubscription({
+        id: "sub_1",
+        seats: 3,
+        modifiedAt: "2025-01-16T12:00:00.000Z",
+      }),
+    });
+    // Optimistic patch: seats → 5
+    await t.mutation(api.lib.patchSubscription, {
+      subscriptionId: "sub_1",
+      seats: 5,
+    });
+    // Webhook arrives with seats=3 (stale intermediate) but newer modifiedAt
+    await t.mutation(api.lib.updateSubscription, {
+      subscription: createTestSubscription({
+        id: "sub_1",
+        seats: 3,
+        modifiedAt: "2025-01-17T12:00:00.000Z",
+      }),
+    });
+    const sub = await t.query(api.lib.getSubscription, { id: "sub_1" });
+    // Guard should preserve optimistic seats=5
+    expect(sub!.seats).toBe(5);
+  });
+
+  it("clears guard when webhook confirms optimistic value", async () => {
+    await t.mutation(api.lib.createSubscription, {
+      subscription: createTestSubscription({
+        id: "sub_1",
+        seats: 3,
+        modifiedAt: "2025-01-16T12:00:00.000Z",
+      }),
+    });
+    await t.mutation(api.lib.patchSubscription, {
+      subscriptionId: "sub_1",
+      seats: 5,
+    });
+    // Webhook arrives confirming seats=5
+    await t.mutation(api.lib.updateSubscription, {
+      subscription: createTestSubscription({
+        id: "sub_1",
+        seats: 5,
+        modifiedAt: "2025-01-17T12:00:00.000Z",
+      }),
+    });
+    const sub = await t.query(api.lib.getSubscription, { id: "sub_1" });
+    expect(sub!.seats).toBe(5);
+    const meta = sub!.metadata as Record<string, unknown>;
+    expect(meta._optimisticPendingAt).toBeUndefined();
+    expect(meta._optimisticFields).toBeUndefined();
+  });
+
+  it("preserves optimistic productId when webhook sends stale value", async () => {
+    await t.mutation(api.lib.createSubscription, {
+      subscription: createTestSubscription({
+        id: "sub_1",
+        productId: "prod_old",
+        modifiedAt: "2025-01-16T12:00:00.000Z",
+      }),
+    });
+    await t.mutation(api.lib.patchSubscription, {
+      subscriptionId: "sub_1",
+      productId: "prod_new",
+    });
+    // Webhook with stale productId
+    await t.mutation(api.lib.updateSubscription, {
+      subscription: createTestSubscription({
+        id: "sub_1",
+        productId: "prod_old",
+        modifiedAt: "2025-01-17T12:00:00.000Z",
+      }),
+    });
+    const sub = await t.query(api.lib.getSubscription, { id: "sub_1" });
+    expect(sub!.productId).toBe("prod_new");
+  });
+});
+
+describe("insertCustomer mutation enrichment", () => {
+  let t: TestConvex<typeof schema>;
+
+  beforeEach(() => {
+    t = convexTest(schema, modules);
+  });
+
+  it("enriches existing customer with new email and name", async () => {
+    await t.mutation(api.lib.insertCustomer, createTestCustomer({
+      id: "cust_1",
+      entityId: "user_1",
+    }));
+    // Insert again with additional fields
+    await t.mutation(api.lib.insertCustomer, createTestCustomer({
+      id: "cust_1",
+      entityId: "user_1",
+      email: "test@example.com",
+      name: "Test User",
+      country: "US",
+      mode: "live",
+      updatedAt: "2025-02-01T00:00:00.000Z",
+    }));
+    const customer = await t.query(api.lib.getCustomerByEntityId, {
+      entityId: "user_1",
+    });
+    expect(customer).not.toBeNull();
+    expect(customer!.email).toBe("test@example.com");
+    expect(customer!.name).toBe("Test User");
+    expect(customer!.country).toBe("US");
+  });
+});
+
+describe("getCurrentSubscription query edge cases", () => {
+  let t: TestConvex<typeof schema>;
+
+  beforeEach(() => {
+    t = convexTest(schema, modules);
+  });
+
+  it("throws when product is missing for subscription", async () => {
+    await t.mutation(api.lib.insertCustomer, createTestCustomer());
+    await t.mutation(api.lib.createSubscription, {
+      subscription: createTestSubscription({
+        id: "sub_no_product",
+        customerId: "cust_123",
+        productId: "prod_nonexistent",
+        endedAt: null,
+        status: "active",
+      }),
+    });
+    await expect(
+      t.query(api.lib.getCurrentSubscription, { entityId: "user_456" }),
+    ).rejects.toThrow("Product not found");
+  });
+});
