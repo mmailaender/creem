@@ -1,19 +1,19 @@
 /* Components: Inputs */
 
-@utility input-field {
-  display: inline-flex;
-  align-items: center;
-  block-size: 2rem;
-  padding-inline: 12px;
-  border-radius: var(--et-radius-m);
-  font-family: var(--et-typeface-plain);
-  font-size: var(--et-type-label-m-size-desktop);
-  line-height: 1.25rem;
-  letter-spacing: var(--et-type-label-m-tracking-desktop);
-  font-weight: 500;
-  color: var(--et-color-foreground-default);
-  background-color: transparent;
-  outline: none;
+@utility input-base {
+	display: inline-flex;
+	align-items: center;
+	block-size: 2rem;
+	padding-inline: 12px;
+	border-radius: var(--et-radius-m);
+	font-family: var(--et-typeface-plain);
+	font-size: var(--et-type-label-m-size-desktop);
+	line-height: 1.25rem;
+	letter-spacing: var(--et-type-label-m-tracking-desktop);
+	font-weight: 500;
+	color: var(--et-color-foreground-default);
+	background-color: transparent;
+	outline: none;
 
   &::placeholder {
     color: var(--et-color-foreground-placeholder);
@@ -42,16 +42,25 @@
   }
 }
 
-@utility input-default {
-  border: 1px solid var(--et-color-border-default);
+@utility input-variant-default {
+	border: 1px solid var(--et-color-border-default);
 
   @variant dark {
     border-color: var(--et-color-border-default-dark);
   }
 }
 
+@utility input-variant-ghost {
+	border: none;
+}
+
+/* Precomposed classes for direct markup usage, e.g. <input class="input-default" /> */
+@utility input-default {
+	@apply input-base input-variant-default;
+}
+
 @utility input-ghost {
-  border: none;
+	@apply input-base input-variant-ghost;
 }
 
 @utility number-input {

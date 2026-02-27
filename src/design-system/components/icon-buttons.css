@@ -1,17 +1,17 @@
 /* Components: Icon Buttons */
 
-@utility icon-button {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: var(--et-radius-m);
-  cursor: pointer;
-  user-select: none;
-  overflow: hidden;
-  text-decoration: none;
-  color: var(--et-color-foreground-on-tonal);
-  background-color: var(--et-color-surface-tonal);
+@utility icon-button-base {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: var(--et-radius-m);
+	cursor: pointer;
+	user-select: none;
+	overflow: hidden;
+	text-decoration: none;
+	color: var(--et-color-foreground-on-tonal);
+	background-color: var(--et-color-surface-tonal);
 
   &::after {
     content: "";
@@ -84,7 +84,12 @@
   }
 }
 
+@utility icon-button-size-sm {
+	inline-size: 1.5rem;
+	block-size: 1.5rem;
+}
+
+/* Precomposed class for direct markup usage, e.g. <button class="icon-button-sm"> */
 @utility icon-button-sm {
-  inline-size: 1.5rem;
-  block-size: 1.5rem;
+	@apply icon-button-base icon-button-size-sm;
 }

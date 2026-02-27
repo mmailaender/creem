@@ -1,11 +1,9 @@
 <script lang="ts">
   import CheckoutButton from "./CheckoutButton.svelte";
-  import Badge from "./Badge.svelte";
   import NumberInput from "./NumberInput.svelte";
   import type { UIPlanEntry, RecurringCycle } from "../../core/types.js";
   import type { ConnectedProduct } from "../widgets/types.js";
   import { resolveProductIdForPlan, formatPriceWithInterval, formatSeatPrice } from "./shared.js";
-  import { CARD_BADGE_SIZE, CARD_TYPOGRAPHY } from "./cardTokens.js";
 
   interface Props {
     plan: UIPlanEntry;
@@ -173,36 +171,36 @@
   } ${className}`}
 >
   <div class="mb-3 flex h-5 items-center justify-between gap-2">
-    <h3 class={CARD_TYPOGRAPHY.title}>
+    <h3 class="title-s text-foreground-default">
       {plan.title ?? plan.planId}
     </h3>
     {#if isActiveProduct || isActiveFreePlan}
-      <Badge color="neutral" variant="faded" size={CARD_BADGE_SIZE}>
+      <span class="badge-faded-sm">
         {#if isTrialing}
           Free trial{#if trialDaysLeft != null}&ensp;·&ensp;{trialDaysLeft} day{trialDaysLeft === 1 ? '' : 's'} left{/if}
         {:else}
           Current plan
         {/if}
-      </Badge>
+      </span>
     {:else if plan.recommended}
-      <Badge color="primary" variant="filled" size={CARD_BADGE_SIZE}>
+      <span class="badge-filled-sm">
         Recommended
-      </Badge>
+      </span>
     {/if}
   </div>
 
   <div class="flex items-baseline gap-1">
     {#if plan.category === "free"}
-      <span class={CARD_TYPOGRAPHY.price}>Free</span>
+      <span class="heading-s text-foreground-default">Free</span>
     {:else if plan.category === "enterprise"}
-      <span class={CARD_TYPOGRAPHY.price}>Custom</span>
+      <span class="heading-s text-foreground-default">Custom</span>
     {:else if splitPrice}
-      <span class={CARD_TYPOGRAPHY.price}>{splitPrice.main}</span>
+      <span class="heading-s text-foreground-default">{splitPrice.main}</span>
       {#if splitPrice.suffix}
-        <span class={CARD_TYPOGRAPHY.priceSuffix}>{splitPrice.suffix}</span>
+        <span class="title-s text-foreground-placeholder">{splitPrice.suffix}</span>
       {/if}
       {#if splitPrice.tail}
-        <span class={CARD_TYPOGRAPHY.priceSuffix}>{splitPrice.tail}</span>
+        <span class="title-s text-foreground-placeholder">{splitPrice.tail}</span>
       {/if}
     {/if}
   </div>

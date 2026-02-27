@@ -2,12 +2,7 @@
   import { setContext, untrack } from "svelte";
   import { useConvexClient, useQuery } from "convex-svelte";
   import CheckoutButton from "../primitives/CheckoutButton.svelte";
-  import Badge from "../primitives/Badge.svelte";
   import { formatPriceWithInterval } from "../primitives/shared.js";
-  import {
-    CARD_BADGE_SIZE,
-    CARD_TYPOGRAPHY,
-  } from "../primitives/cardTokens.js";
   import {
     PRODUCT_GROUP_CONTEXT_KEY,
     type ProductGroupContextValue,
@@ -292,28 +287,26 @@
 
           <div class="px-6 pb-6 pt-6">
             <div class="mb-3 flex min-h-6 items-center justify-between gap-2">
-              <h3 class={CARD_TYPOGRAPHY.title}>{resolvedTitle}</h3>
+              <h3 class="title-s text-foreground-default">{resolvedTitle}</h3>
               {#if isOwned}
-                <Badge color="neutral" variant="faded" size={CARD_BADGE_SIZE}
-                  >Owned</Badge
-                >
+                <span class="badge-faded-sm">Owned</span>
               {:else if isIncluded}
-                <Badge color="neutral" variant="faded" size={CARD_BADGE_SIZE}
-                  >Included</Badge
-                >
+                <span class="badge-faded-sm">Included</span>
               {/if}
             </div>
 
             {#if splitPrice}
               <div class="flex items-baseline gap-1">
-                <span class={CARD_TYPOGRAPHY.price}>{splitPrice.main}</span>
+                <span class="heading-s text-foreground-default"
+                  >{splitPrice.main}</span
+                >
                 {#if splitPrice.suffix}
-                  <span class={CARD_TYPOGRAPHY.priceSuffix}
+                  <span class="title-s text-foreground-placeholder"
                     >{splitPrice.suffix}</span
                   >
                 {/if}
                 {#if splitPrice.tail}
-                  <span class={CARD_TYPOGRAPHY.priceSuffix}
+                  <span class="title-s text-foreground-placeholder"
                     >{splitPrice.tail}</span
                   >
                 {/if}
