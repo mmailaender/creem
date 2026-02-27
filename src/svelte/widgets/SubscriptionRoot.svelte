@@ -239,9 +239,13 @@
     units?: number;
   }) => {
     if (!updateRef) return;
+    const subId = matchedSubscription?.id;
     actionError = null;
     try {
-      await client.mutation(updateRef, { productId: payload.productId }, {
+      await client.mutation(updateRef, {
+        productId: payload.productId,
+        ...(subId ? { subscriptionId: subId } : {}),
+      }, {
         optimisticUpdate: (store) => {
           const current = store.getQuery(billingUiModelRef, {});
           if (current) {
