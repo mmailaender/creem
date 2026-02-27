@@ -46,3 +46,20 @@
 		color: var(--et-color-primary-foreground-on-filled-dark);
 	}
 }
+
+/* Precomposed badge classes for direct markup usage, e.g. <span class="badge-filled-sm"> */
+@utility badge-filled-sm {
+	@apply badge badge-s badge-primary-filled;
+}
+
+@utility badge-filled-md {
+	@apply badge badge-primary-filled;
+}
+
+@utility badge-faded-sm {
+	@apply badge badge-s badge-neutral-faded;
+}
+
+@utility badge-faded-md {
+	@apply badge badge-neutral-faded;
+}

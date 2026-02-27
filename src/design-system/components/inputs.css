@@ -1,6 +1,6 @@
 /* Components: Inputs */
 
-@utility input-field {
+@utility input-base {
 	display: inline-flex;
 	align-items: center;
 	block-size: 2rem;
@@ -42,7 +42,7 @@
 	}
 }
 
-@utility input-default {
+@utility input-variant-default {
 	border: 1px solid var(--et-color-border-default);
 
 	@variant dark {
@@ -50,8 +50,17 @@
 	}
 }
 
-@utility input-ghost {
+@utility input-variant-ghost {
 	border: none;
+}
+
+/* Precomposed classes for direct markup usage, e.g. <input class="input-default" /> */
+@utility input-default {
+	@apply input-base input-variant-default;
+}
+
+@utility input-ghost {
+	@apply input-base input-variant-ghost;
 }
 
 @utility number-input {

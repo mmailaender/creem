@@ -1,6 +1,6 @@
 /* Components: Icon Buttons */
 
-@utility icon-button {
+@utility icon-button-base {
 	position: relative;
 	display: inline-flex;
 	align-items: center;
@@ -60,7 +60,12 @@
 	}
 }
 
-@utility icon-button-sm {
+@utility icon-button-size-sm {
 	inline-size: 1.5rem;
 	block-size: 1.5rem;
+}
+
+/* Precomposed class for direct markup usage, e.g. <button class="icon-button-sm"> */
+@utility icon-button-sm {
+	@apply icon-button-base icon-button-size-sm;
 }

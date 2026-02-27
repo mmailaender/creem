@@ -30,31 +30,47 @@
     />
     <Dialog.Positioner class="fixed inset-0 z-50 flex items-center justify-center p-4">
       <Dialog.Content
-        class="w-full max-w-md rounded-xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-700 dark:bg-zinc-900"
+        class="relative w-full max-w-[24rem] rounded-xl bg-surface-base p-6 shadow-xl"
       >
-        <Dialog.Title class="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+        <Dialog.CloseTrigger
+          class="absolute right-2 top-2 inline-flex h-6 w-6 items-center justify-center rounded-s text-foreground-muted transition hover:text-foreground-default disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={isLoading}
+          aria-label="Close dialog"
+        >
+          <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" class="h-4 w-4">
+            <path
+              d="M18 6L6 18M6 6L18 18"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </Dialog.CloseTrigger>
+
+        <Dialog.Title class="title-l text-foreground-default">
           Cancel subscription?
         </Dialog.Title>
-        <Dialog.Description class="mt-2 text-sm text-zinc-600 dark:text-zinc-300">
+        <Dialog.Description class="body-m mt-6 text-foreground-muted">
           Are you sure you want to cancel your subscription? You will continue to
           have access until the end of your current billing period.
         </Dialog.Description>
 
-        <div class="mt-6 flex justify-end gap-3">
-          <Dialog.CloseTrigger
-            class="rounded-md border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-50 dark:border-zinc-600 dark:text-zinc-200 dark:hover:bg-zinc-800"
-            disabled={isLoading}
-          >
-            Keep subscription
-          </Dialog.CloseTrigger>
+        <div class="flex flex-col items-end gap-2 pt-8">
           <button
             type="button"
-            class="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-red-700 disabled:opacity-50 dark:bg-red-700 dark:hover:bg-red-600"
+            class="button-filled h-8 w-full disabled:cursor-not-allowed disabled:opacity-50"
             disabled={isLoading}
             onclick={() => onConfirm?.()}
           >
             {isLoading ? "Canceling..." : "Yes, cancel"}
           </button>
+          <Dialog.CloseTrigger
+            class="button-faded h-8 w-full disabled:cursor-not-allowed disabled:opacity-50"
+            disabled={isLoading}
+          >
+            Keep subscription
+          </Dialog.CloseTrigger>
         </div>
       </Dialog.Content>
     </Dialog.Positioner>

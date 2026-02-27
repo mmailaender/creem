@@ -3,7 +3,6 @@
   import {
     CheckoutSuccessSummary,
     BillingPortal,
-    Link,
     Product,
     Subscription,
     type ConnectedBillingApi,
@@ -79,19 +78,19 @@
           <div class="space-y-1">
             <div class="flex items-center gap-3">
               <span class="label-m text-foreground-placeholder inline-block w-6 shrink-0">01</span>
-              <Link href="#subscription-with-trial">With Trial (4 Cycles)</Link>
+              <a href="#subscription-with-trial" class="link-inline">With Trial (4 Cycles)</a>
             </div>
             <div class="flex items-center gap-3">
               <span class="label-m text-foreground-placeholder inline-block w-6 shrink-0">02</span>
-              <Link href="#subscription-without-trial">Without Trial (Monthly Only)</Link>
+              <a href="#subscription-without-trial" class="link-inline">Without Trial (Monthly Only)</a>
             </div>
             <div class="flex items-center gap-3">
               <span class="label-m text-foreground-placeholder inline-block w-6 shrink-0">03</span>
-              <Link href="#subscription-seat-selectable">Seat-Based (User-Selectable)</Link>
+              <a href="#subscription-seat-selectable" class="link-inline">Seat-Based (User-Selectable)</a>
             </div>
             <div class="flex items-center gap-3">
               <span class="label-m text-foreground-placeholder inline-block w-6 shrink-0">04</span>
-              <Link href="#subscription-seat-auto">Seat-Based (Auto-Derived)</Link>
+              <a href="#subscription-seat-auto" class="link-inline">Seat-Based (Auto-Derived)</a>
             </div>
           </div>
         </div>
@@ -100,15 +99,15 @@
           <div class="space-y-1">
             <div class="flex items-center gap-3">
               <span class="label-m text-foreground-placeholder inline-block w-6 shrink-0">05</span>
-              <Link href="#onetime-single">Single One-Time Product</Link>
+              <a href="#onetime-single" class="link-inline">Single One-Time Product</a>
             </div>
             <div class="flex items-center gap-3">
               <span class="label-m text-foreground-placeholder inline-block w-6 shrink-0">06</span>
-              <Link href="#onetime-group">Mutually Exclusive Product Group</Link>
+              <a href="#onetime-group" class="link-inline">Mutually Exclusive Product Group</a>
             </div>
             <div class="flex items-center gap-3">
               <span class="label-m text-foreground-placeholder inline-block w-6 shrink-0">07</span>
-              <Link href="#onetime-repeat">Repeating Product (Consumable)</Link>
+              <a href="#onetime-repeat" class="link-inline">Repeating Product (Consumable)</a>
             </div>
           </div>
         </div>

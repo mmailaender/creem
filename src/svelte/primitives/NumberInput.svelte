@@ -1,7 +1,4 @@
 <script lang="ts">
-  import IconButton from "./IconButton.svelte";
-  import Input from "./Input.svelte";
-
   interface Props {
     value?: number;
     min?: number;
@@ -36,36 +33,39 @@
 </script>
 
 <div class={`number-input ${className}`}>
-  <IconButton
-    ariaLabel="Decrease value"
+  <button
+    type="button"
+    aria-label="Decrease value"
     {disabled}
-    onClick={decrement}
+    class="icon-button-sm"
+    onclick={decrement}
   >
     <svg aria-hidden="true" viewBox="0 0 256 256" fill="currentColor" class="h-4 w-4 text-foreground-on-tonal">
       <path d="M216,128a12,12,0,0,1-12,12H52a12,12,0,0,1,0-24H204A12,12,0,0,1,216,128Z" />
     </svg>
-  </IconButton>
+  </button>
 
-  <Input
+  <input
     type="number"
-    variant="ghost"
-    className={`${compact ? "number-input-value-compact" : "number-input-value"} max-w-12 input-no-spinner`}
+    class={`input-ghost ${compact ? "number-input-value-compact" : "number-input-value"} max-w-12 input-no-spinner`}
     value={value}
     {disabled}
-    onValueChange={(raw) => {
-      const parsed = Number(raw);
+    oninput={(event) => {
+      const parsed = Number((event.currentTarget as HTMLInputElement).value);
       if (!Number.isFinite(parsed)) return;
       setValue(parsed);
     }}
   />
 
-  <IconButton
-    ariaLabel="Increase value"
+  <button
+    type="button"
+    aria-label="Increase value"
     {disabled}
-    onClick={increment}
+    class="icon-button-sm"
+    onclick={increment}
   >
     <svg aria-hidden="true" viewBox="0 0 256 256" fill="currentColor" class="h-4 w-4 text-foreground-on-tonal">
       <path d="M216,128a12,12,0,0,1-12,12H140v64a12,12,0,0,1-24,0V140H52a12,12,0,0,1,0-24h64V52a12,12,0,0,1,24,0v64h64A12,12,0,0,1,216,128Z" />
     </svg>
-  </IconButton>
+  </button>
 </div>
