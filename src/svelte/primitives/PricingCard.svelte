@@ -292,45 +292,13 @@
       {:else if onContactSales}
         <button
           type="button"
-          disabled={disableSeats}
           class="button-outline w-full"
-          onclick={() => { editingSeats = true; }}
+          onclick={() => onContactSales?.({ plan })}
         >
-          Change seats
+          Contact sales
         </button>
-      {:else if isActiveProduct && onCancelSubscription}
-        <button type="button" class="button-outline w-full" onclick={onCancelSubscription}>
-          Cancel subscription
-        </button>
-      {:else if isActiveProduct || isActiveFreePlan}
-        <!-- Keep CTA row height but intentionally empty when current plan has no action -->
-      {:else if isSiblingPlan && productId}
-        <CheckoutButton
-          {productId}
-          disabled={disableSwitch}
-          onCheckout={handleCheckout}
-          className={`${plan.recommended ? "button-filled" : "button-faded"} w-full`}
-        >
-          {checkoutLabel}
-        </CheckoutButton>
-      {:else if plan.category === "enterprise"}
-        {#if plan.contactUrl}
-          <a
-            href={plan.contactUrl}
-            class="button-outline w-full"
-          >
-            Contact sales
-          </a>
-        {:else if onContactSales}
-          <button
-            type="button"
-            class="button-outline w-full"
-            onclick={() => onContactSales?.({ plan })}
-          >
-            Contact sales
-          </button>
-        {/if}
-      {:else if productId}
+      {/if}
+    {:else if productId}
         <CheckoutButton
           {productId}
           disabled={disableCheckout}
