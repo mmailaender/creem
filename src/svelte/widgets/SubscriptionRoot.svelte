@@ -531,6 +531,17 @@
         <Dialog.Backdrop class="dialog-backdrop" />
         <Dialog.Positioner class="dialog-positioner">
           <Dialog.Content class="dialog-content">
+            <Dialog.CloseTrigger class="icon-button-ghost-sm absolute right-2 top-2" aria-label="Close dialog">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" class="h-4 w-4">
+                <path
+                  d="M18 6L6 18M6 6L18 18"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </Dialog.CloseTrigger>
             <Dialog.Title class="dialog-title">
               Cancel subscription?
             </Dialog.Title>
@@ -540,9 +551,6 @@
               period.
             </Dialog.Description>
             <div class="dialog-actions">
-              <Dialog.CloseTrigger class="button-outline">
-                Keep subscription
-              </Dialog.CloseTrigger>
               <button
                 type="button"
                 class="dialog-action-danger"
@@ -550,6 +558,9 @@
               >
                 Yes, cancel
               </button>
+              <Dialog.CloseTrigger class="button-faded h-8 w-full">
+                Keep subscription
+              </Dialog.CloseTrigger>
             </div>
           </Dialog.Content>
         </Dialog.Positioner>
@@ -567,6 +578,17 @@
         <Dialog.Backdrop class="dialog-backdrop" />
         <Dialog.Positioner class="dialog-positioner">
           <Dialog.Content class="dialog-content">
+            <Dialog.CloseTrigger class="icon-button-ghost-sm absolute right-2 top-2" aria-label="Close dialog">
+              <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" class="h-4 w-4">
+                <path
+                  d="M18 6L6 18M6 6L18 18"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </Dialog.CloseTrigger>
             <Dialog.Title class="dialog-title">Switch plan?</Dialog.Title>
             <Dialog.Description class="dialog-description">
               {#if pendingSwitchPlan?.plan?.title}
@@ -580,16 +602,16 @@
               {/if}
             </Dialog.Description>
             <div class="dialog-actions">
-              <Dialog.CloseTrigger class="button-outline">
-                Cancel
-              </Dialog.CloseTrigger>
               <button
                 type="button"
-                class="button-filled"
+                class="button-filled h-8 w-full"
                 onclick={() => confirmSwitchPlan()}
               >
                 Confirm switch
               </button>
+              <Dialog.CloseTrigger class="button-faded h-8 w-full">
+                Cancel
+              </Dialog.CloseTrigger>
             </div>
           </Dialog.Content>
         </Dialog.Positioner>
