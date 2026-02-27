@@ -507,7 +507,6 @@
       onOpenChange={(details: { open: boolean }) => {
         cancelDialogOpen = details.open;
       }}
-      role="alertdialog"
     >
       <Portal>
         <Dialog.Backdrop class="dialog-backdrop" />
@@ -544,7 +543,6 @@
         switchPlanDialogOpen = details.open;
         if (!details.open) pendingSwitchPlan = null;
       }}
-      role="alertdialog"
     >
       <Portal>
         <Dialog.Backdrop class="dialog-backdrop" />
