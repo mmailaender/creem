@@ -8,7 +8,7 @@ import type {
   ProductEntity as CreemProduct,
   SubscriptionEntity as CreemSubscription,
 } from "creem/models/components";
-import type { Infer } from "convex/values";
+import { ConvexError, type Infer } from "convex/values";
 import type schema from "./schema.js";
 
 export type RunQueryCtx = {
@@ -17,6 +17,9 @@ export type RunQueryCtx = {
 export type RunMutationCtx = {
   runQuery: GenericQueryCtx<GenericDataModel>["runQuery"];
   runMutation: GenericMutationCtx<GenericDataModel>["runMutation"];
+};
+export type RunSchedulerMutationCtx = RunMutationCtx & {
+  scheduler: GenericMutationCtx<GenericDataModel>["scheduler"];
 };
 export type RunActionCtx = {
   runQuery: GenericQueryCtx<GenericDataModel>["runQuery"];
@@ -60,14 +63,14 @@ export const convertToDatabaseSubscription = (
 ): Infer<typeof schema.tables.subscriptions.validator> => {
   const customerId = entityId(subscription.customer);
   if (!customerId) {
-    throw new Error("Creem subscription is missing customer id");
+    throw new ConvexError("Creem subscription is missing customer id");
   }
   const productId =
     entityId(subscription.product) ??
     subscription.items?.[0]?.productId ??
     null;
   if (!productId) {
-    throw new Error("Creem subscription is missing product id");
+    throw new ConvexError("Creem subscription is missing product id");
   }
   const product =
     typeof subscription.product === "object" && subscription.product
@@ -98,7 +101,8 @@ export const convertToDatabaseSubscription = (
     amount: product?.price ?? null,
     currency: product?.currency ?? null,
     recurringInterval: product?.billingPeriod ?? null,
-    currentPeriodStart: periodStartStr ?? toIsoStringOrNow(subscription.createdAt),
+    currentPeriodStart:
+      periodStartStr ?? toIsoStringOrNow(subscription.createdAt),
     currentPeriodEnd: periodEndStr,
     cancelAtPeriodEnd: isScheduledCancel,
     startedAt: periodStartStr ?? toIsoString(subscription.createdAt),
@@ -181,8 +185,10 @@ export const convertToOrder = (
     affiliate: order.affiliate ?? null,
     mode: order.mode,
     metadata: (options?.metadata as Record<string, string>) ?? undefined,
-    createdAt: toIsoString(order.createdAt) ?? toIsoString(order.created_at) ?? now,
-    updatedAt: toIsoString(order.updatedAt) ?? toIsoString(order.updated_at) ?? now,
+    createdAt:
+      toIsoString(order.createdAt) ?? toIsoString(order.created_at) ?? now,
+    updatedAt:
+      toIsoString(order.updatedAt) ?? toIsoString(order.updated_at) ?? now,
   };
 };
 

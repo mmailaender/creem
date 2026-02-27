@@ -13,12 +13,12 @@ const currentUser = async (ctx: QueryCtx) => {
   if (!user) {
     return null;
   }
-  const subscription = await creem.getCurrentSubscription(ctx, {
+  const subscription = await creem.subscriptions.getCurrent(ctx, {
     entityId: user._id,
   });
-  const productKey = subscription?.productKey as string | undefined;
-  const isPremium = productKey != null && productKey.startsWith("premium");
-  const isBasic = productKey != null && productKey.startsWith("basic");
+  const productName = subscription?.product?.name?.toLowerCase() ?? "";
+  const isPremium = productName.includes("premium");
+  const isBasic = productName.includes("basic") && !isPremium;
   return {
     ...user,
     isFree: !isPremium && !isBasic,
@@ -104,15 +104,10 @@ export const insertTodo = mutation({
         .withIndex("userId", (q) => q.eq("userId", user._id))
         .collect()
     ).length;
-    const productKey = user.subscription?.productKey as string | undefined;
-    if (!productKey && todoCount >= MAX_FREE_TODOS) {
+    if (!user.subscription && todoCount >= MAX_FREE_TODOS) {
       throw new Error("Reached maximum number of todos for free plan");
     }
-    if (
-      productKey != null &&
-      productKey.startsWith("basic") &&
-      todoCount >= MAX_PREMIUM_TODOS
-    ) {
+    if (user.isBasic && todoCount >= MAX_PREMIUM_TODOS) {
       throw new Error("Reached maximum number of todos for basic plan");
     }
     await ctx.db.insert("todos", {

@@ -1,22 +1,30 @@
 import type { FunctionReference } from "convex/server";
 import type { BillingSnapshot, RecurringCycle } from "../../core/types.js";
 
+export type { CheckoutIntent } from "../../core/types.js";
+
 export type BillingPermissions = {
   canCheckout?: boolean;
   canChangeSubscription?: boolean;
   canCancelSubscription?: boolean;
   canResumeSubscription?: boolean;
   canUpdateSeats?: boolean;
+  canAccessPortal?: boolean;
 };
 
 export type ConnectedBillingApi = {
-  getBillingUiModel: FunctionReference<"query">;
-  generateCheckoutLink: FunctionReference<"action">;
-  generateCustomerPortalUrl?: FunctionReference<"action">;
-  changeCurrentSubscription?: FunctionReference<"action">;
-  updateSubscriptionSeats?: FunctionReference<"action">;
-  cancelCurrentSubscription?: FunctionReference<"action">;
-  resumeCurrentSubscription?: FunctionReference<"action">;
+  uiModel: FunctionReference<"query">;
+  checkouts: {
+    create: FunctionReference<"action">;
+  };
+  subscriptions?: {
+    update?: FunctionReference<"mutation">;
+    cancel?: FunctionReference<"mutation">;
+    resume?: FunctionReference<"mutation">;
+  };
+  customers?: {
+    portalUrl?: FunctionReference<"action">;
+  };
 };
 
 export type ConnectedProduct = {
@@ -43,7 +51,6 @@ export type ConnectedBillingModel = {
     trialEnd?: string | null;
   } | null;
   billingSnapshot: BillingSnapshot | null;
-  configuredProducts: Record<string, ConnectedProduct | null>;
   allProducts: ConnectedProduct[];
   ownedProductIds: string[];
   subscriptionProductId: string | null;
@@ -59,20 +66,6 @@ export type ConnectedBillingModel = {
     trialEnd?: string | null;
   }>;
   hasCreemCustomer?: boolean;
-  planCatalog?: {
-    version?: string;
-    defaultPlanId?: string;
-    plans: Array<{
-      planId: string;
-      category: string;
-      billingType?: string;
-      pricingModel?: string;
-      creemProductIds?: Record<string, string>;
-      billingCycles?: string[];
-      contactUrl?: string;
-      recommended?: boolean;
-    }>;
-  } | null;
   policy?: unknown;
 };
 

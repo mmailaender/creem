@@ -1,21 +1,26 @@
 <script lang="ts">
   import { useConvexClient, useQuery } from "convex-svelte";
   import CustomerPortalButton from "../primitives/CustomerPortalButton.svelte";
-  import type { ConnectedBillingApi, ConnectedBillingModel } from "./types.js";
+  import type { BillingPermissions, ConnectedBillingApi, ConnectedBillingModel } from "./types.js";
   import type { Snippet } from "svelte";
 
   interface Props {
     api: ConnectedBillingApi;
-    className?: string;
+    permissions?: BillingPermissions;
+    class?: string;
     children?: Snippet;
   }
 
-  let { api, className = "", children }: Props = $props();
+  let { api, permissions = undefined, class: className = "", children }: Props = $props();
+
+  const canAccess = $derived(permissions?.canAccessPortal !== false);
 
   const client = useConvexClient();
 
-  const billingUiModelRef = api.getBillingUiModel;
-  const portalUrlRef = api.generateCustomerPortalUrl;
+  // svelte-ignore state_referenced_locally
+  const billingUiModelRef = api.uiModel;
+  // svelte-ignore state_referenced_locally
+  const portalUrlRef = api.customers?.portalUrl;
 
   const billingModelQuery = useQuery(billingUiModelRef, {});
   const model = $derived(billingModelQuery.data as ConnectedBillingModel | undefined);
@@ -35,7 +40,7 @@
   };
 </script>
 
-{#if portalUrlRef && hasCreemCustomer}
+{#if portalUrlRef && hasCreemCustomer && canAccess}
   <CustomerPortalButton
     disabled={isLoading}
     onOpenPortal={openPortal}

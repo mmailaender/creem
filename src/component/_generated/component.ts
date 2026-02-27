@@ -119,6 +119,39 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         any,
         Name
       >;
+      executeSubscriptionLifecycle: FunctionReference<
+        "action",
+        "internal",
+        {
+          apiKey: string;
+          cancelMode?: string;
+          operation: "cancel" | "resume" | "pause";
+          previousCancelAtPeriodEnd?: boolean;
+          previousStatus?: string;
+          serverIdx?: number;
+          serverURL?: string;
+          subscriptionId: string;
+        },
+        any,
+        Name
+      >;
+      executeSubscriptionUpdate: FunctionReference<
+        "action",
+        "internal",
+        {
+          apiKey: string;
+          previousProductId?: string;
+          previousSeats?: number | null;
+          productId?: string;
+          serverIdx?: number;
+          serverURL?: string;
+          subscriptionId: string;
+          units?: number;
+          updateBehavior?: string;
+        },
+        any,
+        Name
+      >;
       getCurrentSubscription: FunctionReference<
         "query",
         "internal",
@@ -466,6 +499,20 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
           trialEnd?: string | null;
           trialStart?: string | null;
         }>,
+        Name
+      >;
+      patchSubscription: FunctionReference<
+        "mutation",
+        "internal",
+        {
+          cancelAtPeriodEnd?: boolean;
+          clearOptimistic?: boolean;
+          productId?: string;
+          seats?: number | null;
+          status?: string;
+          subscriptionId: string;
+        },
+        any,
         Name
       >;
       syncProducts: FunctionReference<

@@ -15,6 +15,7 @@
     subscriptionTrialEnd?: string | null;
     units?: number;
     showSeatPicker?: boolean;
+    twoColumnLayout?: boolean;
     subscribedSeats?: number | null;
     isGroupSubscribed?: boolean;
     disableCheckout?: boolean;
@@ -34,6 +35,7 @@
     }) => Promise<void> | void;
     onUpdateSeats?: (payload: { units: number }) => Promise<void> | void;
     onContactSales?: (payload: { plan: UIPlanEntry }) => Promise<void> | void;
+    onCancelSubscription?: () => void;
   }
 
   let {
@@ -46,6 +48,7 @@
     subscriptionTrialEnd = null,
     units = undefined,
     showSeatPicker = false,
+    twoColumnLayout = false,
     subscribedSeats = null,
     isGroupSubscribed = false,
     disableCheckout = false,
@@ -57,6 +60,7 @@
     onSwitchPlan,
     onUpdateSeats,
     onContactSales,
+    onCancelSubscription,
   }: Props = $props();
 
   const toUniqueCycles = (entries: UIPlanEntry[]) => {
@@ -70,22 +74,25 @@
   };
 
   const availableCycles = $derived(toUniqueCycles(plans));
+  const hasEnterprisePlan = $derived(plans.some((plan) => plan.category === "enterprise"));
   const effectiveCycle = $derived(
     selectedCycle ?? snapshot?.recurringCycle ?? availableCycles[0],
   );
   const showToggle = $derived(availableCycles.length > 1);
 </script>
 
-<section class={`space-y-4 ${className}`}>
+<section class={className}>
   {#if showToggle}
-    <BillingToggle
-      cycles={availableCycles}
-      value={effectiveCycle}
-      onValueChange={onCycleChange}
-    />
+    <div class="mb-[6.5rem] flex justify-center">
+      <BillingToggle
+        cycles={availableCycles}
+        value={effectiveCycle}
+        onValueChange={onCycleChange}
+      />
+    </div>
   {/if}
 
-  <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+  <div class={`grid grid-cols-1 gap-1 ${showSeatPicker || twoColumnLayout ? "md:grid-cols-2" : hasEnterprisePlan ? "sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4" : "sm:grid-cols-2 md:grid-cols-3"}`}>
     {#each plans as plan (plan.planId)}
       <PricingCard
         {plan}
@@ -106,6 +113,8 @@
         {onSwitchPlan}
         {onUpdateSeats}
         {onContactSales}
+        {onCancelSubscription}
+        className=""
       />
     {/each}
   </div>

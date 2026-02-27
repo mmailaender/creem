@@ -1,6 +1,6 @@
 import { Creem } from "creem";
 
-import { v } from "convex/values";
+import { ConvexError, v } from "convex/values";
 import { action, mutation, query } from "./_generated/server.js";
 import schema from "./schema.js";
 import { asyncMap } from "convex-helpers";
@@ -34,7 +34,8 @@ export const insertCustomer = mutation({
       const patch: Record<string, unknown> = {};
       if (args.email && !existingCustomer.email) patch.email = args.email;
       if (args.name && !existingCustomer.name) patch.name = args.name;
-      if (args.country && !existingCustomer.country) patch.country = args.country;
+      if (args.country && !existingCustomer.country)
+        patch.country = args.country;
       if (args.mode) patch.mode = args.mode;
       if (args.updatedAt) patch.updatedAt = args.updatedAt;
       if (Object.keys(patch).length > 0) {
@@ -115,7 +116,7 @@ export const getCurrentSubscription = query({
       .withIndex("id", (q) => q.eq("id", subscription.productId))
       .unique();
     if (!product) {
-      throw new Error(`Product not found: ${subscription.productId}`);
+      throw new ConvexError(`Product not found: ${subscription.productId}`);
     }
     return {
       ...omitSystemFields(subscription),
@@ -226,9 +227,7 @@ export const listProducts = query({
     const q = ctx.db.query("products");
     const products = args.includeArchived
       ? await q.collect()
-      : await q
-          .withIndex("status", (q) => q.eq("status", "active"))
-          .collect();
+      : await q.withIndex("status", (q) => q.eq("status", "active")).collect();
     return products.map((product) => omitSystemFields(product));
   },
 });
@@ -276,7 +275,88 @@ export const updateSubscription = mutation({
     if (existingModifiedAt > incomingModifiedAt) {
       return; // stale webhook, skip
     }
-    await ctx.db.patch(existingSubscription._id, args.subscription);
+
+    // Optimistic-update guard: if a recent patchSubscription set optimistic
+    // fields, don't let intermediate webhook events revert those values.
+    const existingMeta = (existingSubscription.metadata ?? {}) as Record<
+      string,
+      unknown
+    >;
+    const pendingAt = existingMeta._optimisticPendingAt as number | undefined;
+    const optimisticFields = existingMeta._optimisticFields as
+      | string[]
+      | undefined;
+    const isOptimisticPending =
+      pendingAt != null && Date.now() - pendingAt < 30_000;
+
+    const subscriptionToWrite = { ...args.subscription };
+
+    if (isOptimisticPending && optimisticFields?.length) {
+      console.debug(
+        `[creem] optimistic guard active for sub=${args.subscription.id}`,
+        {
+          guardFields: optimisticFields,
+          guardAge: `${Math.round((Date.now() - (pendingAt ?? 0)) / 1000)}s`,
+          incoming: {
+            productId: args.subscription.productId,
+            seats: args.subscription.seats,
+          },
+          db: {
+            productId: existingSubscription.productId,
+            seats: existingSubscription.seats,
+          },
+        },
+      );
+      let allConfirmed = true;
+
+      if (optimisticFields.includes("seats")) {
+        if (args.subscription.seats !== existingSubscription.seats) {
+          subscriptionToWrite.seats = existingSubscription.seats;
+          allConfirmed = false;
+          console.log(
+            `[creem] guard: preserving optimistic seats=${existingSubscription.seats} (webhook sent ${args.subscription.seats})`,
+          );
+        }
+      }
+      if (optimisticFields.includes("productId")) {
+        if (args.subscription.productId !== existingSubscription.productId) {
+          subscriptionToWrite.productId = existingSubscription.productId;
+          allConfirmed = false;
+          console.log(
+            `[creem] guard: preserving optimistic productId=${existingSubscription.productId} (webhook sent ${args.subscription.productId})`,
+          );
+        }
+      }
+
+      // Only clear the guard when ALL tracked fields match in a single webhook.
+      // Partial matches are not trusted — Creem sends intermediate states where
+      // some fields update temporarily before reverting (e.g. subscription.product
+      // changes on upgrade but items[0].product_id stays stale).
+      const incomingMeta = (args.subscription.metadata ?? {}) as Record<
+        string,
+        unknown
+      >;
+      if (allConfirmed) {
+        console.log(
+          `[creem] guard: all optimistic fields confirmed for sub=${args.subscription.id} — clearing`,
+        );
+        const {
+          _optimisticPendingAt: _,
+          _optimisticFields: __,
+          ...cleanMeta
+        } = { ...existingMeta, ...incomingMeta };
+        subscriptionToWrite.metadata = cleanMeta;
+      } else {
+        subscriptionToWrite.metadata = {
+          ...existingMeta,
+          ...incomingMeta,
+          _optimisticPendingAt: pendingAt,
+          _optimisticFields: optimisticFields,
+        };
+      }
+    }
+
+    await ctx.db.patch(existingSubscription._id, subscriptionToWrite);
   },
 });
 
@@ -427,6 +507,209 @@ export const updateProducts = mutation({
       }
       await ctx.db.insert("products", product);
     });
+  },
+});
+
+/** Lightweight patch for optimistic UI updates (seats, productId, status).
+ *  Tracks which fields were optimistically changed via `_optimisticPendingAt`
+ *  and `_optimisticFields` in the subscription's metadata so that incoming
+ *  webhooks with stale intermediate values don't overwrite the optimistic state. */
+export const patchSubscription = mutation({
+  args: {
+    subscriptionId: v.string(),
+    seats: v.optional(v.union(v.number(), v.null())),
+    productId: v.optional(v.string()),
+    status: v.optional(v.string()),
+    cancelAtPeriodEnd: v.optional(v.boolean()),
+    clearOptimistic: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const sub = await ctx.db
+      .query("subscriptions")
+      .withIndex("id", (q) => q.eq("id", args.subscriptionId))
+      .unique();
+    if (!sub)
+      throw new ConvexError(`Subscription not found: ${args.subscriptionId}`);
+    const patch: Record<string, unknown> = {};
+    const optimisticFields: string[] = [];
+    if (args.seats !== undefined) {
+      patch.seats = args.seats;
+      optimisticFields.push("seats");
+    }
+    if (args.productId !== undefined) {
+      patch.productId = args.productId;
+      optimisticFields.push("productId");
+    }
+    if (args.status !== undefined) patch.status = args.status;
+    if (args.cancelAtPeriodEnd !== undefined)
+      patch.cancelAtPeriodEnd = args.cancelAtPeriodEnd;
+
+    // Track optimistic fields so updateSubscription can guard against stale webhooks.
+    // Merge with any existing optimistic fields (cumulative across consecutive patches).
+    const existingMeta = (sub.metadata ?? {}) as Record<string, unknown>;
+    if (args.clearOptimistic) {
+      const {
+        _optimisticPendingAt: _,
+        _optimisticFields: __,
+        ...cleanMeta
+      } = existingMeta;
+      patch.metadata = cleanMeta;
+    } else if (optimisticFields.length > 0) {
+      const existingOptimistic =
+        (existingMeta._optimisticFields as string[] | undefined) ?? [];
+      const mergedOptimistic = [
+        ...new Set([...existingOptimistic, ...optimisticFields]),
+      ];
+      patch.metadata = {
+        ...existingMeta,
+        _optimisticPendingAt: Date.now(),
+        _optimisticFields: mergedOptimistic,
+      };
+    }
+
+    if (Object.keys(patch).length > 0) {
+      if (optimisticFields.length > 0 || args.clearOptimistic) {
+        console.log(`[creem] optimistic patch sub=${args.subscriptionId}`, {
+          fields: optimisticFields,
+          ...(args.seats !== undefined ? { seats: args.seats } : {}),
+          ...(args.productId !== undefined
+            ? { productId: args.productId }
+            : {}),
+          ...(args.clearOptimistic ? { clear: true } : {}),
+        });
+      }
+      await ctx.db.patch(sub._id, patch);
+    }
+  },
+});
+
+/** Action that calls Creem API and reverts on error. Scheduled by mutations.
+ *  Public (not internal) so it's accessible via ComponentApi for scheduling from app-level mutations.
+ *  Secured by requiring apiKey argument (same pattern as syncProducts). */
+export const executeSubscriptionUpdate = action({
+  args: {
+    apiKey: v.string(),
+    serverIdx: v.optional(v.number()),
+    serverURL: v.optional(v.string()),
+    subscriptionId: v.string(),
+    productId: v.optional(v.string()),
+    units: v.optional(v.number()),
+    updateBehavior: v.optional(v.string()),
+    previousSeats: v.optional(v.union(v.number(), v.null())),
+    previousProductId: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const sdk = new Creem({
+      apiKey: args.apiKey,
+      ...(args.serverIdx !== undefined ? { serverIdx: args.serverIdx } : {}),
+      ...(args.serverURL ? { serverURL: args.serverURL } : {}),
+    });
+    try {
+      if (args.productId) {
+        // Plan/interval switch
+        await sdk.subscriptions.upgrade(args.subscriptionId, {
+          productId: args.productId,
+          ...(args.updateBehavior
+            ? {
+                updateBehavior: args.updateBehavior as
+                  | "proration-charge-immediately"
+                  | "proration-charge"
+                  | "proration-none",
+              }
+            : {}),
+        });
+      } else if (args.units !== undefined) {
+        // Seat update — need live item IDs from Creem
+        const live = await sdk.subscriptions.get(args.subscriptionId);
+        const item = live.items?.[0];
+        if (!item) throw new ConvexError("Subscription has no items");
+        await sdk.subscriptions.update(args.subscriptionId, {
+          items: [
+            {
+              id: item.id,
+              productId: item.productId,
+              priceId: item.priceId,
+              units: args.units,
+            },
+          ],
+          ...(args.updateBehavior
+            ? {
+                updateBehavior: args.updateBehavior as
+                  | "proration-charge-immediately"
+                  | "proration-charge"
+                  | "proration-none",
+              }
+            : {}),
+        });
+      }
+    } catch (error) {
+      console.error(`[creem] subscription update failed:`, error);
+      // Revert optimistic state and clear the optimistic guard so webhooks write normally
+      await ctx.runMutation(api.lib.patchSubscription, {
+        subscriptionId: args.subscriptionId,
+        ...(args.previousSeats !== undefined
+          ? { seats: args.previousSeats }
+          : {}),
+        ...(args.previousProductId
+          ? { productId: args.previousProductId }
+          : {}),
+        clearOptimistic: true,
+      });
+    }
+  },
+});
+
+/** Action that calls Creem API for cancel/resume/pause and reverts on error.
+ *  Scheduled by the corresponding mutations in api(). */
+export const executeSubscriptionLifecycle = action({
+  args: {
+    apiKey: v.string(),
+    serverIdx: v.optional(v.number()),
+    serverURL: v.optional(v.string()),
+    subscriptionId: v.string(),
+    operation: v.union(
+      v.literal("cancel"),
+      v.literal("resume"),
+      v.literal("pause"),
+    ),
+    cancelMode: v.optional(v.string()),
+    // For reverting on error:
+    previousStatus: v.optional(v.string()),
+    previousCancelAtPeriodEnd: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const sdk = new Creem({
+      apiKey: args.apiKey,
+      ...(args.serverIdx !== undefined ? { serverIdx: args.serverIdx } : {}),
+      ...(args.serverURL ? { serverURL: args.serverURL } : {}),
+    });
+    try {
+      if (args.operation === "cancel") {
+        const cancelParams =
+          args.cancelMode === "immediate"
+            ? { mode: "immediate" as const }
+            : args.cancelMode === "scheduled"
+              ? { mode: "scheduled" as const, onExecute: "cancel" as const }
+              : {};
+        await sdk.subscriptions.cancel(args.subscriptionId, cancelParams);
+      } else if (args.operation === "resume") {
+        await sdk.subscriptions.resume(args.subscriptionId);
+      } else if (args.operation === "pause") {
+        await sdk.subscriptions.pause(args.subscriptionId);
+      }
+    } catch (error) {
+      console.error(`[creem] subscription ${args.operation} failed:`, error);
+      // Revert optimistic state
+      await ctx.runMutation(api.lib.patchSubscription, {
+        subscriptionId: args.subscriptionId,
+        ...(args.previousStatus !== undefined
+          ? { status: args.previousStatus }
+          : {}),
+        ...(args.previousCancelAtPeriodEnd !== undefined
+          ? { cancelAtPeriodEnd: args.previousCancelAtPeriodEnd }
+          : {}),
+      });
+    }
   },
 });
 

@@ -10,7 +10,6 @@ dist-ssr
 explorations
 node_modules
 .eslintcache
-!example-react/package-lock.json
 
 # this is a package-json-redirect stub dir, see https://github.com/andrewbranch/example-subpath-exports-ts-compat?tab=readme-ov-file
 react/package.json

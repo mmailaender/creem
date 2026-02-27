@@ -9,10 +9,10 @@
   interface Props {
     params?: CheckoutSuccessParams;
     search?: string;
-    className?: string;
+    class?: string;
   }
 
-  let { params = undefined, search = "", className = "" }: Props = $props();
+  let { params = undefined, search = "", class: className = "" }: Props = $props();
 
   const parsed = $derived(params ?? parseCheckoutSuccessParams(search));
   const show = $derived(hasCheckoutSuccessParams(parsed));

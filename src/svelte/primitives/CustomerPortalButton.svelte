@@ -34,7 +34,7 @@
 {#if onOpenPortal}
   <button
     type="button"
-    class={`inline-flex items-center justify-center rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-60 dark:text-zinc-100 hover:dark:bg-zinc-800 cursor-pointer ${className}`}
+    class={`${className || "button-outline"} disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer`}
     {disabled}
     onclick={handleClick}
   >
@@ -49,7 +49,7 @@
     href={href}
     target="_blank"
     rel="noopener noreferrer"
-    class={`inline-flex items-center justify-center rounded-md border border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-900 transition hover:bg-zinc-100 dark:text-zinc-100 hover:dark:bg-zinc-800 ${className}`}
+    class={`${className || "button-outline"}`}
   >
     {#if children}
       {@render children()}

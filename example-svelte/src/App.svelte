@@ -9,6 +9,9 @@
     type Transition,
   } from "@mmailaender/convex-creem/svelte";
   import { api } from "../../convex/_generated/api.js";
+  import creemLogoUrl from "./assets/creem-grey.svg";
+  import convexLogoUrl from "./assets/convex-grey.svg";
+  import svelteLogoUrl from "./assets/svelte-grey.svg";
 
   const convexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined;
   if (!convexUrl) {
@@ -19,13 +22,18 @@
   setupConvex(convexUrl);
 
   const connectedApi: ConnectedBillingApi = {
-    getBillingUiModel: api.billing.getBillingUiModel,
-    generateCheckoutLink: api.billing.generateCheckoutLink,
-    generateCustomerPortalUrl: api.billing.generateCustomerPortalUrl,
-    changeCurrentSubscription: api.billing.changeCurrentSubscription,
-    updateSubscriptionSeats: api.billing.updateSubscriptionSeats,
-    cancelCurrentSubscription: api.billing.cancelCurrentSubscription,
-    resumeCurrentSubscription: api.billing.resumeCurrentSubscription,
+    uiModel: api.billing.uiModel,
+    checkouts: {
+      create: api.billing.checkoutsCreate,
+    },
+    subscriptions: {
+      update: api.billing.subscriptionsUpdate,
+      cancel: api.billing.subscriptionsCancel,
+      resume: api.billing.subscriptionsResume,
+    },
+    customers: {
+      portalUrl: api.billing.customersPortalUrl,
+    },
   };
 
   const upgradeTransitions: Transition[] = [
@@ -39,200 +47,375 @@
 
 </script>
 
-<main class="mx-auto max-w-6xl px-4 py-10 space-y-14">
-  <header class="space-y-2">
-    <h1 class="text-3xl font-semibold">Connected Billing Widgets (Svelte)</h1>
-    <p class="text-sm text-zinc-600 dark:text-zinc-300">
-      These widgets query Convex directly through the Creem wrapper API using
-      <code>convex-svelte</code>, with backend-derived billing state in the UI
-      model.
-    </p>
+<main class="w-full py-10 lg:pt-16">
+  <header class="border-b border-border-subtle pb-16 lg:pb-[104px]">
+    <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-2">
+      <div class="lg:col-span-7 space-y-6">
+        <h1 class="display-m max-w-[720px] text-foreground-default">
+          Connected Billing Widgets
+        </h1>
+        <p class="subtitle-m max-w-[720px] text-foreground-default">
+          These widgets query Convex directly through the Creem wrapper API
+          using convex-svelte, with backend-derived billing state in the UI
+          model.
+        </p>
+        <div class="flex items-center gap-4 pt-8 text-foreground-placeholder">
+          <span class="inline-flex h-8 items-center justify-center opacity-70">
+            <img src={creemLogoUrl} alt="Creem" class="h-7 w-auto" />
+          </span>
+          <span class="inline-flex h-8 w-8 items-center justify-center opacity-70">
+            <img src={convexLogoUrl} alt="Convex" class="h-7 w-7" />
+          </span>
+          <span class="inline-flex h-8 w-8 items-center justify-center opacity-70">
+            <img src={svelteLogoUrl} alt="Svelte" class="h-7 w-7" />
+          </span>
+        </div>
+      </div>
+
+      <nav class="lg:col-start-10 lg:col-span-3 space-y-10 lg:pt-2">
+        <div class="space-y-4">
+          <p class="label-m text-foreground-placeholder">SUBSCRIPTIONS WIDGETS</p>
+          <div class="space-y-1">
+            <div class="flex items-center gap-3">
+              <span class="label-m text-foreground-placeholder inline-block w-6 shrink-0">01</span>
+              <a href="#subscription-with-trial" class="link-inline">With Trial (4 Cycles)</a>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="label-m text-foreground-placeholder inline-block w-6 shrink-0">02</span>
+              <a href="#subscription-without-trial" class="link-inline">Without Trial (Monthly Only)</a>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="label-m text-foreground-placeholder inline-block w-6 shrink-0">03</span>
+              <a href="#subscription-seat-selectable" class="link-inline">Seat-Based (User-Selectable)</a>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="label-m text-foreground-placeholder inline-block w-6 shrink-0">04</span>
+              <a href="#subscription-seat-auto" class="link-inline">Seat-Based (Auto-Derived)</a>
+            </div>
+          </div>
+        </div>
+        <div class="space-y-4">
+          <p class="label-m text-foreground-placeholder">ONE TIME PURCHASE WIDGETS</p>
+          <div class="space-y-1">
+            <div class="flex items-center gap-3">
+              <span class="label-m text-foreground-placeholder inline-block w-6 shrink-0">05</span>
+              <a href="#onetime-single" class="link-inline">Single One-Time Product</a>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="label-m text-foreground-placeholder inline-block w-6 shrink-0">06</span>
+              <a href="#onetime-group" class="link-inline">Mutually Exclusive Product Group</a>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="label-m text-foreground-placeholder inline-block w-6 shrink-0">07</span>
+              <a href="#onetime-repeat" class="link-inline">Repeating Product (Consumable)</a>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </div>
   </header>
 
+  <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 space-y-14 pt-14">
   <CheckoutSuccessSummary
-    className="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900"
+    class="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900"
   />
 
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <!--  SIMPLE SETUP — auto-renders plans from planCatalog, zero config  -->
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
-
-  <section class="space-y-3">
-    <h2 class="text-xl font-semibold">0. Simple Setup (Auto-Render from planCatalog)</h2>
-    <p class="text-sm text-zinc-600 dark:text-zinc-300">
-      No <code>&lt;Subscription&gt;</code> children needed — plans, titles,
-      and descriptions are resolved automatically from the <code>planCatalog</code>
-      config and the Creem product table.
-    </p>
-    <Subscription.Group api={connectedApi} className="space-y-4" />
-    <BillingPortal api={connectedApi} />
-  </section>
-
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
-  <!--  ADVANCED / FLEXIBLE — explicit <Subscription> children            -->
-  <!-- ═══════════════════════════════════════════════════════════════════ -->
-
   <!-- ─── Section 1: Subscriptions with trial (all 4 billing cycles) ─── -->
-  <section class="space-y-3">
-    <h2 class="text-xl font-semibold">1. Subscription — With Trial (4 Cycles)</h2>
-    <p class="text-sm text-zinc-600 dark:text-zinc-300">
-      All four billing cycles are available. The toggle derives from the
-      registered plans automatically.
-    </p>
-    <Subscription.Group api={connectedApi} className="space-y-4">
-      <Subscription type="free" title="Free" description="Start here with limited access" />
-      <Subscription
-        planId="basic"
-        type="single"
-        productIds={{
-          "every-month": "prod_4if4apw1SzOXSUAfGL0Jp9",
-          "every-three-months": "prod_5SxwV6WbbluzUQ2FmZ4trD",
-          "every-six-months": "prod_7Lhs8en6kiBONIywQUlaQC",
-          "every-year": "prod_KE9mMfH58482NIbKgK4nF",
-        }}
-      />
-      <Subscription
-        planId="premium"
-        type="single"
-        title="Premium"
-        description="Advanced subscription plan."
-        recommended
-        productIds={{
-          "every-month": "prod_7Cukw2hVIT5DvozmomK67A",
-          "every-three-months": "prod_7V5gRIqWgui5wQflemUBOF",
-          "every-six-months": "prod_4JN9cHsEto3dr0CQpgCxn4",
-          "every-year": "prod_6ytx0cFhBvgXLp1jA6CQqH",
-        }}
-      />
-      <Subscription type="enterprise" title="Enterprise" contactUrl="https://creem.io" />
-    </Subscription.Group>
-    <BillingPortal api={connectedApi} />
+  <section
+    id="subscription-with-trial"
+    class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[104px]"
+  >
+    <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[104px]">
+      <div class="mx-auto max-w-[620px] text-center">
+        <h2 class="heading-l text-foreground-default">
+          <span class="text-foreground-placeholder">Subscription</span><br />
+          With Trial (4 Cycles)
+        </h2>
+        <p class="subtitle-m mt-3 text-foreground-muted">
+          All four billing cycles are available. The toggle derives from the registered plans automatically.
+        </p>
+      </div>
+
+      <div class="mt-10">
+        <Subscription.Root api={connectedApi} class="">
+          <Subscription.Item
+            type="free"
+            title="Free"
+            description={`✔️ Up to 3 users
+
+✔️ Basic task management
+
+✔️ Drag & drop builder
+
+✔️ Task deadlines & reminders
+
+✔️ Mobile access
+
+✔️ Priority support
+
+✔️ 1-1 calls
+`}
+          />
+          <Subscription.Item
+            planId="basic"
+            type="single"
+            title="Basic"
+            productIds={{
+              "every-month": "prod_4if4apw1SzOXSUAfGL0Jp9",
+              "every-three-months": "prod_5SxwV6WbbluzUQ2FmZ4trD",
+              "every-six-months": "prod_7Lhs8en6kiBONIywQUlaQC",
+              "every-year": "prod_KE9mMfH58482NIbKgK4nF",
+            }}
+          />
+          <Subscription.Item
+            planId="premium"
+            type="single"
+            title="Premium"
+            recommended
+            productIds={{
+              "every-month": "prod_7Cukw2hVIT5DvozmomK67A",
+              "every-three-months": "prod_7V5gRIqWgui5wQflemUBOF",
+              "every-six-months": "prod_4JN9cHsEto3dr0CQpgCxn4",
+              "every-year": "prod_6ytx0cFhBvgXLp1jA6CQqH",
+            }}
+          />
+          <Subscription.Item
+            type="enterprise"
+            title="Enterprise"
+            description={`✔️ Up to 3 users
+
+✔️ Basic task management
+
+✔️ Drag & drop builder
+
+✔️ Task deadlines & reminders
+
+✔️ Mobile access
+
+✔️ Priority support
+
+✔️ 1-1 calls
+`}
+            contactUrl="https://creem.io"
+          />
+        </Subscription.Root>
+      </div>
+
+      <div class="flex justify-center pt-16">
+        <BillingPortal api={connectedApi} class="button-faded" />
+      </div>
+    </div>
   </section>
 
   <!-- ─── Section 2: Subscriptions without trial (monthly only) ─── -->
-  <section class="space-y-3">
-    <h2 class="text-xl font-semibold">2. Subscription — Without Trial (Monthly Only)</h2>
-    <p class="text-sm text-zinc-600 dark:text-zinc-300">
-      Only monthly products registered. The billing toggle should not appear.
-    </p>
-    <Subscription.Group api={connectedApi} className="space-y-4">
-      <Subscription type="free" title="Free" description="No-cost tier" />
-      <Subscription
-        type="single"
-        title="Basic"
-        description="Monthly subscription, no trial"
-        productIds={{ "every-month": "prod_53CU7duHB58lGTUqKlRroI" }}
-      />
-      <Subscription
-        type="single"
-        title="Premium"
-        description="Monthly subscription, no trial"
-        productIds={{ "every-month": "prod_3ymOe55fDzKgmPoZnPEOBq" }}
-      />
-      <Subscription type="enterprise" title="Enterprise" contactUrl="https://creem.io" />
-    </Subscription.Group>
-    <BillingPortal api={connectedApi} />
+  <section
+    id="subscription-without-trial"
+    class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+  >
+    <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+      <div class="mx-auto max-w-[620px] text-center">
+        <h2 class="heading-l text-foreground-default">
+          <span class="text-foreground-placeholder">Subscription</span><br />
+          Seat-Based (User-Selectable)
+        </h2>
+        <p class="subtitle-m mt-3 text-foreground-muted">
+          Seat-based plans with a quantity picker. The user selects how many seats before checkout.
+        </p>
+      </div>
+
+      <div class="mt-[6.5rem]">
+        <Subscription.Root api={connectedApi}>
+          <Subscription.Item
+            type="free"
+            title="Free"
+            description={`✔️ Up to 3 users
+
+✔️ Basic task management
+
+✔️ Drag & drop builder
+
+✔️ Task deadlines & reminders
+
+✔️ Mobile access
+
+✔️ Priority support
+
+✔️ 1-1 calls
+`}
+          />
+          <Subscription.Item
+            planId="basic-monthly"
+            type="single"
+            title="Basic"
+            productIds={{ "every-month": "prod_53CU7duHB58lGTUqKlRroI" }}
+          />
+          <Subscription.Item
+            planId="professional-monthly"
+            type="single"
+            title="Professional"
+            productIds={{ "every-month": "prod_3ymOe55fDzKgmPoZnPEOBq" }}
+          />
+        </Subscription.Root>
+      </div>
+
+      <div class="flex justify-center pt-16">
+        <BillingPortal api={connectedApi} class="button-faded" />
+      </div>
+    </div>
   </section>
 
   <!-- ─── Section 3: Seat-based subscriptions ─── -->
-  <section class="space-y-3">
-    <h2 class="text-xl font-semibold">3. Subscription — Seat-Based (User-Selectable)</h2>
-    <p class="text-sm text-zinc-600 dark:text-zinc-300">
-      Seat-based plans with a quantity picker. The user selects how many seats
-      before checkout.
-    </p>
-    <Subscription.Group api={connectedApi} className="space-y-4" showSeatPicker>
-      <Subscription
-        type="seat-based"
-        title="Basic (per seat)"
-        description="Per-seat monthly subscription"
-        productIds={{ "every-month": "prod_1c6ZGcxekHKrVYuWriHs68" }}
-      />
-      <Subscription
-        type="seat-based"
-        title="Premium (per seat)"
-        description="Per-seat monthly subscription"
-        productIds={{ "every-month": "prod_3861b06bJDnvpEBcs2uxYv" }}
-      />
-    </Subscription.Group>
-    <BillingPortal api={connectedApi} />
+  <section
+    id="subscription-seat-selectable"
+    class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+  >
+    <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+      <div class="mx-auto max-w-[620px] text-center">
+        <h2 class="heading-l text-foreground-default">
+          <span class="text-foreground-placeholder">Subscription</span><br />
+           Seat-Based (User-Selectable)
+        </h2>
+        <p class="subtitle-m mt-3 text-foreground-muted">
+          Only monthly products registered. The billing toggle should not appear.
+        </p>
+      </div>
+
+      <div class="mt-[6.5rem]">
+        <Subscription.Root api={connectedApi} showSeatPicker>
+          <Subscription.Item
+            planId="basic-seat-monthly"
+            type="seat-based"
+            title="Basic"
+            productIds={{ "every-month": "prod_1c6ZGcxekHKrVYuWriHs68" }}
+          />
+          <Subscription.Item
+            planId="premium-seat-monthly"
+            type="seat-based"
+            title="Premium"
+            productIds={{ "every-month": "prod_3861b06bJDnvpEBcs2uxYv" }}
+          />
+        </Subscription.Root>
+      </div>
+
+      <div class="flex justify-center pt-16">
+        <BillingPortal api={connectedApi} class="button-faded" />
+      </div>
+    </div>
   </section>
 
   <!-- ─── Section 3b: Seat-based with auto-derived units ─── -->
-  <section class="space-y-3">
-    <h2 class="text-xl font-semibold">3b. Subscription — Seat-Based (Auto-Derived)</h2>
-    <p class="text-sm text-zinc-600 dark:text-zinc-300">
-      Same seat-based products but with a fixed unit count (e.g. derived from
-      organization member count). No picker shown — hardcoded to 5 seats.
-    </p>
-    <Subscription.Group api={connectedApi} className="space-y-4" units={5}>
-      <Subscription
-        type="seat-based"
-        title="Basic"
-        description="Per-seat monthly subscription"
-        productIds={{ "every-month": "prod_1c6ZGcxekHKrVYuWriHs68" }}
-      />
-      <Subscription
-        type="seat-based"
-        title="Premium"
-        description="Per-seat monthly subscription"
-        productIds={{ "every-month": "prod_3861b06bJDnvpEBcs2uxYv" }}
-      />
-    </Subscription.Group>
+  <section
+    id="subscription-seat-auto"
+    class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+  >
+    <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+      <div class="mx-auto max-w-[620px] text-center">
+        <h2 class="heading-l text-foreground-default">
+          <span class="text-foreground-placeholder">Subscription</span><br />
+          Seat-Based (Auto-Derived)
+        </h2>
+        <p class="subtitle-m mt-3 text-foreground-muted">
+          Same seat-based products but with a fixed unit count (e.g. derived from organization member count). No picker shown — hardcoded to 5 seats.
+        </p>
+      </div>
+
+      <div class="mt-[6.5rem]">
+        <Subscription.Root api={connectedApi} units={5} twoColumnLayout>
+          <Subscription.Item
+            planId="basic-seat-auto"
+            type="seat-based"
+            title="Basic"
+            productIds={{ "every-month": "prod_1c6ZGcxekHKrVYuWriHs68" }}
+          />
+          <Subscription.Item
+            planId="premium-seat-auto"
+            type="seat-based"
+            title="Premium"
+            productIds={{ "every-month": "prod_3861b06bJDnvpEBcs2uxYv" }}
+          />
+        </Subscription.Root>
+      </div>
+    </div>
   </section>
 
   <!-- ─── Section 4: Standalone one-time product ─── -->
-  <section class="space-y-3">
-    <h2 class="text-xl font-semibold">4. Single One-Time Product</h2>
-    <p class="text-sm text-zinc-600 dark:text-zinc-300">
-      A standalone product purchased once. Shows "Owned" after purchase.
-    </p>
-    <Product
-      api={connectedApi}
-      type="one-time"
-      productId="prod_6npEfkzgtr9hSqdWd7fqKG"
-      title="Lifetime License"
-      description="Buy once and own it forever."
-    />
+  <section
+    id="onetime-single"
+    class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+  >
+    <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+      <div class="mx-auto max-w-[620px] text-center">
+        <h2 class="heading-l text-foreground-default">
+          <span class="text-foreground-placeholder">One Time Purchase</span><br />
+          Single One-Time Product
+        </h2>
+        <p class="subtitle-m mt-3 text-foreground-muted">
+          A standalone product purchased once. Shows "Owned" after purchase.
+        </p>
+      </div>
+
+      <div class="mt-[6.5rem]">
+        <Product.Root api={connectedApi} layout="single" styleVariant="pricing">
+          <Product.Item
+            type="one-time"
+            title="One-time purchase"
+            productId="prod_6npEfkzgtr9hSqdWd7fqKG"
+          />
+        </Product.Root>
+      </div>
+    </div>
   </section>
 
   <!-- ─── Section 5: Mutually exclusive product group with upgrade ─── -->
-  <section class="space-y-3">
-    <h2 class="text-xl font-semibold">5. Mutually Exclusive Product Group</h2>
-    <p class="text-sm text-zinc-600 dark:text-zinc-300">
-      Transition graph decides available upgrade paths. Upgrading from Basic to
-      Premium uses a dedicated delta product. Buy first the Basic Product and then upgrade to Premium.
-    </p>
+  <section
+    id="onetime-group"
+    class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+  >
+    <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+      <div class="mx-auto max-w-[620px] text-center">
+        <h2 class="heading-l text-foreground-default">
+          <span class="text-foreground-placeholder">One Time Purchase</span><br />
+          Mutually Exclusive Product Group
+        </h2>
+        <p class="subtitle-m mt-3 text-foreground-muted">
+          Transition graph decides available upgrade paths. Upgrading from Basic to Premium uses a dedicated delta product. Buy first the Basic Product and then upgrade to Premium.
+        </p>
+      </div>
 
-    <Product.Group api={connectedApi} transition={upgradeTransitions}>
-      <Product
-        type="one-time"
-        productId="prod_4Di7Lkhf3TXy4UOKsUrGw0"
-        title="Basic"
-        description="Entry-level one-time product"
-      />
-      <Product
-        type="one-time"
-        productId="prod_56sJIyL7piLCVv270n4KBz"
-        title="Premium"
-        description="Higher-tier one-time product"
-      />
-    </Product.Group>
+      <div class="mt-[6.5rem]">
+        <Product.Root api={connectedApi} transition={upgradeTransitions} styleVariant="pricing" showImages>
+          <Product.Item type="one-time" title="Basic" productId="prod_4Di7Lkhf3TXy4UOKsUrGw0" />
+          <Product.Item type="one-time" title="Premium" productId="prod_56sJIyL7piLCVv270n4KBz" />
+        </Product.Root>
+      </div>
+    </div>
   </section>
 
   <!-- ─── Section 6: Repeating (consumable) product ─── -->
-  <section class="space-y-3">
-    <h2 class="text-xl font-semibold">6. Repeating Product (Consumable)</h2>
-    <p class="text-sm text-zinc-600 dark:text-zinc-300">
-      Can be purchased multiple times. No "Owned" badge — always shows the
-      purchase button.
-    </p>
-    <Product
-      api={connectedApi}
-      type="recurring"
-      productId="prod_73CnZ794MaJ1DUn8MU0O5f"
-      title="Credit Top-Up"
-      description="Buy credits any time you need more."
-    />
+  <section
+    id="onetime-repeat"
+    class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
+  >
+    <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
+      <div class="mx-auto max-w-[620px] text-center">
+        <h2 class="heading-l text-foreground-default">
+          <span class="text-foreground-placeholder">One Time Purchase</span><br />
+          Repeating Product (Consumable)
+        </h2>
+        <p class="subtitle-m mt-3 text-foreground-muted">
+          Can be purchased multiple times. No "Owned" badge — always shows the purchase button.
+        </p>
+      </div>
+
+      <div class="mt-[6.5rem]">
+        <Product.Root api={connectedApi} layout="single" styleVariant="pricing" showImages pricingCtaVariant="filled">
+          <Product.Item
+            type="recurring"
+            productId="prod_73CnZ794MaJ1DUn8MU0O5f"
+          />
+        </Product.Root>
+      </div>
+    </div>
   </section>
+  </div>
 </main>

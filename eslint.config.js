@@ -20,7 +20,11 @@ export default [
     ],
   },
   {
-    files: ["src/**/*.{js,mjs,cjs,ts,tsx}", "example-react/**/*.{js,mjs,cjs,ts,tsx}", "example-svelte/**/*.{js,mjs,cjs,ts,tsx}"],
+    files: [
+      "src/**/*.{js,mjs,cjs,ts,tsx}",
+      "example-react/**/*.{js,mjs,cjs,ts,tsx}",
+      "example-svelte/**/*.{js,mjs,cjs,ts,tsx}",
+    ],
     languageOptions: {
       parser: tseslint.parser,
       parserOptions: {

@@ -1,24 +1,30 @@
-import SubscriptionComponent from "./Subscription.svelte";
-import SubscriptionGroupComponent from "./SubscriptionGroup.svelte";
-import ProductComponent from "./Product.svelte";
-import ProductGroupComponent from "./ProductGroup.svelte";
+import SubscriptionItemComponent from "./Subscription.svelte";
+import SubscriptionRootComponent from "./SubscriptionRoot.svelte";
+import ProductItemComponent from "./Product.svelte";
+import ProductRootComponent from "./ProductRoot.svelte";
 
 export { default as BillingPortal } from "./BillingPortal.svelte";
 
-export const Subscription: typeof SubscriptionComponent & {
-  Group: typeof SubscriptionGroupComponent;
-  Item: typeof SubscriptionComponent;
-} = Object.assign(SubscriptionComponent, {
-  Group: SubscriptionGroupComponent,
-  Item: SubscriptionComponent,
+export const Subscription: typeof SubscriptionItemComponent & {
+  Root: typeof SubscriptionRootComponent;
+  Item: typeof SubscriptionItemComponent;
+  /** @deprecated Use `Subscription.Root` instead. */
+  Group: typeof SubscriptionRootComponent;
+} = Object.assign(SubscriptionItemComponent, {
+  Root: SubscriptionRootComponent,
+  Item: SubscriptionItemComponent,
+  Group: SubscriptionRootComponent,
 });
 
-export const Product: typeof ProductComponent & {
-  Group: typeof ProductGroupComponent;
-  Item: typeof ProductComponent;
-} = Object.assign(ProductComponent, {
-  Group: ProductGroupComponent,
-  Item: ProductComponent,
+export const Product: typeof ProductItemComponent & {
+  Root: typeof ProductRootComponent;
+  Item: typeof ProductItemComponent;
+  /** @deprecated Use `Product.Root` instead. */
+  Group: typeof ProductRootComponent;
+} = Object.assign(ProductItemComponent, {
+  Root: ProductRootComponent,
+  Item: ProductItemComponent,
+  Group: ProductRootComponent,
 });
 
 export type {
