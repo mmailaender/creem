@@ -1,15 +1,22 @@
 <script lang="ts">
   import { setContext, untrack } from "svelte";
-  import { useConvexClient, useQuery } from "convex-svelte";
+  import { SvelteSet } from "svelte/reactivity";
+
+  import { Dialog } from "@ark-ui/svelte/dialog";
+  import { Portal } from "@ark-ui/svelte/portal";
+
   import PricingSection from "../primitives/PricingSection.svelte";
   import PaymentWarningBanner from "../primitives/PaymentWarningBanner.svelte";
   import ScheduledChangeBanner from "../primitives/ScheduledChangeBanner.svelte";
-  import CancelConfirmDialog from "../primitives/CancelConfirmDialog.svelte";
-  import type { UIPlanEntry, RecurringCycle } from "../../core/types.js";
+
+  import { useConvexClient, useQuery } from "convex-svelte";
   import {
     SUBSCRIPTION_CONTEXT_KEY,
     type SubscriptionContextValue,
   } from "./subscriptionContext.js";
+  import { pendingCheckout } from "../../core/pendingCheckout.js";
+
+  import type { UIPlanEntry, RecurringCycle } from "../../core/types.js";
   import type {
     BillingPermissions,
     CheckoutIntent,
@@ -17,8 +24,6 @@
     ConnectedBillingModel,
     SubscriptionPlanRegistration,
   } from "./types.js";
-    import { SvelteSet } from "svelte/reactivity";
-    import { pendingCheckout } from "../../core/pendingCheckout.js";
 
   interface Props {
     api: ConnectedBillingApi;
@@ -28,7 +33,10 @@
     units?: number;
     showSeatPicker?: boolean;
     twoColumnLayout?: boolean;
-    updateBehavior?: "proration-charge-immediately" | "proration-charge" | "proration-none";
+    updateBehavior?:
+      | "proration-charge-immediately"
+      | "proration-charge"
+      | "proration-none";
     onBeforeCheckout?: (intent: CheckoutIntent) => Promise<boolean> | boolean;
     children?: import("svelte").Snippet;
   }
@@ -69,15 +77,22 @@
 
   let selectedCycle = $state<RecurringCycle>("every-month");
   let isActionLoading = $state(false);
-  let isCancelInFlight = $state(false);
   let actionError = $state<string | null>(null);
+  let switchPlanDialogOpen = $state(false);
+  let pendingSwitchPlan = $state<{
+    plan: UIPlanEntry;
+    productId: string;
+    units?: number;
+  } | null>(null);
   let registeredPlans = $state<SubscriptionPlanRegistration[]>([]);
   let cancelDialogOpen = $state(false);
 
   const contextValue: SubscriptionContextValue = {
     registerPlan: (plan) => {
       registeredPlans = [
-        ...registeredPlans.filter((candidate) => candidate.planId !== plan.planId),
+        ...registeredPlans.filter(
+          (candidate) => candidate.planId !== plan.planId,
+        ),
         plan,
       ];
       return () => {
@@ -90,7 +105,9 @@
 
   setContext(SUBSCRIPTION_CONTEXT_KEY, contextValue);
 
-  const model = $derived((billingModelQuery.data ?? null) as ConnectedBillingModel | null);
+  const model = $derived(
+    (billingModelQuery.data ?? null) as ConnectedBillingModel | null,
+  );
   const snapshot = $derived(model?.billingSnapshot ?? null);
 
   $effect(() => {
@@ -109,7 +126,9 @@
     const subProductId = localSubscriptionProductId;
     if (subProductId) {
       const matchedPlan = registeredPlans.find((plan) => {
-        const values = Object.values(plan.productIds ?? {}).filter(Boolean) as string[];
+        const values = Object.values(plan.productIds ?? {}).filter(
+          Boolean,
+        ) as string[];
         return values.includes(subProductId);
       });
       return matchedPlan?.planId ?? null;
@@ -145,9 +164,14 @@
               ? "enterprise"
               : "paid",
         billingType:
-          plan.type === "free" || plan.type === "enterprise" ? "custom" : "recurring",
+          plan.type === "free" || plan.type === "enterprise"
+            ? "custom"
+            : "recurring",
         pricingModel: plan.type === "seat-based" ? "seat" : "flat",
-        title: plan.title ?? firstProduct?.name ?? plan.planId.charAt(0).toUpperCase() + plan.planId.slice(1),
+        title:
+          plan.title ??
+          firstProduct?.name ??
+          plan.planId.charAt(0).toUpperCase() + plan.planId.slice(1),
         description: plan.description ?? firstProduct?.description ?? undefined,
         contactUrl: plan.contactUrl,
         recommended: plan.recommended,
@@ -186,9 +210,15 @@
   });
 
   const ownsActiveSubscription = $derived(matchedSubscription != null);
-  const localSubscriptionProductId = $derived(matchedSubscription?.productId ?? null);
-  const localCancelAtPeriodEnd = $derived(matchedSubscription?.cancelAtPeriodEnd ?? false);
-  const localCurrentPeriodEnd = $derived(matchedSubscription?.currentPeriodEnd ?? null);
+  const localSubscriptionProductId = $derived(
+    matchedSubscription?.productId ?? null,
+  );
+  const localCancelAtPeriodEnd = $derived(
+    matchedSubscription?.cancelAtPeriodEnd ?? false,
+  );
+  const localCurrentPeriodEnd = $derived(
+    matchedSubscription?.currentPeriodEnd ?? null,
+  );
   const localSubscriptionState = $derived(matchedSubscription?.status ?? null);
   const localSubscribedSeats = $derived(matchedSubscription?.seats ?? null);
 
@@ -199,12 +229,17 @@
 
   const getPreferredTheme = (): "light" | "dark" => {
     if (typeof window === "undefined") return "light";
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    return window.matchMedia("(prefers-color-scheme: dark)").matches
+      ? "dark"
+      : "light";
   };
 
   const startCheckout = async (productId: string, checkoutUnits?: number) => {
     if (onBeforeCheckout) {
-      const proceed = await onBeforeCheckout({ productId, units: checkoutUnits });
+      const proceed = await onBeforeCheckout({
+        productId,
+        units: checkoutUnits,
+      });
       if (!proceed) return;
     }
     isActionLoading = true;
@@ -233,34 +268,50 @@
     await startCheckout(payload.productId, payload.units);
   };
 
-  const handleSwitchPlan = async (payload: {
+  const requestSwitchPlan = (payload: {
     plan: UIPlanEntry;
     productId: string;
     units?: number;
   }) => {
-    if (!updateRef) return;
+    pendingSwitchPlan = payload;
+    switchPlanDialogOpen = true;
+  };
+
+  const confirmSwitchPlan = async () => {
+    if (!updateRef || !pendingSwitchPlan) return;
+    const payload = pendingSwitchPlan;
     const subId = matchedSubscription?.id;
+    switchPlanDialogOpen = false;
+    pendingSwitchPlan = null;
     actionError = null;
     try {
-      await client.mutation(updateRef, {
-        productId: payload.productId,
-        ...(subId ? { subscriptionId: subId } : {}),
-      }, {
-        optimisticUpdate: (store) => {
-          const current = store.getQuery(billingUiModelRef, {});
-          if (current) {
-            const m = current as ConnectedBillingModel;
-            store.setQuery(billingUiModelRef, {}, {
-              ...m,
-              activeSubscriptions: (m.activeSubscriptions ?? []).map((s) =>
-                ownProductIds.has(s.productId)
-                  ? { ...s, productId: payload.productId }
-                  : s
-              ),
-            });
-          }
+      await client.mutation(
+        updateRef,
+        {
+          productId: payload.productId,
+          ...(subId ? { subscriptionId: subId } : {}),
         },
-      });
+        {
+          optimisticUpdate: (store) => {
+            const current = store.getQuery(billingUiModelRef, {});
+            if (current) {
+              const m = current as ConnectedBillingModel;
+              store.setQuery(
+                billingUiModelRef,
+                {},
+                {
+                  ...m,
+                  activeSubscriptions: (m.activeSubscriptions ?? []).map((s) =>
+                    ownProductIds.has(s.productId)
+                      ? { ...s, productId: payload.productId }
+                      : s,
+                  ),
+                },
+              );
+            }
+          },
+        },
+      );
     } catch (error) {
       actionError = error instanceof Error ? error.message : "Switch failed";
     }
@@ -271,61 +322,114 @@
     const subId = matchedSubscription?.id;
     actionError = null;
     try {
-      await client.mutation(updateRef, {
-        units: payload.units,
-        ...(subId ? { subscriptionId: subId } : {}),
-        updateBehavior,
-      }, {
-        optimisticUpdate: (store) => {
-          const current = store.getQuery(billingUiModelRef, {});
-          if (current) {
-            const m = current as ConnectedBillingModel;
-            store.setQuery(billingUiModelRef, {}, {
-              ...m,
-              activeSubscriptions: (m.activeSubscriptions ?? []).map((s) =>
-                s.id === subId ? { ...s, seats: payload.units } : s
-              ),
-            });
-          }
+      await client.mutation(
+        updateRef,
+        {
+          units: payload.units,
+          ...(subId ? { subscriptionId: subId } : {}),
+          updateBehavior,
         },
-      });
+        {
+          optimisticUpdate: (store) => {
+            const current = store.getQuery(billingUiModelRef, {});
+            if (current) {
+              const m = current as ConnectedBillingModel;
+              store.setQuery(
+                billingUiModelRef,
+                {},
+                {
+                  ...m,
+                  activeSubscriptions: (m.activeSubscriptions ?? []).map((s) =>
+                    s.id === subId ? { ...s, seats: payload.units } : s,
+                  ),
+                },
+              );
+            }
+          },
+        },
+      );
     } catch (error) {
-      actionError = error instanceof Error ? error.message : "Seat update failed";
+      actionError =
+        error instanceof Error ? error.message : "Seat update failed";
     }
   };
 
   const confirmCancelSubscription = async () => {
     if (!cancelRef) return;
-    // Close dialog immediately for snappy UX
+    const subId = matchedSubscription?.id;
     cancelDialogOpen = false;
-    isCancelInFlight = true;
     actionError = null;
     try {
-      await client.action(cancelRef, {});
+      await client.mutation(
+        cancelRef,
+        {
+          ...(subId ? { subscriptionId: subId } : {}),
+        },
+        {
+          optimisticUpdate: (store) => {
+            const current = store.getQuery(billingUiModelRef, {});
+            if (current) {
+              const m = current as ConnectedBillingModel;
+              store.setQuery(
+                billingUiModelRef,
+                {},
+                {
+                  ...m,
+                  activeSubscriptions: (m.activeSubscriptions ?? []).map((s) =>
+                    ownProductIds.has(s.productId)
+                      ? { ...s, cancelAtPeriodEnd: true }
+                      : s,
+                  ),
+                },
+              );
+            }
+          },
+        },
+      );
     } catch (error) {
       actionError = error instanceof Error ? error.message : "Cancel failed";
-    } finally {
-      isCancelInFlight = false;
     }
   };
 
   const resumeSubscription = async () => {
     if (!resumeRef) return;
-    isActionLoading = true;
+    const subId = matchedSubscription?.id;
     actionError = null;
     try {
-      await client.action(resumeRef, {});
+      await client.mutation(
+        resumeRef,
+        {
+          ...(subId ? { subscriptionId: subId } : {}),
+        },
+        {
+          optimisticUpdate: (store) => {
+            const current = store.getQuery(billingUiModelRef, {});
+            if (current) {
+              const m = current as ConnectedBillingModel;
+              store.setQuery(
+                billingUiModelRef,
+                {},
+                {
+                  ...m,
+                  activeSubscriptions: (m.activeSubscriptions ?? []).map((s) =>
+                    ownProductIds.has(s.productId)
+                      ? { ...s, cancelAtPeriodEnd: false, status: "active" }
+                      : s,
+                  ),
+                },
+              );
+            }
+          },
+        },
+      );
     } catch (error) {
       actionError = error instanceof Error ? error.message : "Resume failed";
-    } finally {
-      isActionLoading = false;
     }
   };
 
   const openCancelDialog = () => {
     cancelDialogOpen = true;
   };
-
 </script>
 
 <div class="hidden" aria-hidden="true">
@@ -344,26 +448,24 @@
   {#if !model}
     <p class="text-sm text-zinc-500">Loading billing model…</p>
   {:else}
-    {#if isCancelInFlight && ownsActiveSubscription}
-      <div
-        class="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-700 dark:bg-amber-900/30 dark:text-amber-200"
-      >
-        <span class="inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></span>
-        Processing cancellation…
-      </div>
-    {/if}
-
     {#if ownsActiveSubscription && snapshot}
       <ScheduledChangeBanner
-        snapshot={{ ...snapshot, metadata: { ...snapshot.metadata, cancelAtPeriodEnd: localCancelAtPeriodEnd, currentPeriodEnd: localCurrentPeriodEnd } }}
+        snapshot={{
+          ...snapshot,
+          metadata: {
+            ...snapshot.metadata,
+            cancelAtPeriodEnd: localCancelAtPeriodEnd,
+            currentPeriodEnd: localCurrentPeriodEnd,
+          },
+        }}
         isLoading={isActionLoading}
         onResume={resumeRef && canResume ? resumeSubscription : undefined}
       />
     {/if}
-    <PaymentWarningBanner snapshot={snapshot} />
+    <PaymentWarningBanner {snapshot} />
 
     <PricingSection
-      plans={plans}
+      {plans}
       snapshot={snapshot ? { ...snapshot, activePlanId } : null}
       {selectedCycle}
       products={allProducts}
@@ -382,9 +484,16 @@
       disableSwitch={!canChange}
       disableSeats={!canUpdateSeats}
       onCheckout={canCheckout ? handlePricingCheckout : undefined}
-      onSwitchPlan={updateRef && canChange ? handleSwitchPlan : undefined}
-      onUpdateSeats={updateRef && canUpdateSeats ? handleUpdateSeats : undefined}
-      onCancelSubscription={cancelRef && canCancel && ownsActiveSubscription && !localCancelAtPeriodEnd ? openCancelDialog : undefined}
+      onSwitchPlan={updateRef && canChange ? requestSwitchPlan : undefined}
+      onUpdateSeats={updateRef && canUpdateSeats
+        ? handleUpdateSeats
+        : undefined}
+      onCancelSubscription={cancelRef &&
+      canCancel &&
+      ownsActiveSubscription &&
+      !localCancelAtPeriodEnd
+        ? openCancelDialog
+        : undefined}
     />
 
     <div class="flex flex-wrap items-center gap-3">
@@ -393,11 +502,81 @@
       {/if}
     </div>
 
-    <CancelConfirmDialog
+    <Dialog.Root
       open={cancelDialogOpen}
-      isLoading={isActionLoading}
-      onOpenChange={(open) => { cancelDialogOpen = open; }}
-      onConfirm={confirmCancelSubscription}
-    />
+      onOpenChange={(details: { open: boolean }) => {
+        cancelDialogOpen = details.open;
+      }}
+      role="alertdialog"
+    >
+      <Portal>
+        <Dialog.Backdrop class="dialog-backdrop" />
+        <Dialog.Positioner class="dialog-positioner">
+          <Dialog.Content class="dialog-content">
+            <Dialog.Title class="dialog-title">
+              Cancel subscription?
+            </Dialog.Title>
+            <Dialog.Description class="dialog-description">
+              Are you sure you want to cancel your subscription? You will
+              continue to have access until the end of your current billing
+              period.
+            </Dialog.Description>
+            <div class="dialog-actions">
+              <Dialog.CloseTrigger class="button-outline">
+                Keep subscription
+              </Dialog.CloseTrigger>
+              <button
+                type="button"
+                class="dialog-action-danger"
+                onclick={() => confirmCancelSubscription()}
+              >
+                Yes, cancel
+              </button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Portal>
+    </Dialog.Root>
+
+    <Dialog.Root
+      open={switchPlanDialogOpen}
+      onOpenChange={(details: { open: boolean }) => {
+        switchPlanDialogOpen = details.open;
+        if (!details.open) pendingSwitchPlan = null;
+      }}
+      role="alertdialog"
+    >
+      <Portal>
+        <Dialog.Backdrop class="dialog-backdrop" />
+        <Dialog.Positioner class="dialog-positioner">
+          <Dialog.Content class="dialog-content">
+            <Dialog.Title class="dialog-title">Switch plan?</Dialog.Title>
+            <Dialog.Description class="dialog-description">
+              {#if pendingSwitchPlan?.plan?.title}
+                You are about to switch to the <strong
+                  >{pendingSwitchPlan.plan.title}</strong
+                > plan. The price difference will be prorated and charged to your
+                payment method.
+              {:else}
+                You are about to switch your plan. The price difference will be
+                prorated and charged to your payment method.
+              {/if}
+            </Dialog.Description>
+            <div class="dialog-actions">
+              <Dialog.CloseTrigger class="button-outline">
+                Cancel
+              </Dialog.CloseTrigger>
+              <button
+                type="button"
+                class="button-filled"
+                onclick={() => confirmSwitchPlan()}
+              >
+                Confirm switch
+              </button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Portal>
+    </Dialog.Root>
   {/if}
 </section>

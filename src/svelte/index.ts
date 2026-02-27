@@ -17,7 +17,6 @@ export { default as PricingCard } from "./primitives/PricingCard.svelte";
 export { default as PricingSection } from "./primitives/PricingSection.svelte";
 export { default as BillingGate } from "./primitives/BillingGate.svelte";
 export { default as ScheduledChangeBanner } from "./primitives/ScheduledChangeBanner.svelte";
-export { default as CancelConfirmDialog } from "./primitives/CancelConfirmDialog.svelte";
 export { default as PaymentWarningBanner } from "./primitives/PaymentWarningBanner.svelte";
 export { default as TrialLimitBanner } from "./primitives/TrialLimitBanner.svelte";
 export { default as OneTimeCheckoutButton } from "./primitives/OneTimeCheckoutButton.svelte";

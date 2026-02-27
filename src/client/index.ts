@@ -958,25 +958,117 @@ export class Creem {
             });
           },
         }),
-        cancel: actionGeneric({
-          args: { revokeImmediately: v.optional(v.boolean()) },
+        cancel: mutationGeneric({
+          args: {
+            subscriptionId: v.optional(v.string()),
+            revokeImmediately: v.optional(v.boolean()),
+          },
           handler: async (ctx, args) => {
             const { entityId } = await resolve(ctx);
-            await this.subscriptions.cancel(ctx, { entityId, ...args });
+            const subscription = args.subscriptionId
+              ? await ctx.runQuery(this.component.lib.getSubscription, { id: args.subscriptionId })
+              : await ctx.runQuery(this.component.lib.getCurrentSubscription, { entityId });
+            if (!subscription) throw new ConvexError("Subscription not found");
+            if (subscription.status !== "active" && subscription.status !== "trialing") {
+              throw new ConvexError("Subscription is not active");
+            }
+
+            // Resolve cancel mode: explicit arg > config default > omit (Creem decides)
+            const immediate =
+              args.revokeImmediately ??
+              (this.config.cancelMode === "immediate" ? true : undefined);
+            const isImmediate = immediate === true;
+
+            // Write optimistic state
+            await ctx.runMutation(this.component.lib.patchSubscription, {
+              subscriptionId: subscription.id,
+              ...(isImmediate
+                ? { status: "canceled", cancelAtPeriodEnd: false }
+                : { cancelAtPeriodEnd: true }),
+            });
+
+            // Resolve cancel mode string for the action
+            const cancelMode = isImmediate
+              ? "immediate"
+              : (immediate === false || this.config.cancelMode === "scheduled")
+                ? "scheduled"
+                : undefined;
+
+            // Schedule the Creem API call
+            await ctx.scheduler.runAfter(0, this.component.lib.executeSubscriptionLifecycle, {
+              apiKey: this.apiKey,
+              serverIdx: this.serverIdx,
+              serverURL: this.serverURL,
+              subscriptionId: subscription.id,
+              operation: "cancel",
+              cancelMode,
+              previousStatus: subscription.status,
+              previousCancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+            });
           },
         }),
-        resume: actionGeneric({
-          args: {},
-          handler: async (ctx) => {
+        resume: mutationGeneric({
+          args: {
+            subscriptionId: v.optional(v.string()),
+          },
+          handler: async (ctx, args) => {
             const { entityId } = await resolve(ctx);
-            await this.subscriptions.resume(ctx, { entityId });
+            const subscription = args.subscriptionId
+              ? await ctx.runQuery(this.component.lib.getSubscription, { id: args.subscriptionId })
+              : await ctx.runQuery(this.component.lib.getCurrentSubscription, { entityId });
+            if (!subscription) throw new ConvexError("Subscription not found");
+            if (subscription.status !== "scheduled_cancel" && subscription.status !== "paused") {
+              throw new ConvexError("Subscription is not in a resumable state");
+            }
+
+            // Write optimistic state
+            await ctx.runMutation(this.component.lib.patchSubscription, {
+              subscriptionId: subscription.id,
+              status: "active",
+              cancelAtPeriodEnd: false,
+            });
+
+            // Schedule the Creem API call
+            await ctx.scheduler.runAfter(0, this.component.lib.executeSubscriptionLifecycle, {
+              apiKey: this.apiKey,
+              serverIdx: this.serverIdx,
+              serverURL: this.serverURL,
+              subscriptionId: subscription.id,
+              operation: "resume",
+              previousStatus: subscription.status,
+              previousCancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+            });
           },
         }),
-        pause: actionGeneric({
-          args: {},
-          handler: async (ctx) => {
+        pause: mutationGeneric({
+          args: {
+            subscriptionId: v.optional(v.string()),
+          },
+          handler: async (ctx, args) => {
             const { entityId } = await resolve(ctx);
-            await this.subscriptions.pause(ctx, { entityId });
+            const subscription = args.subscriptionId
+              ? await ctx.runQuery(this.component.lib.getSubscription, { id: args.subscriptionId })
+              : await ctx.runQuery(this.component.lib.getCurrentSubscription, { entityId });
+            if (!subscription) throw new ConvexError("Subscription not found");
+            if (subscription.status !== "active" && subscription.status !== "trialing") {
+              throw new ConvexError("Subscription is not active");
+            }
+
+            // Write optimistic state
+            await ctx.runMutation(this.component.lib.patchSubscription, {
+              subscriptionId: subscription.id,
+              status: "paused",
+            });
+
+            // Schedule the Creem API call
+            await ctx.scheduler.runAfter(0, this.component.lib.executeSubscriptionLifecycle, {
+              apiKey: this.apiKey,
+              serverIdx: this.serverIdx,
+              serverURL: this.serverURL,
+              subscriptionId: subscription.id,
+              operation: "pause",
+              previousStatus: subscription.status,
+            });
           },
         }),
         list: queryGeneric({

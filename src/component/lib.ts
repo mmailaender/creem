@@ -590,6 +590,52 @@ export const executeSubscriptionUpdate = action({
   },
 });
 
+/** Action that calls Creem API for cancel/resume/pause and reverts on error.
+ *  Scheduled by the corresponding mutations in api(). */
+export const executeSubscriptionLifecycle = action({
+  args: {
+    apiKey: v.string(),
+    serverIdx: v.optional(v.number()),
+    serverURL: v.optional(v.string()),
+    subscriptionId: v.string(),
+    operation: v.union(v.literal("cancel"), v.literal("resume"), v.literal("pause")),
+    cancelMode: v.optional(v.string()),
+    // For reverting on error:
+    previousStatus: v.optional(v.string()),
+    previousCancelAtPeriodEnd: v.optional(v.boolean()),
+  },
+  handler: async (ctx, args) => {
+    const sdk = new Creem({
+      apiKey: args.apiKey,
+      ...(args.serverIdx !== undefined ? { serverIdx: args.serverIdx } : {}),
+      ...(args.serverURL ? { serverURL: args.serverURL } : {}),
+    });
+    try {
+      if (args.operation === "cancel") {
+        const cancelParams =
+          args.cancelMode === "immediate"
+            ? { mode: "immediate" as const }
+            : args.cancelMode === "scheduled"
+              ? { mode: "scheduled" as const, onExecute: "cancel" as const }
+              : {};
+        await sdk.subscriptions.cancel(args.subscriptionId, cancelParams);
+      } else if (args.operation === "resume") {
+        await sdk.subscriptions.resume(args.subscriptionId);
+      } else if (args.operation === "pause") {
+        await sdk.subscriptions.pause(args.subscriptionId);
+      }
+    } catch (error) {
+      console.error(`[creem] subscription ${args.operation} failed:`, error);
+      // Revert optimistic state
+      await ctx.runMutation(api.lib.patchSubscription, {
+        subscriptionId: args.subscriptionId,
+        ...(args.previousStatus !== undefined ? { status: args.previousStatus } : {}),
+        ...(args.previousCancelAtPeriodEnd !== undefined ? { cancelAtPeriodEnd: args.previousCancelAtPeriodEnd } : {}),
+      });
+    }
+  },
+});
+
 export const omitSystemFields = <
   T extends { _id: string; _creationTime: number } | null | undefined,
 >(

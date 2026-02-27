@@ -68,7 +68,7 @@ export default function TodoList() {
     deleteTodoOptimistic,
   );
   const createDemoUser = useMutation(api.example.createDemoUser);
-  const cancelSubscription = useAction(api.billing.subscriptionsCancel);
+  const cancelSubscription = useMutation(api.billing.subscriptionsCancel);
   const changeSubscription = useMutation(api.billing.subscriptionsUpdate);
   const [newTodo, setNewTodo] = useState("");
   const [isCreatingDemoUser, setIsCreatingDemoUser] = useState(false);

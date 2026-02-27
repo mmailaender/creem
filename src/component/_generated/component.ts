@@ -119,6 +119,22 @@ export type ComponentApi<Name extends string | undefined = string | undefined> =
         any,
         Name
       >;
+      executeSubscriptionLifecycle: FunctionReference<
+        "action",
+        "internal",
+        {
+          apiKey: string;
+          cancelMode?: string;
+          operation: "cancel" | "resume" | "pause";
+          previousCancelAtPeriodEnd?: boolean;
+          previousStatus?: string;
+          serverIdx?: number;
+          serverURL?: string;
+          subscriptionId: string;
+        },
+        any,
+        Name
+      >;
       executeSubscriptionUpdate: FunctionReference<
         "action",
         "internal",

@@ -19,8 +19,8 @@ export type ConnectedBillingApi = {
   };
   subscriptions?: {
     update?: FunctionReference<"mutation">;
-    cancel?: FunctionReference<"action">;
-    resume?: FunctionReference<"action">;
+    cancel?: FunctionReference<"mutation">;
+    resume?: FunctionReference<"mutation">;
   };
   customers?: {
     portalUrl?: FunctionReference<"action">;
