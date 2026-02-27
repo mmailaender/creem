@@ -173,7 +173,7 @@
       ? " md:grid md:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] md:gap-x-8 md:gap-y-3"
       : ""
   } ${
-    plan.recommended ? "border border-brand-default" : ""
+    plan.recommended ? "border-2 border-primary-border-default" : ""
   } ${className}`}
 >
   <div class="mb-3 flex h-5 items-center justify-between gap-2">
@@ -206,7 +206,7 @@
         <span class="title-s text-foreground-placeholder">{splitPrice.suffix}</span>
       {/if}
       {#if splitPrice.tail}
-        <span class="body-m text-foreground-muted">{splitPrice.tail}</span>
+        <span class="title-s text-foreground-placeholder">{splitPrice.tail}</span>
       {/if}
     {/if}
   </div>

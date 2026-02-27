@@ -10,6 +10,8 @@
     type Transition,
   } from "@mmailaender/convex-creem/svelte";
   import { api } from "../../convex/_generated/api.js";
+  import convexLogoUrl from "./assets/convex-grey.svg";
+  import svelteLogoUrl from "./assets/svelte-grey.svg";
 
   const convexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined;
   if (!convexUrl) {
@@ -43,10 +45,6 @@
     },
   ];
 
-  const convexLogoUrl =
-    "https://www.figma.com/api/mcp/asset/9cd60b11-6db1-421e-82a7-bb5054a462b1";
-  const svelteLogoUrl =
-    "https://www.figma.com/api/mcp/asset/934d6769-1447-46dc-9a45-7138ec3f2eff";
 </script>
 
 <main class="w-full py-10 lg:pt-16">

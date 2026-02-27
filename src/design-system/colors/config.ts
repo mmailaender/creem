@@ -54,21 +54,21 @@ export const DEFAULT_PALETTES: Palette[] = [
 		id: 'primary',
 		name: 'Primary',
 		colors: {
-			0: 'oklch(0.2321 0.0614 267.96)',
-			10: 'oklch(0.2836 0.0824 267.64)',
-			20: 'oklch(0.3410 0.1155 268.64)',
-			30: 'oklch(0.4048 0.1412 267.57)',
-			40: 'oklch(0.4685 0.1626 267.18)',
-			50: 'oklch(0.5344 0.1806 266.63)',
-			60: 'oklch(0.6119 0.1550 267.12)',
-			70: 'oklch(0.6966 0.1197 267.74)',
-			80: 'oklch(0.7755 0.0879 269.15)',
-			90: 'oklch(0.8566 0.0565 269.65)',
-			100: 'oklch(0.8956 0.0400 269.96)',
-			110: 'oklch(0.9229 0.0295 271.09)',
-			120: 'oklch(0.9467 0.0209 271.19)',
-			130: 'oklch(0.9675 0.0124 271.29)',
-			140: 'oklch(0.9850 0.0070 268.55)'
+			0: 'oklch(0.2393 0.1035 267.86)',
+			10: 'oklch(0.2779 0.1284 267.40)',
+			20: 'oklch(0.3486 0.1710 266.59)',
+			30: 'oklch(0.3887 0.1943 266.54)',
+			40: 'oklch(0.4603 0.2332 266.15)',
+			50: 'oklch(0.5075 0.2521 266.56)',
+			60: 'oklch(0.5572 0.2221 268.76)',
+			70: 'oklch(0.6180 0.1883 271.07)',
+			80: 'oklch(0.6986 0.1411 273.24)',
+			90: 'oklch(0.8270 0.0785 274.99)',
+			100: 'oklch(0.8795 0.0545 276.10)',
+			110: 'oklch(0.9165 0.0373 275.70)',
+			120: 'oklch(0.9389 0.0262 274.11)',
+			130: 'oklch(0.9577 0.0189 279.53)',
+			140: 'oklch(0.9766 0.0096 273.36)'
 		}
 	},
 	{
@@ -179,6 +179,33 @@ export const DEFAULT_SEMANTIC_ROLES: Record<SemanticRole, SemanticRoleModeMap> =
 	'surface.inverse': role(ref('neutral', 0), ref('neutral', 140)),
 	'foreground.on-inverse-primary': role(ref('neutral', 140), ref('neutral', 0)),
 	'foreground.on-inverse-secondary': role(ref('neutral', 80), ref('neutral', 50))
+};
+
+// Palette-specific semantic-role overrides when a palette does not follow
+// the default neutral step mapping 1:1.
+export const PALETTE_SEMANTIC_ROLE_OVERRIDES: Partial<
+	Record<string, Partial<Record<SemanticRole, SemanticRoleModeMap>>>
+> = {
+	primary: {
+		'surface.base': role(ref('primary', 140), ref('primary', 0)),
+		'surface.subtle': role(ref('primary', 130), ref('primary', 10)),
+		'surface.elevated': role(ref('primary', 120), ref('primary', 20)),
+		'surface.tonal': role(ref('primary', 110), ref('primary', 30)),
+		'surface.filled': role(ref('primary', 60), ref('primary', 70)),
+
+		'border.subtle': role(ref('primary', 100), ref('primary', 40)),
+		'border.default': role(ref('primary', 90), ref('primary', 50)),
+
+		'foreground.default': role(ref('primary', 10), ref('primary', 130)),
+		'foreground.muted': role(ref('primary', 30), ref('primary', 110)),
+		'foreground.placeholder': role(ref('primary', 40), ref('primary', 100)),
+		'foreground.on-tonal': role(ref('primary', 60), ref('primary', 90)),
+		'foreground.on-filled': role(ref('primary', 140), ref('primary', 0)),
+
+		'surface.inverse': role(ref('primary', 0), ref('primary', 140)),
+		'foreground.on-inverse-primary': role(ref('primary', 140), ref('primary', 0)),
+		'foreground.on-inverse-secondary': role(ref('primary', 80), ref('primary', 50))
+	}
 };
 
 export const STATE_LAYER_ORDER = ['hover', 'pressed', 'focus-ring', 'border-active', 'drag', 'disabled'] as const;
