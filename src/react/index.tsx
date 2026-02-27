@@ -93,9 +93,7 @@ export const CustomerPortalLink = ({
   creemApi: { portalUrl: FunctionReference<"action"> };
   className?: string;
 }>) => {
-  const generateCustomerPortalUrl = useAction(
-    creemApi.portalUrl,
-  );
+  const generateCustomerPortalUrl = useAction(creemApi.portalUrl);
   const [portalUrl, setPortalUrl] = useState<string>();
 
   useEffect(() => {

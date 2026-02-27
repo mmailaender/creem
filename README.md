@@ -3,8 +3,8 @@
 Add subscriptions, one-time purchases, and billing to your Convex app with
 [Creem](https://www.creem.io).
 
-**Check out the [Svelte example](example-svelte) and [React example](example-react)
-for complete integrations.**
+**Check out the [Svelte example](example-svelte) and
+[React example](example-react) for complete integrations.**
 
 ## Table of Contents
 
@@ -12,8 +12,8 @@ for complete integrations.**
   - [1. Install](#1-install)
   - [2. Register component](#2-register-component)
   - [3. Set environment variables](#3-set-environment-variables)
-  - [4. Register webhooks](#4-register-webhooks)
-  - [5. Configure billing](#5-configure-billing)
+  - [5. Configure billing](#4-configure-billing)
+  - [4. Register webhooks](#5-register-webhooks)
   - [6. Sync products](#6-sync-products)
 - [Quick Start — Frontend (UI Widgets)](#quick-start--frontend-ui-widgets)
   - [7. Install Tailwind CSS](#7-install-tailwind-css)
@@ -47,8 +47,8 @@ for complete integrations.**
 
 ## Quick Start — Backend
 
-Complete these steps to use the billing API from your Convex functions.
-No frontend framework required.
+Complete these steps to use the billing API from your Convex functions. No
+frontend framework required.
 
 ### 1. Install
 
@@ -98,8 +98,13 @@ const resolve: ApiResolver = async (ctx) => {
 
 // Generate Convex function exports — each calls resolve(), then delegates
 const {
-  uiModel, snapshot,
-  checkouts, subscriptions, products, customers, orders,
+  uiModel,
+  snapshot,
+  checkouts,
+  subscriptions,
+  products,
+  customers,
+  orders,
 } = creem.api({ resolve });
 
 export { uiModel, snapshot };
@@ -119,7 +124,9 @@ export const ordersList = orders.list;
 // Sync products from Creem (CLI / dashboard only)
 export const syncBillingProducts = internalAction({
   args: {},
-  handler: async (ctx) => { await creem.syncProducts(ctx); },
+  handler: async (ctx) => {
+    await creem.syncProducts(ctx);
+  },
 });
 ```
 
@@ -169,14 +176,14 @@ to Convex. Complete these two extra steps to use them.
 
 ### 7. Install Tailwind CSS
 
-The widgets use [Tailwind CSS v4](https://tailwindcss.com/docs/installation).
-If your project doesn't have Tailwind yet, install it following the
+The widgets use [Tailwind CSS v4](https://tailwindcss.com/docs/installation). If
+your project doesn't have Tailwind yet, install it following the
 [official guide](https://tailwindcss.com/docs/installation).
 
 ### 8. Import styles
 
-Add the component's design system import to your CSS entry point, **after**
-the Tailwind import:
+Add the component's design system import to your CSS entry point, **after** the
+Tailwind import:
 
 ```css
 @import "tailwindcss";
@@ -193,8 +200,9 @@ directives so Tailwind scans the library's component files automatically.
 ## Entity Model
 
 By default, billing is scoped to the **authenticated user** — the `entityId`
-returned from your resolver is used as the billing entity. All `creem.api({ resolve })`
-functions, checkout metadata, and webhook resolution automatically use this entity.
+returned from your resolver is used as the billing entity. All
+`creem.api({ resolve })` functions, checkout metadata, and webhook resolution
+automatically use this entity.
 
 For **organization or team billing**, return the org ID as `entityId`:
 
@@ -214,7 +222,8 @@ All billing operations scope to the `entityId`. Webhooks resolve
 `convexBillingEntityId` from checkout metadata (falls back to `convexUserId`).
 No other code changes needed.
 
-For access control details, see [Security & Access Control](#security--access-control).
+For access control details, see
+[Security & Access Control](#security--access-control).
 
 ---
 
@@ -225,8 +234,8 @@ handle checkout, plan switching, and billing state out of the box.
 
 ### Wire the billing API
 
-Every widget needs a `ConnectedBillingApi` object. Create it once in your
-layout or page component:
+Every widget needs a `ConnectedBillingApi` object. Create it once in your layout
+or page component:
 
 ```svelte
 <script lang="ts">
@@ -257,8 +266,8 @@ layout or page component:
 
 #### 1.1 Standard subscription plans
 
-A typical pricing page with Free / Basic / Premium / Enterprise tiers.
-The billing toggle auto-derives from the cycles present in registered plans.
+A typical pricing page with Free / Basic / Premium / Enterprise tiers. The
+billing toggle auto-derives from the cycles present in registered plans.
 
 ```svelte
 <Subscription.Root api={billingApi}>
@@ -290,8 +299,11 @@ The billing toggle auto-derives from the cycles present in registered plans.
 ```
 
 **What you get:**
-- Pricing cards with auto-resolved titles, descriptions (rendered as Markdown), and prices from Creem product data
-- Billing cycle toggle (monthly/yearly) — hidden when all plans share a single cycle
+
+- Pricing cards with auto-resolved titles, descriptions (rendered as Markdown),
+  and prices from Creem product data
+- Billing cycle toggle (monthly/yearly) — hidden when all plans share a single
+  cycle
 - "Current plan" badge on the active subscription
 - Plan switching
 - Trial countdown badge
@@ -333,12 +345,12 @@ Two workflows for seat-based pricing:
 </Subscription.Root>
 ```
 
-When `subscriptions.update` is provided in the API, active seat-based plans
-show a "Change seats" control.
+When `subscriptions.update` is provided in the API, active seat-based plans show
+a "Change seats" control.
 
 > **Tip:** For auto-derived seats, keep the subscription in sync with your data.
-> When your member count changes, call `subscriptions.update` with the new `units` so the billing
-> reflects the current seat count.
+> When your member count changes, call `subscriptions.update` with the new
+> `units` so the billing reflects the current seat count.
 
 ### 2. Products
 
@@ -385,13 +397,14 @@ user owns a lower-tier product, only valid upgrade paths are shown:
 ```
 
 **Transition kinds:**
+
 - **`via_product`** — checkout uses a dedicated upgrade product (delta pricing)
 - **`direct`** — checkout uses the target product directly
 
 ### 3. Billing Portal
 
-`<BillingPortal>` opens the Creem customer billing portal. It auto-hides
-when the billing entity has no Creem customer record.
+`<BillingPortal>` opens the Creem customer billing portal. It auto-hides when
+the billing entity has no Creem customer record.
 
 Pass `permissions` to control who can access the portal (e.g. only admins):
 
@@ -447,8 +460,8 @@ parses Creem's query parameters automatically:
 ## Scenarios — React
 
 The React export provides presentational components for building custom billing
-UIs. Full widgets (equivalent to the Svelte `Subscription.Root` /
-`Product.Root` pattern) are coming soon.
+UIs. Full widgets (equivalent to the Svelte `Subscription.Root` / `Product.Root`
+pattern) are coming soon.
 
 ```tsx
 import {
@@ -502,8 +515,9 @@ creem.registerRoutes(http, {
 });
 ```
 
-Your handlers run **after** the component's built-in processing (customer/subscription/order upserts).
-The `ctx` is a Convex mutation context — you can read/write to your own tables.
+Your handlers run **after** the component's built-in processing
+(customer/subscription/order upserts). The `ctx` is a Convex mutation context —
+you can read/write to your own tables.
 
 **Supported events:** `checkout.completed`, `subscription.active`,
 `subscription.updated`, `subscription.canceled`, `subscription.paused`,
@@ -511,9 +525,9 @@ The `ctx` is a Convex mutation context — you can read/write to your own tables
 
 ### Security & Access Control
 
-**Auth is the app's responsibility.** The component is a sync engine — it
-reads from Convex DB and writes to the Creem API. Every class method takes
-explicit args; there is no hidden auth layer.
+**Auth is the app's responsibility.** The component is a sync engine — it reads
+from Convex DB and writes to the Creem API. Every class method takes explicit
+args; there is no hidden auth layer.
 
 **Choose your approach:**
 
@@ -528,13 +542,30 @@ explicit args; there is no hidden auth layer.
   [resource namespaces](#resource-namespaces--creemnamespace)
   (`creem.subscriptions.*`, `creem.checkouts.*`, etc.) directly in your own
   Convex functions. You handle auth, entity resolution, and permission checks
-  yourself. Example:
+  yourself.
+
+  The library exports **shared arg validators** that match exactly what the
+  connected widgets send. Use them to keep your custom functions in sync:
+
+  | Export                   | Used by                                          |
+  | ------------------------ | ------------------------------------------------ |
+  | `checkoutCreateArgs`     | `<Subscription.Root>`, `<Product.Root>`          |
+  | `subscriptionUpdateArgs` | `<Subscription.Root>` (plan switch, seat update) |
+  | `subscriptionCancelArgs` | `<Subscription.Root>` (cancel button)            |
+  | `subscriptionResumeArgs` | `<Subscription.Root>` (resume button)            |
+  | `subscriptionPauseArgs`  | `<Subscription.Root>` (pause button)             |
+
+  Example:
 
 ```ts
 // convex/billing.ts
-import { Creem } from "@mmailaender/convex-creem";
-import { ConvexError, v } from "convex/values";
-import { action } from "./_generated/server";
+import {
+  Creem,
+  checkoutCreateArgs,
+  subscriptionCancelArgs,
+} from "@mmailaender/convex-creem";
+import { ConvexError } from "convex/values";
+import { action, mutation } from "./_generated/server";
 import { api, components } from "./_generated/api";
 
 const creem = new Creem(components.creem);
@@ -551,9 +582,24 @@ async function resolveAuth(ctx) {
   };
 }
 
+// Admin-only: create checkout
+export const checkoutsCreate = action({
+  args: checkoutCreateArgs,
+  handler: async (ctx, args) => {
+    const auth = await resolveAuth(ctx);
+    if (auth.role !== "admin") throw new ConvexError("Forbidden");
+    return await creem.checkouts.create(ctx, {
+      entityId: auth.entityId,
+      userId: auth.userId,
+      email: auth.email,
+      ...args,
+    });
+  },
+});
+
 // Admin-only: cancel subscription
-export const subscriptionsCancel = action({
-  args: { revokeImmediately: v.optional(v.boolean()) },
+export const subscriptionsCancel = mutation({
+  args: subscriptionCancelArgs,
   handler: async (ctx, args) => {
     const auth = await resolveAuth(ctx);
     if (auth.role !== "admin") throw new ConvexError("Forbidden");
@@ -594,8 +640,8 @@ type BillingPermissions = {
 </Subscription.Root>
 ```
 
-When a permission is `false`, the button renders as disabled (greyed out).
-When omitted or `undefined`, all actions default to enabled.
+When a permission is `false`, the button renders as disabled (greyed out). When
+omitted or `undefined`, all actions default to enabled.
 
 ### Pre-checkout gate — `onBeforeCheckout`
 
@@ -637,13 +683,17 @@ The widget automatically resumes a pending checkout when the user becomes
 authenticated. The full flow:
 
 1. Unauthenticated user clicks "Subscribe" → `onBeforeCheckout` fires
-2. Your callback saves the intent via `pendingCheckout.save(intent)`, opens
-   your sign-in dialog/redirect, and returns `false`
+2. Your callback saves the intent via `pendingCheckout.save(intent)`, opens your
+   sign-in dialog/redirect, and returns `false`
 3. After sign-in, the Convex query re-fires → `model.user` becomes non-null
 4. The widget detects the pending checkout and auto-triggers `checkouts.create`
 
 This works for both **modal auth** (Clerk, Auth0 popup) and **redirect auth**
 (OAuth) — no manual resume code needed.
+
+**Safety:** The widget skips auto-resume if the user already has an active
+subscription (`<Subscription.Root>`) or already owns the product
+(`<Product.Root>`), preventing duplicate purchases after sign-in.
 
 `pendingCheckout` is a tiny sessionStorage-based helper exported from the
 library:
@@ -651,9 +701,9 @@ library:
 ```ts
 import { pendingCheckout } from "@mmailaender/convex-creem/svelte";
 
-pendingCheckout.save(intent);  // store before sign-in
-pendingCheckout.load();        // read + auto-clear (used internally by widgets)
-pendingCheckout.clear();       // manual clear if needed
+pendingCheckout.save(intent); // store before sign-in
+pendingCheckout.load(); // read + auto-clear (used internally by widgets)
+pendingCheckout.clear(); // manual clear if needed
 ```
 
 ### Custom billing UI model
@@ -705,77 +755,77 @@ functions, or let `creem.api({ resolve })` generate ready-to-export wrappers.
 
 **`creem.subscriptions.*`**
 
-| Method | Data source | Description |
-|---|---|---|
-| `.getCurrent(ctx, { entityId })` | Convex DB | Current active subscription with product join |
-| `.list(ctx, { entityId })` | Convex DB | Active subscriptions (excludes ended + expired trials) |
-| `.listAll(ctx, { entityId })` | Convex DB | All subscriptions including ended |
-| `.update(ctx, { entityId, subscriptionId?, productId?, units?, updateBehavior? })` | Creem API | Unified plan switch (`productId`) or seat update (`units`). Pass `subscriptionId` when the entity has multiple active subscriptions. Optional proration override. |
-| `.cancel(ctx, { entityId, revokeImmediately? })` | Creem API | Cancel subscription |
-| `.pause(ctx, { entityId })` | Creem API | Pause an active subscription |
-| `.resume(ctx, { entityId })` | Creem API | Resume a paused or scheduled-cancel subscription |
+| Method                                                                             | Data source | Description                                                                                                                                                       |
+| ---------------------------------------------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `.getCurrent(ctx, { entityId })`                                                   | Convex DB   | Current active subscription with product join                                                                                                                     |
+| `.list(ctx, { entityId })`                                                         | Convex DB   | Active subscriptions (excludes ended + expired trials)                                                                                                            |
+| `.listAll(ctx, { entityId })`                                                      | Convex DB   | All subscriptions including ended                                                                                                                                 |
+| `.update(ctx, { entityId, subscriptionId?, productId?, units?, updateBehavior? })` | Creem API   | Unified plan switch (`productId`) or seat update (`units`). Pass `subscriptionId` when the entity has multiple active subscriptions. Optional proration override. |
+| `.cancel(ctx, { entityId, revokeImmediately? })`                                   | Creem API   | Cancel subscription                                                                                                                                               |
+| `.pause(ctx, { entityId })`                                                        | Creem API   | Pause an active subscription                                                                                                                                      |
+| `.resume(ctx, { entityId })`                                                       | Creem API   | Resume a paused or scheduled-cancel subscription                                                                                                                  |
 
 **`creem.checkouts.*`**
 
-| Method | Data source | Description |
-|---|---|---|
-| `.create(ctx, { entityId, userId, email, productId, successUrl?, fallbackSuccessUrl?, units?, metadata?, theme? })` | Creem API | Create checkout URL with 3-tier `successUrl` resolution and optional `theme` |
+| Method                                                                                                              | Data source | Description                                                                  |
+| ------------------------------------------------------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------- |
+| `.create(ctx, { entityId, userId, email, productId, successUrl?, fallbackSuccessUrl?, units?, metadata?, theme? })` | Creem API   | Create checkout URL with 3-tier `successUrl` resolution and optional `theme` |
 
 **`creem.products.*`**
 
-| Method | Data source | Description |
-|---|---|---|
-| `.list(ctx, options?)` | Convex DB | All synced products (public — no `entityId` needed) |
-| `.get(ctx, { productId })` | Convex DB | Single product by ID (public) |
+| Method                     | Data source | Description                                         |
+| -------------------------- | ----------- | --------------------------------------------------- |
+| `.list(ctx, options?)`     | Convex DB   | All synced products (public — no `entityId` needed) |
+| `.get(ctx, { productId })` | Convex DB   | Single product by ID (public)                       |
 
 **`creem.customers.*`**
 
-| Method | Data source | Description |
-|---|---|---|
-| `.retrieve(ctx, { entityId })` | Convex DB | Customer record by entity |
-| `.portalUrl(ctx, { entityId })` | Creem API | Customer billing portal URL |
+| Method                          | Data source | Description                 |
+| ------------------------------- | ----------- | --------------------------- |
+| `.retrieve(ctx, { entityId })`  | Convex DB   | Customer record by entity   |
+| `.portalUrl(ctx, { entityId })` | Creem API   | Customer billing portal URL |
 
 **`creem.orders.*`**
 
-| Method | Data source | Description |
-|---|---|---|
-| `.list(ctx, { entityId })` | Convex DB | Paid one-time orders |
+| Method                     | Data source | Description          |
+| -------------------------- | ----------- | -------------------- |
+| `.list(ctx, { entityId })` | Convex DB   | Paid one-time orders |
 
 **Composite helpers (top-level methods)**
 
-| Method | Description |
-|---|---|
+| Method                                            | Description                                                                                                                                               |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `creem.getBillingModel(ctx, { entityId, user? })` | Aggregates snapshot + products + subscriptions + orders into a single object for widgets. Graceful when `entityId` is null (returns public catalog only). |
-| `creem.getBillingSnapshot(ctx, { entityId })` | Resolved billing state (plan, status, available actions). Uses `resolvePlan` override if configured, otherwise built-in resolver. |
+| `creem.getBillingSnapshot(ctx, { entityId })`     | Resolved billing state (plan, status, available actions). Uses `resolvePlan` override if configured, otherwise built-in resolver.                         |
 
 ### `creem.api({ resolve })` — convenience exports
 
 Generates ready-to-export Convex function definitions. Each function calls your
 `resolve` callback, then delegates to the corresponding namespace method.
 
-| Export | Wraps | Type | Description |
-|---|---|---|---|
-| `uiModel` | `getBillingModel` | query | Calls `resolve()`, then `getBillingModel`. Graceful when unauthenticated. |
-| `snapshot` | `getBillingSnapshot` | query | Calls `resolve()`, then `getBillingSnapshot`. Returns `null` when unauthenticated. |
-| `checkouts.create` | `checkouts.create` | action | Auto-resolves auth |
-| `subscriptions.update` | `subscriptions.update` | action | Auto-resolves auth |
-| `subscriptions.cancel` | `subscriptions.cancel` | action | Auto-resolves auth |
-| `subscriptions.resume` | `subscriptions.resume` | action | Auto-resolves auth |
-| `subscriptions.pause` | `subscriptions.pause` | action | Auto-resolves auth |
-| `subscriptions.list` | `subscriptions.list` | query | Auto-resolves auth |
-| `subscriptions.listAll` | `subscriptions.listAll` | query | Auto-resolves auth |
-| `products.list` | `products.list` | query | Public, no auth needed |
-| `products.get` | `products.get` | query | Public, no auth needed |
-| `customers.retrieve` | `customers.retrieve` | query | Auto-resolves auth |
-| `customers.portalUrl` | `customers.portalUrl` | action | Auto-resolves auth |
-| `orders.list` | `orders.list` | query | Auto-resolves auth |
+| Export                  | Wraps                   | Type   | Description                                                                        |
+| ----------------------- | ----------------------- | ------ | ---------------------------------------------------------------------------------- |
+| `uiModel`               | `getBillingModel`       | query  | Calls `resolve()`, then `getBillingModel`. Graceful when unauthenticated.          |
+| `snapshot`              | `getBillingSnapshot`    | query  | Calls `resolve()`, then `getBillingSnapshot`. Returns `null` when unauthenticated. |
+| `checkouts.create`      | `checkouts.create`      | action | Auto-resolves auth                                                                 |
+| `subscriptions.update`  | `subscriptions.update`  | action | Auto-resolves auth                                                                 |
+| `subscriptions.cancel`  | `subscriptions.cancel`  | action | Auto-resolves auth                                                                 |
+| `subscriptions.resume`  | `subscriptions.resume`  | action | Auto-resolves auth                                                                 |
+| `subscriptions.pause`   | `subscriptions.pause`   | action | Auto-resolves auth                                                                 |
+| `subscriptions.list`    | `subscriptions.list`    | query  | Auto-resolves auth                                                                 |
+| `subscriptions.listAll` | `subscriptions.listAll` | query  | Auto-resolves auth                                                                 |
+| `products.list`         | `products.list`         | query  | Public, no auth needed                                                             |
+| `products.get`          | `products.get`          | query  | Public, no auth needed                                                             |
+| `customers.retrieve`    | `customers.retrieve`    | query  | Auto-resolves auth                                                                 |
+| `customers.portalUrl`   | `customers.portalUrl`   | action | Auto-resolves auth                                                                 |
+| `orders.list`           | `orders.list`           | query  | Auto-resolves auth                                                                 |
 
 ### Infrastructure
 
-| Method | Description |
-|---|---|
-| `creem.syncProducts(ctx)` | Pull products from Creem API into Convex DB |
-| `creem.registerRoutes(http, { path?, events? })` | Register webhook HTTP routes |
+| Method                                           | Description                                 |
+| ------------------------------------------------ | ------------------------------------------- |
+| `creem.syncProducts(ctx)`                        | Pull products from Creem API into Convex DB |
+| `creem.registerRoutes(http, { path?, events? })` | Register webhook HTTP routes                |
 
 ### Direct API access — `creem.sdk.*`
 
@@ -785,16 +835,16 @@ the component cannot mirror them in Convex DB. For these, use `creem.sdk.*`
 directly inside your own Convex actions — it's the same Creem SDK client,
 already configured with your API key:
 
-| Resource | Synced to Convex? | Access |
-|---|---|---|
-| Subscriptions | Yes (webhook) | `creem.subscriptions.*` |
-| Checkouts | Yes (webhook) | `creem.checkouts.*` |
-| Products | Yes (webhook + sync) | `creem.products.*` |
-| Customers | Yes (webhook) | `creem.customers.*` |
-| Orders | Yes (webhook) | `creem.orders.*` |
-| **Licenses** | No webhook | `creem.sdk.licenses.*` |
-| **Discounts** | No webhook | `creem.sdk.discounts.*` |
-| **Transactions** | No webhook | `creem.sdk.transactions.*` |
+| Resource         | Synced to Convex?    | Access                     |
+| ---------------- | -------------------- | -------------------------- |
+| Subscriptions    | Yes (webhook)        | `creem.subscriptions.*`    |
+| Checkouts        | Yes (webhook)        | `creem.checkouts.*`        |
+| Products         | Yes (webhook + sync) | `creem.products.*`         |
+| Customers        | Yes (webhook)        | `creem.customers.*`        |
+| Orders           | Yes (webhook)        | `creem.orders.*`           |
+| **Licenses**     | No webhook           | `creem.sdk.licenses.*`     |
+| **Discounts**    | No webhook           | `creem.sdk.discounts.*`    |
+| **Transactions** | No webhook           | `creem.sdk.transactions.*` |
 
 ```ts
 import { action } from "./_generated/server";
@@ -820,7 +870,8 @@ export const createDiscount = action({
 
 ## Component Reference — Svelte
 
-All Svelte components use Svelte 5 runes and snippet rendering (`{@render ...}`).
+All Svelte components use Svelte 5 runes and snippet rendering
+(`{@render ...}`).
 
 Import from `@mmailaender/convex-creem/svelte`.
 
@@ -833,52 +884,52 @@ These query Convex directly and manage billing state end-to-end.
 Container for subscription plan cards. Handles billing cycle toggle, checkout,
 plan switching, cancellation, and seat management.
 
-| Prop | Type | Default | Description |
-|---|---|---|---|
-| `api` | `ConnectedBillingApi` | — | **Required.** Backend function references |
-| `permissions` | `BillingPermissions` | all enabled | Disable actions based on user role |
-| `class` | `string` | `""` | Wrapper CSS class |
-| `successUrl` | `string` | product's `defaultSuccessUrl` → current page | Override redirect after checkout. When omitted, uses the product's `defaultSuccessUrl` from Creem; if that is also unset, falls back to the current page. |
-| `units` | `number` | — | Auto-derived seat count for seat-based plans |
-| `showSeatPicker` | `boolean` | `false` | Show quantity picker on seat-based cards |
-| `onBeforeCheckout` | `(intent: CheckoutIntent) => Promise<boolean> \| boolean` | — | Gate checkout (auth, terms, etc.). Return `false` to abort. |
-| `children` | `Snippet` | — | `<Subscription.Item>` children |
+| Prop               | Type                                                      | Default                                      | Description                                                                                                                                               |
+| ------------------ | --------------------------------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `api`              | `ConnectedBillingApi`                                     | —                                            | **Required.** Backend function references                                                                                                                 |
+| `permissions`      | `BillingPermissions`                                      | all enabled                                  | Disable actions based on user role                                                                                                                        |
+| `class`            | `string`                                                  | `""`                                         | Wrapper CSS class                                                                                                                                         |
+| `successUrl`       | `string`                                                  | product's `defaultSuccessUrl` → current page | Override redirect after checkout. When omitted, uses the product's `defaultSuccessUrl` from Creem; if that is also unset, falls back to the current page. |
+| `units`            | `number`                                                  | —                                            | Auto-derived seat count for seat-based plans                                                                                                              |
+| `showSeatPicker`   | `boolean`                                                 | `false`                                      | Show quantity picker on seat-based cards                                                                                                                  |
+| `onBeforeCheckout` | `(intent: CheckoutIntent) => Promise<boolean> \| boolean` | —                                            | Gate checkout (auth, terms, etc.). Return `false` to abort.                                                                                               |
+| `children`         | `Snippet`                                                 | —                                            | `<Subscription.Item>` children                                                                                                                            |
 
 #### `<Subscription.Item>`
 
 Registers a plan inside `<Subscription.Root>`. Renders nothing on its own — the
 root component renders the pricing cards.
 
-| Prop | Type | Default | Description |
-|---|---|---|---|
-| `type` | `"free" \| "single" \| "seat-based" \| "enterprise"` | — | **Required.** Plan type |
-| `planId` | `string` | first product ID or `type` | Unique plan identifier |
-| `title` | `string` | from Creem product data | Plan display title |
-| `description` | `string` | from Creem product data | Plan subtitle (rendered as Markdown) |
-| `contactUrl` | `string` | — | "Contact sales" link. **Required when `type="enterprise"`**. |
-| `recommended` | `boolean` | `false` | Highlight as recommended plan |
-| `productIds` | `Partial<Record<RecurringCycle, string>>` | — | Creem product IDs keyed by billing cycle. **Required when `type="single"` or `type="seat-based"`**. |
+| Prop          | Type                                                 | Default                    | Description                                                                                         |
+| ------------- | ---------------------------------------------------- | -------------------------- | --------------------------------------------------------------------------------------------------- |
+| `type`        | `"free" \| "single" \| "seat-based" \| "enterprise"` | —                          | **Required.** Plan type                                                                             |
+| `planId`      | `string`                                             | first product ID or `type` | Unique plan identifier                                                                              |
+| `title`       | `string`                                             | from Creem product data    | Plan display title                                                                                  |
+| `description` | `string`                                             | from Creem product data    | Plan subtitle (rendered as Markdown)                                                                |
+| `contactUrl`  | `string`                                             | —                          | "Contact sales" link. **Required when `type="enterprise"`**.                                        |
+| `recommended` | `boolean`                                            | `false`                    | Highlight as recommended plan                                                                       |
+| `productIds`  | `Partial<Record<RecurringCycle, string>>`            | —                          | Creem product IDs keyed by billing cycle. **Required when `type="single"` or `type="seat-based"`**. |
 
 **Supported billing cycles:** `every-month`, `every-three-months`,
 `every-six-months`, `every-year`.
 
-`Subscription` and `Subscription.Item` are aliases — use whichever reads
-better in your markup.
+`Subscription` and `Subscription.Item` are aliases — use whichever reads better
+in your markup.
 
 #### `<Product.Root>`
 
 Container for one-time or repeating product cards. Handles ownership tracking,
 upgrade transitions, and checkout.
 
-| Prop | Type | Default | Description |
-|---|---|---|---|
-| `api` | `ConnectedBillingApi` | — | **Required.** Backend function references |
-| `permissions` | `BillingPermissions` | all enabled | Disable actions based on user role |
-| `transition` | `Transition[]` | `[]` | Upgrade path rules between products |
-| `class` | `string` | `""` | Wrapper CSS class |
-| `successUrl` | `string` | product's `defaultSuccessUrl` → current page | Override redirect after checkout. When omitted, uses the product's `defaultSuccessUrl` from Creem; if that is also unset, falls back to the current page. |
-| `onBeforeCheckout` | `(intent: CheckoutIntent) => Promise<boolean> \| boolean` | — | Gate checkout (auth, terms, etc.). Return `false` to abort. |
-| `children` | `Snippet` | — | `<Product.Item>` children |
+| Prop               | Type                                                      | Default                                      | Description                                                                                                                                               |
+| ------------------ | --------------------------------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `api`              | `ConnectedBillingApi`                                     | —                                            | **Required.** Backend function references                                                                                                                 |
+| `permissions`      | `BillingPermissions`                                      | all enabled                                  | Disable actions based on user role                                                                                                                        |
+| `transition`       | `Transition[]`                                            | `[]`                                         | Upgrade path rules between products                                                                                                                       |
+| `class`            | `string`                                                  | `""`                                         | Wrapper CSS class                                                                                                                                         |
+| `successUrl`       | `string`                                                  | product's `defaultSuccessUrl` → current page | Override redirect after checkout. When omitted, uses the product's `defaultSuccessUrl` from Creem; if that is also unset, falls back to the current page. |
+| `onBeforeCheckout` | `(intent: CheckoutIntent) => Promise<boolean> \| boolean` | —                                            | Gate checkout (auth, terms, etc.). Return `false` to abort.                                                                                               |
+| `children`         | `Snippet`                                                 | —                                            | `<Product.Item>` children                                                                                                                                 |
 
 **Transition types:**
 
@@ -892,26 +943,26 @@ type Transition =
 
 Registers a product inside `<Product.Root>`.
 
-| Prop | Type | Default | Description |
-|---|---|---|---|
-| `productId` | `string` | — | **Required.** Creem product ID |
-| `type` | `"one-time" \| "recurring"` | — | **Required.** One-time shows "Owned" badge after purchase |
-| `title` | `string` | from Creem product data | Card display title |
-| `description` | `string` | from Creem product data | Card subtitle (rendered as Markdown) |
+| Prop          | Type                        | Default                 | Description                                               |
+| ------------- | --------------------------- | ----------------------- | --------------------------------------------------------- |
+| `productId`   | `string`                    | —                       | **Required.** Creem product ID                            |
+| `type`        | `"one-time" \| "recurring"` | —                       | **Required.** One-time shows "Owned" badge after purchase |
+| `title`       | `string`                    | from Creem product data | Card display title                                        |
+| `description` | `string`                    | from Creem product data | Card subtitle (rendered as Markdown)                      |
 
 `Product` and `Product.Item` are aliases.
 
 #### `<BillingPortal>`
 
-Button that opens the Creem customer billing portal. Auto-hides when the
-billing entity has no Creem customer record, or when `canAccessPortal` is `false`.
+Button that opens the Creem customer billing portal. Auto-hides when the billing
+entity has no Creem customer record, or when `canAccessPortal` is `false`.
 
-| Prop | Type | Default | Description |
-|---|---|---|---|
-| `api` | `ConnectedBillingApi` | — | **Required.** Backend function references |
-| `permissions` | `BillingPermissions` | all enabled | Control portal access (e.g. `{ canAccessPortal: false }`) |
-| `class` | `string` | `""` | Button CSS class |
-| `children` | `Snippet` | `"Manage billing"` | Custom button label |
+| Prop          | Type                  | Default            | Description                                               |
+| ------------- | --------------------- | ------------------ | --------------------------------------------------------- |
+| `api`         | `ConnectedBillingApi` | —                  | **Required.** Backend function references                 |
+| `permissions` | `BillingPermissions`  | all enabled        | Control portal access (e.g. `{ canAccessPortal: false }`) |
+| `class`       | `string`              | `""`               | Button CSS class                                          |
+| `children`    | `Snippet`             | `"Manage billing"` | Custom button label                                       |
 
 ### Presentational components
 
@@ -922,54 +973,55 @@ directly — pass data and callbacks as props.
 
 Renders a grid of pricing cards with an optional billing cycle toggle.
 
-| Prop | Type | Description |
-|---|---|---|
-| `plans` | `UIPlanEntry[]` | Plan definitions |
-| `snapshot` | `BillingSnapshot \| null` | Current billing state |
-| `selectedCycle` | `RecurringCycle` | Active billing cycle |
-| `products` | `ConnectedProduct[]` | Product data for price resolution |
-| `subscriptionProductId` | `string \| null` | Currently subscribed product |
-| `subscriptionStatus` | `string \| null` | Subscription status |
-| `units` | `number` | Seat count |
-| `showSeatPicker` | `boolean` | Show quantity picker |
-| `subscribedSeats` | `number \| null` | Current seat count |
-| `isGroupSubscribed` | `boolean` | Whether group has active subscription |
-| `disableCheckout` | `boolean` | Disable checkout buttons |
-| `disableSwitch` | `boolean` | Disable plan switch buttons |
-| `disableSeats` | `boolean` | Disable seat controls |
-| `onCycleChange` | `(cycle) => void` | Billing cycle change handler |
-| `onCheckout` | `(payload) => void` | Checkout handler |
-| `onSwitchPlan` | `(payload) => void` | Plan switch handler |
-| `onUpdateSeats` | `(payload) => void` | Seat update handler |
+| Prop                    | Type                      | Description                           |
+| ----------------------- | ------------------------- | ------------------------------------- |
+| `plans`                 | `UIPlanEntry[]`           | Plan definitions                      |
+| `snapshot`              | `BillingSnapshot \| null` | Current billing state                 |
+| `selectedCycle`         | `RecurringCycle`          | Active billing cycle                  |
+| `products`              | `ConnectedProduct[]`      | Product data for price resolution     |
+| `subscriptionProductId` | `string \| null`          | Currently subscribed product          |
+| `subscriptionStatus`    | `string \| null`          | Subscription status                   |
+| `units`                 | `number`                  | Seat count                            |
+| `showSeatPicker`        | `boolean`                 | Show quantity picker                  |
+| `subscribedSeats`       | `number \| null`          | Current seat count                    |
+| `isGroupSubscribed`     | `boolean`                 | Whether group has active subscription |
+| `disableCheckout`       | `boolean`                 | Disable checkout buttons              |
+| `disableSwitch`         | `boolean`                 | Disable plan switch buttons           |
+| `disableSeats`          | `boolean`                 | Disable seat controls                 |
+| `onCycleChange`         | `(cycle) => void`         | Billing cycle change handler          |
+| `onCheckout`            | `(payload) => void`       | Checkout handler                      |
+| `onSwitchPlan`          | `(payload) => void`       | Plan switch handler                   |
+| `onUpdateSeats`         | `(payload) => void`       | Seat update handler                   |
 
 #### `<PricingCard>`
 
-A single plan card with price, description, and action button.
-Same props as `<PricingSection>` for a single plan (see source for full list).
+A single plan card with price, description, and action button. Same props as
+`<PricingSection>` for a single plan (see source for full list).
 
 #### `<BillingToggle>`
 
 Billing cycle segment control (e.g. Monthly / Yearly).
 
-| Prop | Type | Description |
-|---|---|---|
-| `cycles` | `RecurringCycle[]` | Available cycles |
-| `value` | `RecurringCycle` | Selected cycle |
-| `onValueChange` | `(cycle) => void` | Change handler |
-| `className` | `string` | CSS class |
+| Prop            | Type               | Description      |
+| --------------- | ------------------ | ---------------- |
+| `cycles`        | `RecurringCycle[]` | Available cycles |
+| `value`         | `RecurringCycle`   | Selected cycle   |
+| `onValueChange` | `(cycle) => void`  | Change handler   |
+| `className`     | `string`           | CSS class        |
 
 #### `<CheckoutButton>`
 
-Styled checkout button. Supports both `onCheckout` callback and `href` link modes.
+Styled checkout button. Supports both `onCheckout` callback and `href` link
+modes.
 
-| Prop | Type | Description |
-|---|---|---|
-| `productId` | `string` | Product ID |
-| `href` | `string` | Link mode: direct URL |
-| `disabled` | `boolean` | Disable button |
-| `className` | `string` | CSS class |
-| `onCheckout` | `(payload) => void` | Callback mode: `{ productId }` |
-| `children` | `Snippet` | Button label (default: "Checkout") |
+| Prop         | Type                | Description                        |
+| ------------ | ------------------- | ---------------------------------- |
+| `productId`  | `string`            | Product ID                         |
+| `href`       | `string`            | Link mode: direct URL              |
+| `disabled`   | `boolean`           | Disable button                     |
+| `className`  | `string`            | CSS class                          |
+| `onCheckout` | `(payload) => void` | Callback mode: `{ productId }`     |
+| `children`   | `Snippet`           | Button label (default: "Checkout") |
 
 #### `<OneTimeCheckoutButton>`
 
@@ -979,85 +1031,86 @@ Same as `<CheckoutButton>` with default label "Buy now".
 
 Styled button for opening the customer billing portal.
 
-| Prop | Type | Description |
-|---|---|---|
-| `href` | `string` | Link mode: direct URL |
-| `disabled` | `boolean` | Disable button |
-| `className` | `string` | CSS class |
-| `onOpenPortal` | `() => void` | Callback mode |
-| `children` | `Snippet` | Button label (default: "Manage billing") |
+| Prop           | Type         | Description                              |
+| -------------- | ------------ | ---------------------------------------- |
+| `href`         | `string`     | Link mode: direct URL                    |
+| `disabled`     | `boolean`    | Disable button                           |
+| `className`    | `string`     | CSS class                                |
+| `onOpenPortal` | `() => void` | Callback mode                            |
+| `children`     | `Snippet`    | Button label (default: "Manage billing") |
 
 #### `<BillingGate>`
 
 Conditionally renders children based on available billing actions.
 
-| Prop | Type | Description |
-|---|---|---|
-| `snapshot` | `BillingSnapshot \| null` | Current billing state |
-| `requiredActions` | `AvailableAction \| AvailableAction[]` | Actions that must be available |
-| `children` | `Snippet` | Rendered when all actions are available |
-| `fallback` | `Snippet` | Rendered otherwise |
+| Prop              | Type                                   | Description                             |
+| ----------------- | -------------------------------------- | --------------------------------------- |
+| `snapshot`        | `BillingSnapshot \| null`              | Current billing state                   |
+| `requiredActions` | `AvailableAction \| AvailableAction[]` | Actions that must be available          |
+| `children`        | `Snippet`                              | Rendered when all actions are available |
+| `fallback`        | `Snippet`                              | Rendered otherwise                      |
 
 #### `<CheckoutSuccessSummary>`
 
-Displays a success banner after checkout. Parses Creem query params automatically.
+Displays a success banner after checkout. Parses Creem query params
+automatically.
 
-| Prop | Type | Description |
-|---|---|---|
-| `params` | `CheckoutSuccessParams` | Manual params (overrides URL parsing) |
-| `search` | `string` | Query string to parse (defaults to `window.location.search`) |
-| `className` | `string` | CSS class |
+| Prop        | Type                    | Description                                                  |
+| ----------- | ----------------------- | ------------------------------------------------------------ |
+| `params`    | `CheckoutSuccessParams` | Manual params (overrides URL parsing)                        |
+| `search`    | `string`                | Query string to parse (defaults to `window.location.search`) |
+| `className` | `string`                | CSS class                                                    |
 
 #### `<TrialLimitBanner>`
 
 Shows a trial expiration notice.
 
-| Prop | Type | Description |
-|---|---|---|
-| `snapshot` | `BillingSnapshot \| null` | Current billing state |
-| `trialEndsAt` | `string \| null` | Override trial end date |
-| `className` | `string` | CSS class |
+| Prop          | Type                      | Description             |
+| ------------- | ------------------------- | ----------------------- |
+| `snapshot`    | `BillingSnapshot \| null` | Current billing state   |
+| `trialEndsAt` | `string \| null`          | Override trial end date |
+| `className`   | `string`                  | CSS class               |
 
 #### `<ScheduledChangeBanner>`
 
 Shows a cancellation-scheduled notice with optional "Undo" button.
 
-| Prop | Type | Description |
-|---|---|---|
-| `snapshot` | `BillingSnapshot \| null` | Current billing state |
-| `isLoading` | `boolean` | Loading state for resume button |
-| `onResume` | `() => void` | Resume handler (shows "Undo cancellation" button) |
-| `className` | `string` | CSS class |
+| Prop        | Type                      | Description                                       |
+| ----------- | ------------------------- | ------------------------------------------------- |
+| `snapshot`  | `BillingSnapshot \| null` | Current billing state                             |
+| `isLoading` | `boolean`                 | Loading state for resume button                   |
+| `onResume`  | `() => void`              | Resume handler (shows "Undo cancellation" button) |
+| `className` | `string`                  | CSS class                                         |
 
 #### `<PaymentWarningBanner>`
 
 Shows a warning for pending, refunded, or partially refunded payments.
 
-| Prop | Type | Description |
-|---|---|---|
-| `snapshot` | `BillingSnapshot \| null` | Current billing state |
-| `payment` | `PaymentSnapshot \| null` | Override payment data |
-| `className` | `string` | CSS class |
+| Prop        | Type                      | Description           |
+| ----------- | ------------------------- | --------------------- |
+| `snapshot`  | `BillingSnapshot \| null` | Current billing state |
+| `payment`   | `PaymentSnapshot \| null` | Override payment data |
+| `className` | `string`                  | CSS class             |
 
 #### `<OneTimePaymentStatusBadge>`
 
 Inline status badge for one-time payments.
 
-| Prop | Type | Description |
-|---|---|---|
-| `status` | `"pending" \| "paid" \| "refunded" \| "partially_refunded"` | Payment status |
-| `className` | `string` | CSS class |
+| Prop        | Type                                                        | Description    |
+| ----------- | ----------------------------------------------------------- | -------------- |
+| `status`    | `"pending" \| "paid" \| "refunded" \| "partially_refunded"` | Payment status |
+| `className` | `string`                                                    | CSS class      |
 
 #### `<CancelConfirmDialog>`
 
 Modal confirmation dialog for subscription cancellation. Uses Ark UI Dialog.
 
-| Prop | Type | Description |
-|---|---|---|
-| `open` | `boolean` | Dialog open state |
-| `isLoading` | `boolean` | Loading state |
-| `onOpenChange` | `(open) => void` | Open state change handler |
-| `onConfirm` | `() => void` | Confirm cancellation handler |
+| Prop           | Type             | Description                  |
+| -------------- | ---------------- | ---------------------------- |
+| `open`         | `boolean`        | Dialog open state            |
+| `isLoading`    | `boolean`        | Loading state                |
+| `onOpenChange` | `(open) => void` | Open state change handler    |
+| `onConfirm`    | `() => void`     | Confirm cancellation handler |
 
 ---
 
@@ -1066,24 +1119,24 @@ Modal confirmation dialog for subscription cancellation. Uses Ark UI Dialog.
 React components are presentational building blocks. Import from
 `@mmailaender/convex-creem/react`.
 
-| Component | Description |
-|---|---|
-| `CheckoutLink` | Anchor-based checkout link |
-| `CheckoutButton` | Button-based checkout with loading state |
-| `OneTimeCheckoutLink` | One-time purchase link |
-| `OneTimeCheckoutButton` | One-time purchase button |
-| `CustomerPortalLink` | Anchor-based portal link |
-| `CustomerPortalButton` | Button-based portal link with loading state |
-| `BillingToggle` | Billing cycle segment control |
-| `PricingCard` | Single plan pricing card |
-| `PricingSection` | Grid of pricing cards with toggle |
-| `BillingGate` | Conditional render based on billing actions |
-| `TrialLimitBanner` | Trial expiration notice |
-| `ScheduledChangeBanner` | Cancellation-scheduled notice |
-| `PaymentWarningBanner` | Payment warning banner |
-| `CheckoutSuccessSummary` | Post-checkout success banner |
-| `OneTimePaymentStatusBadge` | Payment status badge |
-| `useCheckoutSuccessParams` | Hook: parse checkout success query params |
+| Component                   | Description                                 |
+| --------------------------- | ------------------------------------------- |
+| `CheckoutLink`              | Anchor-based checkout link                  |
+| `CheckoutButton`            | Button-based checkout with loading state    |
+| `OneTimeCheckoutLink`       | One-time purchase link                      |
+| `OneTimeCheckoutButton`     | One-time purchase button                    |
+| `CustomerPortalLink`        | Anchor-based portal link                    |
+| `CustomerPortalButton`      | Button-based portal link with loading state |
+| `BillingToggle`             | Billing cycle segment control               |
+| `PricingCard`               | Single plan pricing card                    |
+| `PricingSection`            | Grid of pricing cards with toggle           |
+| `BillingGate`               | Conditional render based on billing actions |
+| `TrialLimitBanner`          | Trial expiration notice                     |
+| `ScheduledChangeBanner`     | Cancellation-scheduled notice               |
+| `PaymentWarningBanner`      | Payment warning banner                      |
+| `CheckoutSuccessSummary`    | Post-checkout success banner                |
+| `OneTimePaymentStatusBadge` | Payment status badge                        |
+| `useCheckoutSuccessParams`  | Hook: parse checkout success query params   |
 
 See the [React example](example-react) for usage with `convex/react` hooks.
 
@@ -1091,29 +1144,28 @@ See the [React example](example-react) for usage with `convex/react` hooks.
 
 ## Troubleshooting
 
-**Webhooks not receiving events**
-Verify your Creem dashboard webhook URL matches `<CONVEX_SITE_URL>/creem/events`.
-Check that `CREEM_WEBHOOK_SECRET` matches the signing secret in Creem. Check the
-Convex dashboard logs for verification errors.
+**Webhooks not receiving events** Verify your Creem dashboard webhook URL
+matches `<CONVEX_SITE_URL>/creem/events`. Check that `CREEM_WEBHOOK_SECRET`
+matches the signing secret in Creem. Check the Convex dashboard logs for
+verification errors.
 
-**Products not syncing**
-Run `npx convex run billing:syncBillingProducts` after setting up webhooks.
-Ensure `CREEM_API_KEY` is set and the key has read access to products.
+**Products not syncing** Run `npx convex run billing:syncBillingProducts` after
+setting up webhooks. Ensure `CREEM_API_KEY` is set and the key has read access
+to products.
 
-**Widgets rendering unstyled**
-Ensure both Tailwind CSS v4 and `@import "@mmailaender/convex-creem/styles"` are
-in your CSS entry point. The styles import must come after the Tailwind import.
+**Widgets rendering unstyled** Ensure both Tailwind CSS v4 and
+`@import "@mmailaender/convex-creem/styles"` are in your CSS entry point. The
+styles import must come after the Tailwind import.
 
-**Checkout URL missing from response**
-The Creem API returned no checkout URL. Verify the product ID exists and is
-active in your Creem dashboard. Check the Convex dashboard logs for the full
-error.
+**Checkout URL missing from response** The Creem API returned no checkout URL.
+Verify the product ID exists and is active in your Creem dashboard. Check the
+Convex dashboard logs for the full error.
 
-**Entity/org billing not scoping correctly**
-Ensure `billingEntityId` is returned from `getUserInfo`. If omitted, `userId` is
-used as the billing entity. Verify that checkout metadata includes
-`convexBillingEntityId` by checking webhook logs.
+**Entity/org billing not scoping correctly** Ensure `billingEntityId` is
+returned from `getUserInfo`. If omitted, `userId` is used as the billing entity.
+Verify that checkout metadata includes `convexBillingEntityId` by checking
+webhook logs.
 
-**"Customer not found" when opening billing portal**
-The customer record is created on first checkout. If the user hasn't completed
-a checkout yet, there's no customer to link to the portal.
+**"Customer not found" when opening billing portal** The customer record is
+created on first checkout. If the user hasn't completed a checkout yet, there's
+no customer to link to the portal.

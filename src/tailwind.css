@@ -3,4 +3,4 @@
    can discover @utility classes from the design-system when editing
    files inside src/svelte/.  */
 @import "tailwindcss";
-@import './library.css';
+@import "./library.css";

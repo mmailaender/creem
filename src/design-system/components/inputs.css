@@ -15,39 +15,39 @@
 	background-color: transparent;
 	outline: none;
 
-	&::placeholder {
-		color: var(--et-color-foreground-placeholder);
-	}
+  &::placeholder {
+    color: var(--et-color-foreground-placeholder);
+  }
 
-	&:focus-visible {
-		outline: none;
-		box-shadow: 0 0 0 2px var(--et-color-border-default);
-	}
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px var(--et-color-border-default);
+  }
 
-	&:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 
-	@variant dark {
-		color: var(--et-color-foreground-default-dark);
+  @variant dark {
+    color: var(--et-color-foreground-default-dark);
 
-		&::placeholder {
-			color: var(--et-color-foreground-placeholder-dark);
-		}
+    &::placeholder {
+      color: var(--et-color-foreground-placeholder-dark);
+    }
 
-		&:focus-visible {
-			box-shadow: 0 0 0 2px var(--et-color-border-default-dark);
-		}
-	}
+    &:focus-visible {
+      box-shadow: 0 0 0 2px var(--et-color-border-default-dark);
+    }
+  }
 }
 
 @utility input-variant-default {
 	border: 1px solid var(--et-color-border-default);
 
-	@variant dark {
-		border-color: var(--et-color-border-default-dark);
-	}
+  @variant dark {
+    border-color: var(--et-color-border-default-dark);
+  }
 }
 
 @utility input-variant-ghost {
@@ -64,31 +64,31 @@
 }
 
 @utility number-input {
-	display: inline-flex;
-	align-items: center;
-	gap: 0.25rem;
-	padding-inline: 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding-inline: 0.25rem;
 }
 
 @utility number-input-value {
-	inline-size: 11.0625rem;
-	text-align: center;
+  inline-size: 11.0625rem;
+  text-align: center;
 }
 
 @utility number-input-value-compact {
-	inline-size: auto;
-	min-inline-size: 1ch;
-	padding-inline: 0;
-	text-align: center;
+  inline-size: auto;
+  min-inline-size: 1ch;
+  padding-inline: 0;
+  text-align: center;
 }
 
 @utility input-no-spinner {
-	-moz-appearance: textfield;
-	appearance: textfield;
+  -moz-appearance: textfield;
+  appearance: textfield;
 
-	&::-webkit-outer-spin-button,
-	&::-webkit-inner-spin-button {
-		-webkit-appearance: none;
-		margin: 0;
-	}
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
 }
