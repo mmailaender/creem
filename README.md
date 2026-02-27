@@ -12,8 +12,8 @@ Add subscriptions, one-time purchases, and billing to your Convex app with
   - [1. Install](#1-install)
   - [2. Register component](#2-register-component)
   - [3. Set environment variables](#3-set-environment-variables)
-  - [4. Register webhooks](#4-register-webhooks)
-  - [5. Configure billing](#5-configure-billing)
+  - [5. Configure billing](#4-configure-billing)
+  - [4. Register webhooks](#5-register-webhooks)
   - [6. Sync products](#6-sync-products)
 - [Quick Start — Frontend (UI Widgets)](#quick-start--frontend-ui-widgets)
   - [7. Install Tailwind CSS](#7-install-tailwind-css)
@@ -542,13 +542,30 @@ args; there is no hidden auth layer.
   [resource namespaces](#resource-namespaces--creemnamespace)
   (`creem.subscriptions.*`, `creem.checkouts.*`, etc.) directly in your own
   Convex functions. You handle auth, entity resolution, and permission checks
-  yourself. Example:
+  yourself.
+
+  The library exports **shared arg validators** that match exactly what the
+  connected widgets send. Use them to keep your custom functions in sync:
+
+  | Export                     | Used by                      |
+  | -------------------------- | ---------------------------- |
+  | `checkoutCreateArgs`       | `<Subscription.Root>`, `<Product.Root>` |
+  | `subscriptionUpdateArgs`   | `<Subscription.Root>` (plan switch, seat update) |
+  | `subscriptionCancelArgs`   | `<Subscription.Root>` (cancel button) |
+  | `subscriptionResumeArgs`   | `<Subscription.Root>` (resume button) |
+  | `subscriptionPauseArgs`    | `<Subscription.Root>` (pause button) |
+
+  Example:
 
 ```ts
 // convex/billing.ts
-import { Creem } from "@mmailaender/convex-creem";
-import { ConvexError, v } from "convex/values";
-import { action } from "./_generated/server";
+import {
+  Creem,
+  checkoutCreateArgs,
+  subscriptionCancelArgs,
+} from "@mmailaender/convex-creem";
+import { ConvexError } from "convex/values";
+import { action, mutation } from "./_generated/server";
 import { api, components } from "./_generated/api";
 
 const creem = new Creem(components.creem);
@@ -565,9 +582,24 @@ async function resolveAuth(ctx) {
   };
 }
 
+// Admin-only: create checkout
+export const checkoutsCreate = action({
+  args: checkoutCreateArgs,
+  handler: async (ctx, args) => {
+    const auth = await resolveAuth(ctx);
+    if (auth.role !== "admin") throw new ConvexError("Forbidden");
+    return await creem.checkouts.create(ctx, {
+      entityId: auth.entityId,
+      userId: auth.userId,
+      email: auth.email,
+      ...args,
+    });
+  },
+});
+
 // Admin-only: cancel subscription
-export const subscriptionsCancel = action({
-  args: { revokeImmediately: v.optional(v.boolean()) },
+export const subscriptionsCancel = mutation({
+  args: subscriptionCancelArgs,
   handler: async (ctx, args) => {
     const auth = await resolveAuth(ctx);
     if (auth.role !== "admin") throw new ConvexError("Forbidden");
@@ -658,6 +690,10 @@ authenticated. The full flow:
 
 This works for both **modal auth** (Clerk, Auth0 popup) and **redirect auth**
 (OAuth) — no manual resume code needed.
+
+**Safety:** The widget skips auto-resume if the user already has an active
+subscription (`<Subscription.Root>`) or already owns the product
+(`<Product.Root>`), preventing duplicate purchases after sign-in.
 
 `pendingCheckout` is a tiny sessionStorage-based helper exported from the
 library:
