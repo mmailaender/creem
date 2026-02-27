@@ -182,17 +182,17 @@
     <h3 class="title-m text-foreground-default">
       {plan.title ?? plan.planId}
     </h3>
-    {#if plan.recommended}
-      <Badge color="primary" variant="filled">
-        Recommended
-      </Badge>
-    {:else if isActiveProduct || isActiveFreePlan}
+    {#if isActiveProduct || isActiveFreePlan}
       <Badge color="neutral" variant="faded">
         {#if isTrialing}
           Free trial{#if trialDaysLeft != null}&ensp;·&ensp;{trialDaysLeft} day{trialDaysLeft === 1 ? '' : 's'} left{/if}
         {:else}
           Current plan
         {/if}
+      </Badge>
+    {:else if plan.recommended}
+      <Badge color="primary" variant="filled">
+        Recommended
       </Badge>
     {/if}
   </div>

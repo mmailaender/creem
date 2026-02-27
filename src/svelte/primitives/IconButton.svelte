@@ -25,7 +25,7 @@
   {disabled}
   aria-label={ariaLabel}
   class={`icon-button icon-button-sm ${className}`}
-  on:click={onClick}
+  onclick={onClick}
 >
   {#if children}
     {@render children()}

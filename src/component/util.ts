@@ -8,7 +8,7 @@ import type {
   ProductEntity as CreemProduct,
   SubscriptionEntity as CreemSubscription,
 } from "creem/models/components";
-import type { Infer } from "convex/values";
+import { ConvexError, type Infer } from "convex/values";
 import type schema from "./schema.js";
 
 export type RunQueryCtx = {
@@ -60,14 +60,14 @@ export const convertToDatabaseSubscription = (
 ): Infer<typeof schema.tables.subscriptions.validator> => {
   const customerId = entityId(subscription.customer);
   if (!customerId) {
-    throw new Error("Creem subscription is missing customer id");
+    throw new ConvexError("Creem subscription is missing customer id");
   }
   const productId =
     entityId(subscription.product) ??
     subscription.items?.[0]?.productId ??
     null;
   if (!productId) {
-    throw new Error("Creem subscription is missing product id");
+    throw new ConvexError("Creem subscription is missing product id");
   }
   const product =
     typeof subscription.product === "object" && subscription.product

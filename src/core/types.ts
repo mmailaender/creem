@@ -93,6 +93,11 @@ export type BillingSnapshot = {
   metadata?: Record<string, unknown>;
 };
 
+export type CheckoutIntent = {
+  productId: string;
+  units?: number;
+};
+
 export type BillingUserContext = Record<string, unknown>;
 
 export type BillingResolverInput = {

@@ -1,6 +1,8 @@
 import type { FunctionReference } from "convex/server";
 import type { BillingSnapshot, RecurringCycle } from "../../core/types.js";
 
+export type { CheckoutIntent } from "../../core/types.js";
+
 export type BillingPermissions = {
   canCheckout?: boolean;
   canChangeSubscription?: boolean;
@@ -16,7 +18,7 @@ export type ConnectedBillingApi = {
     create: FunctionReference<"action">;
   };
   subscriptions?: {
-    update?: FunctionReference<"action">;
+    update?: FunctionReference<"mutation">;
     cancel?: FunctionReference<"action">;
     resume?: FunctionReference<"action">;
   };
@@ -100,3 +102,4 @@ export type ProductItemRegistration = {
   title?: string;
   description?: string;
 };
+
