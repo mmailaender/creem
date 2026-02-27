@@ -41,15 +41,15 @@
     {disabled}
     onClick={decrement}
   >
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M3 8H13" stroke="currentColor" stroke-width="1.58" stroke-linecap="round" />
+    <svg aria-hidden="true" viewBox="0 0 256 256" fill="currentColor" class="h-4 w-4 text-foreground-on-tonal">
+      <path d="M216,128a12,12,0,0,1-12,12H52a12,12,0,0,1,0-24H204A12,12,0,0,1,216,128Z" />
     </svg>
   </IconButton>
 
   <Input
     type="number"
     variant="ghost"
-    className={`${compact ? "number-input-value-compact" : "number-input-value"} input-no-spinner`}
+    className={`${compact ? "number-input-value-compact" : "number-input-value"} max-w-12 input-no-spinner`}
     value={value}
     {disabled}
     onValueChange={(raw) => {
@@ -64,9 +64,8 @@
     {disabled}
     onClick={increment}
   >
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-      <path d="M8 3V13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
-      <path d="M3 8H13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+    <svg aria-hidden="true" viewBox="0 0 256 256" fill="currentColor" class="h-4 w-4 text-foreground-on-tonal">
+      <path d="M216,128a12,12,0,0,1-12,12H140v64a12,12,0,0,1-24,0V140H52a12,12,0,0,1,0-24h64V52a12,12,0,0,1,24,0v64h64A12,12,0,0,1,216,128Z" />
     </svg>
   </IconButton>
 </div>

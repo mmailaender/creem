@@ -74,6 +74,7 @@
   };
 
   const availableCycles = $derived(toUniqueCycles(plans));
+  const hasEnterprisePlan = $derived(plans.some((plan) => plan.category === "enterprise"));
   const effectiveCycle = $derived(
     selectedCycle ?? snapshot?.recurringCycle ?? availableCycles[0],
   );
@@ -91,7 +92,7 @@
     </div>
   {/if}
 
-  <div class={`grid grid-cols-1 gap-1 md:grid-cols-2 ${showSeatPicker || twoColumnLayout ? "xl:grid-cols-2" : "xl:grid-cols-3"}`}>
+  <div class={`grid grid-cols-1 gap-1 ${showSeatPicker || twoColumnLayout ? "md:grid-cols-2" : hasEnterprisePlan ? "sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4" : "sm:grid-cols-2 md:grid-cols-3"}`}>
     {#each plans as plan (plan.planId)}
       <PricingCard
         {plan}
@@ -113,7 +114,7 @@
         {onUpdateSeats}
         {onContactSales}
         {onCancelSubscription}
-        className={plan.category === "enterprise" && !showSeatPicker ? "md:col-span-2 xl:col-span-3" : ""}
+        className=""
       />
     {/each}
   </div>

@@ -4,6 +4,7 @@
   import CheckoutButton from "../primitives/CheckoutButton.svelte";
   import Badge from "../primitives/Badge.svelte";
   import { formatPriceWithInterval } from "../primitives/shared.js";
+  import { CARD_BADGE_SIZE, CARD_TYPOGRAPHY } from "../primitives/cardTokens.js";
   import {
     PRODUCT_GROUP_CONTEXT_KEY,
     type ProductGroupContextValue,
@@ -193,7 +194,6 @@
     };
   };
 
-  const CHECK_ICON_URL = "https://files.svgcdn.io/ph/check-bold.svg";
 </script>
 
 <div class="hidden" aria-hidden="true">
@@ -241,22 +241,22 @@
 
           <div class="px-6 pb-6 pt-6">
           <div class="mb-3 flex min-h-6 items-center justify-between gap-2">
-            <h3 class="title-m text-foreground-default">{resolvedTitle}</h3>
+            <h3 class={CARD_TYPOGRAPHY.title}>{resolvedTitle}</h3>
             {#if isOwned}
-              <Badge color="neutral" variant="faded">Owned</Badge>
+              <Badge color="neutral" variant="faded" size={CARD_BADGE_SIZE}>Owned</Badge>
             {:else if isIncluded}
-              <Badge color="neutral" variant="faded">Included</Badge>
+              <Badge color="neutral" variant="faded" size={CARD_BADGE_SIZE}>Included</Badge>
             {/if}
           </div>
 
           {#if splitPrice}
             <div class="flex items-baseline gap-1">
-              <span class="heading-m text-foreground-default">{splitPrice.main}</span>
+              <span class={CARD_TYPOGRAPHY.price}>{splitPrice.main}</span>
               {#if splitPrice.suffix}
-                <span class="title-s text-foreground-placeholder">{splitPrice.suffix}</span>
+                <span class={CARD_TYPOGRAPHY.priceSuffix}>{splitPrice.suffix}</span>
               {/if}
               {#if splitPrice.tail}
-                <span class="body-m text-foreground-muted">{splitPrice.tail}</span>
+                <span class={CARD_TYPOGRAPHY.priceSuffix}>{splitPrice.tail}</span>
               {/if}
             </div>
           {/if}
@@ -289,8 +289,21 @@
               <ul class="space-y-2">
                 {#each descriptionLines as feature (feature)}
                   <li class="flex items-center gap-2">
-                    <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center">
-                      <img alt="" aria-hidden="true" class="h-4 w-4" src={CHECK_ICON_URL} />
+                    <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center text-foreground-muted">
+                      <svg
+                        aria-hidden="true"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        class="h-4 w-4"
+                      >
+                        <path
+                          d="M20 6L9 17L4 12"
+                          stroke="currentColor"
+                          stroke-width="2.5"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                        />
+                      </svg>
                     </span>
                     <span class="body-m text-foreground-default">{feature}</span>
                   </li>

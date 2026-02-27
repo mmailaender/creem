@@ -5,6 +5,7 @@
   import type { UIPlanEntry, RecurringCycle } from "../../core/types.js";
   import type { ConnectedProduct } from "../widgets/types.js";
   import { resolveProductIdForPlan, formatPriceWithInterval, formatSeatPrice } from "./shared.js";
+  import { CARD_BADGE_SIZE, CARD_TYPOGRAPHY } from "./cardTokens.js";
 
   interface Props {
     plan: UIPlanEntry;
@@ -61,7 +62,6 @@
   }: Props = $props();
 
   const isSeatPlan = $derived(plan.pricingModel === "seat");
-  const isEnterprise = $derived(plan.category === "enterprise");
   let seatCount = $derived(1);
   let seatAdjustCount = $state(1);
   let editingSeats = $state(false);
@@ -133,8 +133,6 @@
     }
   };
 
-  const CHECK_ICON_URL = "https://files.svgcdn.io/ph/check-bold.svg";
-
   const splitPriceLabel = (value: string | null): { main: string; suffix: string | null; tail: string } | null => {
     if (!value) return null;
     const match = value.match(/^(.*?)(\/[a-z0-9]+)(.*)$/i);
@@ -171,19 +169,15 @@
 
 <section
   class={`relative flex flex-col rounded-2xl bg-surface-base p-6 ${
-    isEnterprise
-      ? " md:grid md:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] md:gap-x-8 md:gap-y-3"
-      : ""
-  } ${
-    plan.recommended ? "border border-brand-default" : ""
+    plan.recommended ? "border-2 border-primary-border-default" : ""
   } ${className}`}
 >
   <div class="mb-3 flex h-5 items-center justify-between gap-2">
-    <h3 class="title-m text-foreground-default">
+    <h3 class={CARD_TYPOGRAPHY.title}>
       {plan.title ?? plan.planId}
     </h3>
     {#if isActiveProduct || isActiveFreePlan}
-      <Badge color="neutral" variant="faded">
+      <Badge color="neutral" variant="faded" size={CARD_BADGE_SIZE}>
         {#if isTrialing}
           Free trial{#if trialDaysLeft != null}&ensp;·&ensp;{trialDaysLeft} day{trialDaysLeft === 1 ? '' : 's'} left{/if}
         {:else}
@@ -191,7 +185,7 @@
         {/if}
       </Badge>
     {:else if plan.recommended}
-      <Badge color="primary" variant="filled">
+      <Badge color="primary" variant="filled" size={CARD_BADGE_SIZE}>
         Recommended
       </Badge>
     {/if}
@@ -199,16 +193,16 @@
 
   <div class="flex items-baseline gap-1">
     {#if plan.category === "free"}
-      <span class="heading-m text-foreground-default">Free</span>
+      <span class={CARD_TYPOGRAPHY.price}>Free</span>
     {:else if plan.category === "enterprise"}
-      <span class="heading-m text-foreground-default">Custom</span>
+      <span class={CARD_TYPOGRAPHY.price}>Custom</span>
     {:else if splitPrice}
-      <span class="heading-m text-foreground-default">{splitPrice.main}</span>
+      <span class={CARD_TYPOGRAPHY.price}>{splitPrice.main}</span>
       {#if splitPrice.suffix}
-        <span class="title-s text-foreground-placeholder">{splitPrice.suffix}</span>
+        <span class={CARD_TYPOGRAPHY.priceSuffix}>{splitPrice.suffix}</span>
       {/if}
       {#if splitPrice.tail}
-        <span class="body-m text-foreground-muted">{splitPrice.tail}</span>
+        <span class={CARD_TYPOGRAPHY.priceSuffix}>{splitPrice.tail}</span>
       {/if}
     {/if}
   </div>
@@ -251,18 +245,11 @@
         </button>
       </div>
     {:else}
-      <button
-        type="button"
-        disabled={disableSeats}
-        class="mb-4 label-m text-brand-default transition hover:text-brand-default disabled:cursor-not-allowed disabled:opacity-50"
-        onclick={() => { editingSeats = true; }}
-      >
-        Change seats
-      </button>
+      <!-- Render "Change seats" in the main CTA row for alignment with other card actions. -->
     {/if}
   {/if}
 
-  <div class={`mb-4 ${isEnterprise ? "mt-2" : "mt-6"} ${showSeatCheckoutControls ? "flex flex-col gap-2" : "flex min-h-8 items-start"}`}>
+  <div class={`mb-4 mt-6 ${showSeatCheckoutControls ? "flex flex-col gap-2" : "flex min-h-8 items-start"}`}>
     {#if showSeatCheckoutControls}
       <div class="flex w-full items-center justify-between rounded-xl bg-surface-subtle py-2 pl-4 pr-2">
         <span class="label-m text-foreground-default">Seats:</span>
@@ -305,37 +292,82 @@
       {:else if onContactSales}
         <button
           type="button"
+          disabled={disableSeats}
           class="button-outline w-full"
-          onclick={() => onContactSales?.({ plan })}
+          onclick={() => { editingSeats = true; }}
         >
-          Contact sales
+          Change seats
         </button>
+      {:else if isActiveProduct && onCancelSubscription}
+        <button type="button" class="button-outline w-full" onclick={onCancelSubscription}>
+          Cancel subscription
+        </button>
+      {:else if isActiveProduct || isActiveFreePlan}
+        <!-- Keep CTA row height but intentionally empty when current plan has no action -->
+      {:else if isSiblingPlan && productId}
+        <CheckoutButton
+          {productId}
+          disabled={disableSwitch}
+          onCheckout={handleCheckout}
+          className={`${plan.recommended ? "button-filled" : "button-faded"} w-full`}
+        >
+          {checkoutLabel}
+        </CheckoutButton>
+      {:else if plan.category === "enterprise"}
+        {#if plan.contactUrl}
+          <a
+            href={plan.contactUrl}
+            class="button-outline w-full"
+          >
+            Contact sales
+          </a>
+        {:else if onContactSales}
+          <button
+            type="button"
+            class="button-outline w-full"
+            onclick={() => onContactSales?.({ plan })}
+          >
+            Contact sales
+          </button>
+        {/if}
+      {:else if productId}
+        <CheckoutButton
+          {productId}
+          disabled={disableCheckout}
+          onCheckout={handleCheckout}
+          className={`${plan.recommended ? "button-filled" : "button-faded"} w-full`}
+        >
+          {checkoutLabel}
+        </CheckoutButton>
+      {:else if plan.category !== "free"}
+        <span class="body-m text-foreground-muted">
+          Configure a checkout handler to activate this plan.
+        </span>
       {/if}
-    {:else if productId}
-      <CheckoutButton
-        {productId}
-        disabled={disableCheckout}
-        onCheckout={handleCheckout}
-        className={`${plan.recommended ? "button-filled" : "button-faded"} w-full`}
-      >
-        {checkoutLabel}
-      </CheckoutButton>
-    {:else if plan.category !== "free"}
-      <span class="body-m text-foreground-muted">
-        Configure a checkout handler to activate this plan.
-      </span>
-    {/if}
     </div>
   </div>
 
   {#if featureLines.length > 0}
-    <div class={`w-full ${isEnterprise ? "pt-0 md:col-start-2 md:row-span-6 md:self-start" : "pt-4"}`}>
+    <div class="w-full pt-4">
       <p class="title-s mb-4 text-foreground-default">Plan includes:</p>
       <ul class="space-y-2">
         {#each featureLines as feature (feature)}
           <li class="flex items-center gap-2">
-            <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center">
-              <img alt="" aria-hidden="true" class="h-4 w-4" src={CHECK_ICON_URL} />
+            <span class="inline-flex h-5 w-5 shrink-0 items-center justify-center text-foreground-muted">
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                class="h-4 w-4"
+              >
+                <path
+                  d="M20 6L9 17L4 12"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
             </span>
             <span class="body-m text-foreground-default">{feature}</span>
           </li>

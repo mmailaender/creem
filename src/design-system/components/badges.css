@@ -16,6 +16,15 @@
 	white-space: nowrap;
 }
 
+@utility badge-s {
+	height: 1.25rem;
+	padding-inline: 8px;
+	padding-block: 0;
+	font-size: var(--et-type-label-s-size-desktop);
+	line-height: var(--et-type-label-s-line-height-desktop);
+	letter-spacing: var(--et-type-label-s-tracking-desktop);
+}
+
 @utility badge-neutral-faded {
 	background-color: var(--et-color-surface-tonal);
 	color: var(--et-color-foreground-muted);
