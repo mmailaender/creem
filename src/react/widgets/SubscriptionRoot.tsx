@@ -245,7 +245,6 @@ export const SubscriptionRoot = ({
       setIsActionLoading(true);
       setActionError(null);
       try {
-        console.log("[creem] startCheckout: calling action", { productId, checkoutUnits });
         const { url } = await client.action(checkoutLinkRef, {
           productId,
           ...(successUrl ? { successUrl } : {}),
@@ -253,7 +252,6 @@ export const SubscriptionRoot = ({
           theme: getPreferredTheme(),
           ...(checkoutUnits != null ? { units: checkoutUnits } : {}),
         });
-        console.log("[creem] startCheckout: got url", url);
         // Suppress Convex client's beforeunload dialog during checkout redirect.
         // Convex registers via addEventListener, so onbeforeunload=null has no effect.
         // A capture-phase listener fires before non-capture listeners on the same target
@@ -268,7 +266,6 @@ export const SubscriptionRoot = ({
         window.location.href = url;
         window.location.href = url;
       } catch (error) {
-        console.error("[creem] startCheckout: error", error);
         setActionError(
           error instanceof Error ? error.message : "Checkout failed",
         );
