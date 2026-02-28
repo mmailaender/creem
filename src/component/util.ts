@@ -11,16 +11,20 @@ import type {
 import { ConvexError, type Infer } from "convex/values";
 import type schema from "./schema.js";
 
+/** Minimal context type for Convex functions that only need `runQuery`. */
 export type RunQueryCtx = {
   runQuery: GenericQueryCtx<GenericDataModel>["runQuery"];
 };
+/** Minimal context type for Convex functions that need `runQuery` + `runMutation`. */
 export type RunMutationCtx = {
   runQuery: GenericQueryCtx<GenericDataModel>["runQuery"];
   runMutation: GenericMutationCtx<GenericDataModel>["runMutation"];
 };
+/** Mutation context that also includes `scheduler` for scheduling async follow-up actions. */
 export type RunSchedulerMutationCtx = RunMutationCtx & {
   scheduler: GenericMutationCtx<GenericDataModel>["scheduler"];
 };
+/** Minimal context type for Convex actions that need `runQuery` + `runMutation` + `runAction`. */
 export type RunActionCtx = {
   runQuery: GenericQueryCtx<GenericDataModel>["runQuery"];
   runMutation: GenericMutationCtx<GenericDataModel>["runMutation"];
@@ -57,6 +61,7 @@ const entityId = (value: unknown): string | null => {
   return null;
 };
 
+/** Convert a Creem SDK `SubscriptionEntity` to the Convex DB subscription schema shape. Handles snake_case/camelCase, metadata recovery, and trial/cancel state. */
 export const convertToDatabaseSubscription = (
   subscription: CreemSubscription,
   options?: { rawMetadata?: Record<string, unknown> },
@@ -132,6 +137,7 @@ export const convertToDatabaseSubscription = (
   };
 };
 
+/** Convert a raw order object (from checkout webhook) to the Convex DB order schema shape. Handles both snake_case and camelCase field names. */
 export const convertToOrder = (
   order: {
     id: string;
@@ -192,6 +198,7 @@ export const convertToOrder = (
   };
 };
 
+/** Convert a Creem SDK `ProductEntity` to the Convex DB product schema shape. */
 export const convertToDatabaseProduct = (
   product: CreemProduct,
 ): Infer<typeof schema.tables.products.validator> => {

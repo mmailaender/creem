@@ -102,6 +102,14 @@ const buildActions = (
   return Array.from(actions);
 };
 
+/**
+ * Resolve a `BillingSnapshot` from subscription, catalog, and payment data.
+ * This is the core billing state resolver — determines the active plan, category,
+ * available actions, and metadata based on the current subscription state.
+ *
+ * Used internally by `creem.getBillingSnapshot()`. Can also be called directly
+ * for custom billing UIs that don't use the Creem class.
+ */
 export const resolveBillingSnapshot = (
   input: BillingResolverInput,
 ): BillingSnapshot => {

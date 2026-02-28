@@ -71,13 +71,20 @@ export {
   manualParseSubscription,
 } from "./parsers.js";
 
+/** Convex validator for the `subscriptions` table. Use with `v.object(subscriptionValidator.fields)` in custom functions. */
 export const subscriptionValidator = schema.tables.subscriptions.validator;
+/** TypeScript type for a subscription document (inferred from the Convex schema). */
 export type Subscription = Infer<typeof subscriptionValidator>;
 
 // ── Shared arg validators for custom actions / mutations ──────────────
 // Use these when writing your own Convex functions that wrap creem methods
 // (e.g. for RBAC). They match exactly what the connected widgets send.
 
+/**
+ * Convex arg validator for checkout creation.
+ * Matches the args sent by `<Subscription.Root>` and `<Product.Root>` widgets.
+ * Use in your own `action()` definitions for custom RBAC wrappers.
+ */
 export const checkoutCreateArgs = {
   productId: v.string(),
   successUrl: v.optional(v.string()),
@@ -88,6 +95,10 @@ export const checkoutCreateArgs = {
   theme: v.optional(v.union(v.literal("light"), v.literal("dark"))),
 };
 
+/**
+ * Convex arg validator for subscription updates (plan switch or seat change).
+ * Matches the args sent by `<Subscription.Root>` widgets.
+ */
 export const subscriptionUpdateArgs = {
   subscriptionId: v.optional(v.string()),
   productId: v.optional(v.string()),
@@ -101,46 +112,125 @@ export const subscriptionUpdateArgs = {
   ),
 };
 
+/**
+ * Convex arg validator for subscription cancellation.
+ * Matches the args sent by `<Subscription.Root>` cancel button.
+ */
 export const subscriptionCancelArgs = {
   subscriptionId: v.optional(v.string()),
   revokeImmediately: v.optional(v.boolean()),
 };
 
+/**
+ * Convex arg validator for subscription resume.
+ * Matches the args sent by `<Subscription.Root>` resume button.
+ */
 export const subscriptionResumeArgs = {
   subscriptionId: v.optional(v.string()),
 };
 
+/**
+ * Convex arg validator for subscription pause.
+ * Matches the args sent by `<Subscription.Root>` pause button.
+ */
 export const subscriptionPauseArgs = {
   subscriptionId: v.optional(v.string()),
 };
 
+/** Function reference type for internal mutations that receive a subscription document. */
 export type SubscriptionHandler = FunctionReference<
   "mutation",
   "internal",
   { subscription: Subscription }
 >;
 
+/**
+ * Map of webhook event type → handler function.
+ * Handlers run **after** the component's built-in processing (customer/subscription/order upserts).
+ * The `ctx` is a Convex mutation context — you can read/write to your own tables.
+ *
+ * @example
+ * ```ts
+ * creem.registerRoutes(http, {
+ *   events: {
+ *     "checkout.completed": async (ctx, event) => {
+ *       // Grant entitlements, send emails, log analytics
+ *     },
+ *   },
+ * });
+ * ```
+ */
 export type WebhookEventHandlers = Record<
   string,
   (ctx: RunMutationCtx, event: CreemWebhookEvent) => Promise<void> | void
 >;
 
+/**
+ * Callback that resolves the authenticated user for `creem.api({ resolve })`.
+ * Called on every generated Convex function to determine the billing entity.
+ *
+ * - `userId` — your app's user ID (stored in checkout metadata as `convexUserId`)
+ * - `email` — user's email (passed to Creem for customer creation)
+ * - `entityId` — billing entity ID. For personal billing, same as `userId`.
+ *   For org billing, return the org ID so all billing scopes to the organization.
+ *
+ * @example
+ * ```ts
+ * const resolve: ApiResolver = async (ctx) => {
+ *   const user = await ctx.runQuery(api.users.currentUser);
+ *   return { userId: user._id, email: user.email, entityId: user._id };
+ * };
+ * ```
+ */
 export type ApiResolver = (ctx: RunQueryCtx) => Promise<{
   userId: string;
   email: string;
   entityId: string;
 }>;
 
+/**
+ * Configuration for the Creem Convex component.
+ * All fields are optional — environment variables are used as fallbacks.
+ */
 type CreemConfig = {
-  /** Default cancel mode for subscriptions. Omit to use Creem's store-level default. */
+  /**
+   * Default cancel mode for subscriptions.
+   * - `"immediate"` — cancel and revoke access now
+   * - `"scheduled"` — cancel at end of current billing period
+   * - Omit to use Creem's store-level default.
+   */
   cancelMode?: "immediate" | "scheduled";
+  /** Creem API key. Falls back to `CREEM_API_KEY` env var. */
   apiKey?: string;
+  /** Creem webhook signing secret. Falls back to `CREEM_WEBHOOK_SECRET` env var. */
   webhookSecret?: string;
+  /** Creem SDK server index (for non-default endpoints). Falls back to `CREEM_SERVER_IDX` env var. */
   serverIdx?: number;
+  /** Creem SDK server URL override (for test/staging). Falls back to `CREEM_SERVER_URL` env var. */
   serverURL?: string;
 };
 
+/**
+ * Main entry point for the Creem–Convex integration.
+ *
+ * Instantiate once in your `convex/billing.ts` and use its methods
+ * to manage subscriptions, checkouts, products, customers, and orders.
+ *
+ * **Two usage patterns:**
+ * 1. **Quick start** — call `creem.api({ resolve })` to generate ready-to-export Convex functions
+ * 2. **Full control** — use namespace getters (`creem.subscriptions.*`, `creem.checkouts.*`, etc.)
+ *    directly in your own Convex functions for custom auth/RBAC
+ *
+ * @example
+ * ```ts
+ * import { Creem } from "@mmailaender/convex-creem";
+ * import { components } from "./_generated/api";
+ *
+ * export const creem = new Creem(components.creem);
+ * ```
+ */
 export class Creem {
+  /** Direct access to the Creem SDK client, pre-configured with your API key. Use for resources without webhook sync (licenses, discounts, transactions). */
   public sdk: CreemSDK;
   private apiKey: string;
   private webhookSecret: string;
@@ -171,6 +261,7 @@ export class Creem {
     return ctx.runQuery(this.component.lib.getCustomerByEntityId, { entityId });
   }
 
+  /** Pull all products from the Creem API into the Convex database. Typically called once via `internalAction` or the CLI. */
   async syncProducts(ctx: RunActionCtx) {
     await ctx.runAction(this.component.lib.syncProducts, {
       apiKey: this.apiKey,
@@ -330,6 +421,11 @@ export class Creem {
     };
   }
 
+  /**
+   * Resolve the current billing state for a billing entity.
+   * Returns plan, status, available actions, subscription metadata, etc.
+   * Used internally by `getBillingModel` and exposed for custom billing UIs.
+   */
   async getBillingSnapshot(
     ctx: RunQueryCtx,
     {
@@ -434,6 +530,20 @@ export class Creem {
 
   // ── Namespace getters (public API) ─────────────────────────
 
+  /**
+   * Subscription management namespace.
+   *
+   * All methods take explicit `entityId` — use them directly in your own
+   * Convex functions, or let `creem.api({ resolve })` handle auth for you.
+   *
+   * - `.getCurrent()` — current active subscription with product join (Convex DB)
+   * - `.list()` — active subscriptions, excludes ended + expired trials (Convex DB)
+   * - `.listAll()` — all subscriptions including ended (Convex DB)
+   * - `.update()` — plan switch (`productId`) or seat change (`units`) (Creem API, optimistic)
+   * - `.cancel()` — cancel subscription (Creem API, optimistic)
+   * - `.pause()` — pause an active subscription (Creem API, optimistic)
+   * - `.resume()` — resume a paused or scheduled-cancel subscription (Creem API, optimistic)
+   */
   get subscriptions() {
     type UpdateBehavior =
       | "proration-charge-immediately"
@@ -641,6 +751,11 @@ export class Creem {
     };
   }
 
+  /**
+   * Checkout namespace.
+   *
+   * - `.create()` — create a checkout URL with 3-tier `successUrl` resolution and optional `theme` (Creem API)
+   */
   get checkouts() {
     return {
       create: async (
@@ -691,6 +806,12 @@ export class Creem {
     };
   }
 
+  /**
+   * Product namespace. All reads come from the local Convex DB (synced via webhooks).
+   *
+   * - `.list()` — all synced products (public, no `entityId` needed)
+   * - `.get()` — single product by Creem product ID
+   */
   get products() {
     return {
       list: (ctx: RunQueryCtx, options?: { includeArchived?: boolean }) =>
@@ -700,6 +821,12 @@ export class Creem {
     };
   }
 
+  /**
+   * Customer namespace.
+   *
+   * - `.retrieve()` — customer record by billing entity (Convex DB)
+   * - `.portalUrl()` — generate a Creem customer billing portal URL (Creem API)
+   */
   get customers() {
     return {
       retrieve: (ctx: RunQueryCtx, { entityId }: { entityId: string }) =>
@@ -709,6 +836,11 @@ export class Creem {
     };
   }
 
+  /**
+   * Order namespace.
+   *
+   * - `.list()` — paid one-time orders for a billing entity (Convex DB)
+   */
   get orders() {
     return {
       list: (ctx: RunQueryCtx, { entityId }: { entityId: string }) =>
@@ -720,8 +852,16 @@ export class Creem {
 
   /**
    * Composite billing model for connected widgets.
-   * Graceful when `entityId` is null — returns public product catalog only.
-   * Pass `user` to include user context in the response (widgets expect this).
+   *
+   * Aggregates snapshot + products + subscriptions + orders into a single
+   * object that `<Subscription.Root>` and `<Product.Root>` widgets consume.
+   *
+   * Graceful when `entityId` is `null` — returns public product catalog only
+   * (useful for unauthenticated pricing pages).
+   *
+   * @param ctx - Convex query context
+   * @param options.entityId - Billing entity ID, or `null` for public-only data
+   * @param options.user - User info for the UI (widgets display email, etc.)
    */
   async getBillingModel(
     ctx: RunQueryCtx,
@@ -794,11 +934,23 @@ export class Creem {
 
   /**
    * Generate ready-to-export Convex function definitions.
-   * Each function calls the `resolve` callback to determine the authenticated
-   * user and billing entity, then delegates to the corresponding class method.
+   *
+   * Each function calls your `resolve` callback to authenticate the user
+   * and determine the billing entity, then delegates to the corresponding
+   * namespace method. Destructure and re-export in your `convex/billing.ts`.
    *
    * For full control, use the namespace getters directly instead
    * (e.g. `creem.subscriptions.cancel(ctx, { entityId })`).
+   *
+   * @param options.resolve - Auth callback that returns `{ userId, email, entityId }`
+   * @returns Object with `uiModel`, `snapshot`, `checkouts`, `subscriptions`, `products`, `customers`, `orders`
+   *
+   * @example
+   * ```ts
+   * const { uiModel, checkouts, subscriptions } = creem.api({ resolve });
+   * export { uiModel };
+   * export const checkoutsCreate = checkouts.create;
+   * ```
    */
   api({ resolve }: { resolve: ApiResolver }) {
     return {
@@ -1111,6 +1263,26 @@ export class Creem {
     };
   }
 
+  /**
+   * Register the Creem webhook HTTP route on your Convex `httpRouter`.
+   *
+   * Automatically handles `checkout.completed`, `subscription.*`, and `product.*`
+   * events — upserts customers, subscriptions, orders, and products in the Convex DB.
+   *
+   * @param http - Your Convex HTTP router (from `httpRouter()`)
+   * @param options.path - Webhook endpoint path (default: `"/creem/events"`)
+   * @param options.events - Optional custom handlers that run **after** built-in processing
+   *
+   * @example
+   * ```ts
+   * const http = httpRouter();
+   * creem.registerRoutes(http, {
+   *   events: {
+   *     "checkout.completed": async (ctx, event) => { ... },
+   *   },
+   * });
+   * ```
+   */
   registerRoutes(
     http: HttpRouter,
     {

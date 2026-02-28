@@ -8,6 +8,12 @@ const getSearchParams = (search: string | URLSearchParams): URLSearchParams => {
   return new URLSearchParams(raw);
 };
 
+/**
+ * Parse Creem checkout success query parameters from a URL search string.
+ * Call on your success page to extract checkout/order/customer/product IDs.
+ *
+ * @param search - URL search string (e.g. `window.location.search`) or `URLSearchParams` instance
+ */
 export const parseCheckoutSuccessParams = (
   search: string | URLSearchParams,
 ): CheckoutSuccessParams => {
@@ -22,5 +28,6 @@ export const parseCheckoutSuccessParams = (
   };
 };
 
+/** Check if the parsed params contain the minimum required fields for a valid checkout success (checkoutId + orderId). */
 export const hasCheckoutSuccessParams = (params: CheckoutSuccessParams) =>
   Boolean(params.checkoutId && params.orderId);
