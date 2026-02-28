@@ -98,6 +98,29 @@ export type CheckoutIntent = {
   units?: number;
 };
 
+export type UpdateBehavior =
+  | "proration-charge-immediately"
+  | "proration-charge"
+  | "proration-none";
+
+export const getSwitchPlanDescription = (
+  updateBehavior: UpdateBehavior,
+  planTitle?: string,
+): string => {
+  const prefix = planTitle
+    ? `You are about to switch to the ${planTitle} plan.`
+    : "You are about to switch your plan.";
+
+  switch (updateBehavior) {
+    case "proration-charge-immediately":
+      return `${prefix} The price difference will be prorated and charged immediately.`;
+    case "proration-charge":
+      return `${prefix} The price difference will be prorated and applied to your next invoice.`;
+    case "proration-none":
+      return `${prefix} The new price will take effect at your next billing cycle.`;
+  }
+};
+
 export type BillingUserContext = Record<string, unknown>;
 
 export type BillingResolverInput = {
