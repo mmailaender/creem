@@ -12,6 +12,8 @@
     --et-color-surface-tonal-dark: oklch(0.3562 0 89.88);
     --et-color-surface-filled: oklch(0.2861 0.0015 17.24);
     --et-color-surface-filled-dark: oklch(0.9612 0 89.88);
+    --et-color-surface-backdrop: oklch(0.7252 0 89.88);
+    --et-color-surface-backdrop-dark: oklch(0.3562 0 89.88);
     --et-color-border-subtle: oklch(0.9067 0 89.88);
     --et-color-border-subtle-dark: oklch(0.3942 0 89.88);
     --et-color-border-default: oklch(0.8853 0 89.88);
@@ -320,6 +322,34 @@
   background-color: var(--et-color-surface-filled);
   @variant dark {
     background-color: var(--et-color-surface-filled-dark);
+  }
+}
+
+@utility bg-surface-backdrop {
+  background-color: var(--et-color-surface-backdrop);
+  @variant dark {
+    background-color: var(--et-color-surface-backdrop-dark);
+  }
+}
+
+@utility text-surface-backdrop {
+  color: var(--et-color-surface-backdrop);
+  @variant dark {
+    color: var(--et-color-surface-backdrop-dark);
+  }
+}
+
+@utility border-surface-backdrop {
+  border-color: var(--et-color-surface-backdrop);
+  @variant dark {
+    border-color: var(--et-color-surface-backdrop-dark);
+  }
+}
+
+@utility surface-backdrop {
+  background-color: var(--et-color-surface-backdrop);
+  @variant dark {
+    background-color: var(--et-color-surface-backdrop-dark);
   }
 }
 
