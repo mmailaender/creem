@@ -17,7 +17,9 @@ import { ScheduledChangeBanner } from "../primitives/ScheduledChangeBanner.js";
 import { SubscriptionContext } from "./subscriptionContext.js";
 import { pendingCheckout } from "../../core/pendingCheckout.js";
 
-import type { UIPlanEntry, RecurringCycle } from "../../core/types.js";
+import type { UIPlanEntry, RecurringCycle, UpdateBehavior } from "../../core/types.js";
+import { buildUpdateSummary } from "../../core/subscriptionUpdate.js";
+import { formatPriceWithInterval, formatSeatPrice } from "../shared.js";
 import type {
   BillingPermissions,
   CheckoutIntent,
@@ -46,10 +48,7 @@ export const SubscriptionRoot = ({
   units?: number;
   showSeatPicker?: boolean;
   twoColumnLayout?: boolean;
-  updateBehavior?:
-    | "proration-charge-immediately"
-    | "proration-charge"
-    | "proration-none";
+  updateBehavior?: UpdateBehavior;
   onBeforeCheckout?: (intent: CheckoutIntent) => Promise<boolean> | boolean;
 }>) => {
   const canChange = permissions?.canChangeSubscription !== false;
@@ -71,12 +70,12 @@ export const SubscriptionRoot = ({
     useState<RecurringCycle>("every-month");
   const [isActionLoading, setIsActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [switchPlanDialogOpen, setSwitchPlanDialogOpen] = useState(false);
-  const [pendingSwitchPlan, setPendingSwitchPlan] = useState<{
-    plan: UIPlanEntry;
-    productId: string;
-    units?: number;
-  } | null>(null);
+  const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
+  const [pendingUpdate, setPendingUpdate] = useState<
+    | { kind: "plan-switch"; plan: UIPlanEntry; productId: string; units?: number }
+    | { kind: "seat-update"; units: number }
+    | null
+  >(null);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [registeredPlans, setRegisteredPlans] = useState<
     SubscriptionPlanRegistration[]
@@ -297,68 +296,25 @@ export const SubscriptionRoot = ({
       productId: string;
       units?: number;
     }) => {
-      setPendingSwitchPlan(payload);
-      setSwitchPlanDialogOpen(true);
+      setPendingUpdate({ kind: "plan-switch", ...payload });
+      setUpdateDialogOpen(true);
     },
     [],
   );
 
-  const confirmSwitchPlan = useCallback(async () => {
-    if (!updateRef || !pendingSwitchPlan) return;
-    const payload = pendingSwitchPlan;
+  const confirmUpdate = useCallback(async () => {
+    if (!updateRef || !pendingUpdate) return;
+    const update = pendingUpdate;
     const subId = matchedSubscription?.id;
-    setSwitchPlanDialogOpen(false);
-    setPendingSwitchPlan(null);
+    setUpdateDialogOpen(false);
+    setPendingUpdate(null);
     setActionError(null);
     try {
-      await client.mutation(
-        updateRef,
-        {
-          productId: payload.productId,
-          ...(subId ? { subscriptionId: subId } : {}),
-        },
-        {
-          optimisticUpdate: (store) => {
-            const current = store.getQuery(billingUiModelRef, {});
-            if (current) {
-              const m = current as ConnectedBillingModel;
-              store.setQuery(billingUiModelRef, {}, {
-                ...m,
-                activeSubscriptions: (m.activeSubscriptions ?? []).map(
-                  (s) =>
-                    ownProductIds.has(s.productId)
-                      ? { ...s, productId: payload.productId }
-                      : s,
-                ),
-              });
-            }
-          },
-        },
-      );
-    } catch (error) {
-      setActionError(
-        error instanceof Error ? error.message : "Switch failed",
-      );
-    }
-  }, [
-    updateRef,
-    pendingSwitchPlan,
-    matchedSubscription,
-    client,
-    billingUiModelRef,
-    ownProductIds,
-  ]);
-
-  const handleUpdateSeats = useCallback(
-    async (payload: { units: number }) => {
-      if (!updateRef) return;
-      const subId = matchedSubscription?.id;
-      setActionError(null);
-      try {
+      if (update.kind === "plan-switch") {
         await client.mutation(
           updateRef,
           {
-            units: payload.units,
+            productId: update.productId,
             ...(subId ? { subscriptionId: subId } : {}),
             updateBehavior,
           },
@@ -371,21 +327,98 @@ export const SubscriptionRoot = ({
                   ...m,
                   activeSubscriptions: (m.activeSubscriptions ?? []).map(
                     (s) =>
-                      s.id === subId ? { ...s, seats: payload.units } : s,
+                      ownProductIds.has(s.productId)
+                        ? { ...s, productId: update.productId }
+                        : s,
                   ),
                 });
               }
             },
           },
         );
-      } catch (error) {
-        setActionError(
-          error instanceof Error ? error.message : "Seat update failed",
+      } else {
+        await client.mutation(
+          updateRef,
+          {
+            units: update.units,
+            ...(subId ? { subscriptionId: subId } : {}),
+            updateBehavior,
+          },
+          {
+            optimisticUpdate: (store) => {
+              const current = store.getQuery(billingUiModelRef, {});
+              if (current) {
+                const m = current as ConnectedBillingModel;
+                store.setQuery(billingUiModelRef, {}, {
+                  ...m,
+                  activeSubscriptions: (m.activeSubscriptions ?? []).map(
+                    (s) =>
+                      s.id === subId ? { ...s, seats: update.units } : s,
+                  ),
+                });
+              }
+            },
+          },
         );
       }
+    } catch (error) {
+      setActionError(
+        error instanceof Error
+          ? error.message
+          : update.kind === "plan-switch"
+            ? "Switch failed"
+            : "Seat update failed",
+      );
+    }
+  }, [updateRef, pendingUpdate, matchedSubscription, client, billingUiModelRef, ownProductIds, updateBehavior]);
+
+  const handleUpdateSeats = useCallback(
+    (payload: { units: number }) => {
+      setPendingUpdate({ kind: "seat-update", units: payload.units });
+      setUpdateDialogOpen(true);
     },
-    [updateRef, matchedSubscription, client, billingUiModelRef, updateBehavior],
+    [],
   );
+
+  const updateSummary = useMemo(() => {
+    if (!pendingUpdate) return null;
+
+    if (pendingUpdate.kind === "plan-switch") {
+      const currentPlan = plans.find((p) => {
+        const pids = p.creemProductIds ? Object.values(p.creemProductIds) : [];
+        return localSubscriptionProductId != null && pids.includes(localSubscriptionProductId);
+      });
+      const currentTitle = currentPlan?.title ?? "Current plan";
+      const currentPrice = formatPriceWithInterval(localSubscriptionProductId ?? undefined, allProducts);
+      const newPrice = formatPriceWithInterval(pendingUpdate.productId, allProducts);
+
+      return buildUpdateSummary({
+        kind: "plan-switch",
+        updateBehavior,
+        currentLabel: currentPrice ? `${currentTitle} \u00b7 ${currentPrice}` : currentTitle,
+        newLabel: newPrice
+          ? `${pendingUpdate.plan.title ?? "New plan"} \u00b7 ${newPrice}`
+          : (pendingUpdate.plan.title ?? "New plan"),
+        currentPeriodEnd: matchedSubscription?.currentPeriodEnd,
+        isTrialing: matchedSubscription?.status === "trialing",
+        trialEnd: matchedSubscription?.trialEnd,
+      });
+    }
+
+    const currentSeats = localSubscribedSeats ?? 1;
+    const currentPrice = formatSeatPrice(localSubscriptionProductId ?? undefined, allProducts, currentSeats);
+    const newPrice = formatSeatPrice(localSubscriptionProductId ?? undefined, allProducts, pendingUpdate.units);
+
+    return buildUpdateSummary({
+      kind: "seat-update",
+      updateBehavior,
+      currentLabel: currentPrice ?? `${currentSeats} seat${currentSeats !== 1 ? "s" : ""}`,
+      newLabel: newPrice ?? `${pendingUpdate.units} seat${pendingUpdate.units !== 1 ? "s" : ""}`,
+      currentPeriodEnd: matchedSubscription?.currentPeriodEnd,
+      isTrialing: matchedSubscription?.status === "trialing",
+      trialEnd: matchedSubscription?.trialEnd,
+    });
+  }, [pendingUpdate, plans, localSubscriptionProductId, allProducts, localSubscribedSeats, updateBehavior, matchedSubscription]);
 
   const confirmCancelSubscription = useCallback(async () => {
     if (!cancelRef) return;
@@ -598,12 +631,12 @@ export const SubscriptionRoot = ({
               </Portal>
             </Dialog.Root>
 
-            {/* Switch Plan Dialog */}
+            {/* Update Confirmation Dialog */}
             <Dialog.Root
-              open={switchPlanDialogOpen}
+              open={updateDialogOpen}
               onOpenChange={(details: { open: boolean }) => {
-                setSwitchPlanDialogOpen(details.open);
-                if (!details.open) setPendingSwitchPlan(null);
+                setUpdateDialogOpen(details.open);
+                if (!details.open) setPendingUpdate(null);
               }}
             >
               <Portal>
@@ -630,27 +663,36 @@ export const SubscriptionRoot = ({
                       </svg>
                     </Dialog.CloseTrigger>
                     <Dialog.Title className="dialog-title">
-                      Switch plan?
+                      {updateSummary?.title}
                     </Dialog.Title>
-                    <Dialog.Description className="dialog-description">
-                      {pendingSwitchPlan?.plan?.title ? (
-                        <>
-                          You are about to switch to the{" "}
-                          <strong>{pendingSwitchPlan.plan.title}</strong>{" "}
-                          plan. The price difference will be prorated and
-                          charged to your payment method.
-                        </>
-                      ) : (
-                        "You are about to switch your plan. The price difference will be prorated and charged to your payment method."
-                      )}
-                    </Dialog.Description>
+                    {updateSummary && (
+                      <>
+                        <div className="my-3 flex flex-col gap-1 rounded-lg bg-surface-subtle px-3 py-2.5">
+                          <span className="label-m text-foreground-muted">
+                            {updateSummary.currentLabel}
+                          </span>
+                          <span className="body-s text-foreground-placeholder">
+                            {"\u2192"}
+                          </span>
+                          <span className="label-m text-foreground-default">
+                            {updateSummary.newLabel}
+                          </span>
+                        </div>
+                        <Dialog.Description className="dialog-description">
+                          {updateSummary.description}
+                          {updateSummary.dateNote && (
+                            <> {updateSummary.dateNote}</>
+                          )}
+                        </Dialog.Description>
+                      </>
+                    )}
                     <div className="dialog-actions">
                       <button
                         type="button"
                         className="button-filled h-8 w-full"
-                        onClick={confirmSwitchPlan}
+                        onClick={confirmUpdate}
                       >
-                        Confirm switch
+                        {updateSummary?.confirmLabel ?? "Confirm"}
                       </button>
                       <Dialog.CloseTrigger className="button-faded h-8 w-full">
                         Cancel
