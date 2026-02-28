@@ -150,6 +150,7 @@ export const SEMANTIC_ROLE_ORDER = [
   "surface.elevated",
   "surface.tonal",
   "surface.filled",
+  "surface.backdrop",
   "border.subtle",
   "border.default",
   "foreground.default",
@@ -172,6 +173,7 @@ export const DEFAULT_SEMANTIC_ROLES: Record<SemanticRole, SemanticRoleModeMap> =
     "surface.elevated": role(ref("neutral", 120), ref("neutral", 20)),
     "surface.tonal": role(ref("neutral", 110), ref("neutral", 30)),
     "surface.filled": role(ref("neutral", 10), ref("neutral", 130)),
+    "surface.backdrop": role(ref("neutral", 70), ref("neutral", 30)),
 
     // Border
     "border.subtle": role(ref("neutral", 100), ref("neutral", 40)),

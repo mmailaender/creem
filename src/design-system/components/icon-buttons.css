@@ -10,8 +10,8 @@
 	user-select: none;
 	overflow: hidden;
 	text-decoration: none;
-	color: var(--et-color-foreground-on-tonal);
-	background-color: var(--et-color-surface-tonal);
+	color: inherit;
+	background-color: transparent;
 
   &::after {
     content: "";
@@ -55,9 +55,6 @@
   }
 
   @variant dark {
-    color: var(--et-color-foreground-on-tonal-dark);
-    background-color: var(--et-color-surface-tonal-dark);
-
     &::after {
       background: color-mix(
         in oklab,
@@ -89,7 +86,30 @@
 	block-size: 1.5rem;
 }
 
-/* Precomposed class for direct markup usage, e.g. <button class="icon-button-sm"> */
+@utility icon-button-variant-tonal {
+	color: var(--et-color-foreground-on-tonal);
+	background-color: var(--et-color-surface-tonal);
+
+	@variant dark {
+		color: var(--et-color-foreground-on-tonal-dark);
+		background-color: var(--et-color-surface-tonal-dark);
+	}
+}
+
+@utility icon-button-variant-ghost {
+	color: var(--et-color-foreground-muted);
+	background-color: transparent;
+
+	@variant dark {
+		color: var(--et-color-foreground-muted-dark);
+	}
+}
+
+/* Precomposed classes for direct markup usage. */
 @utility icon-button-sm {
-	@apply icon-button-base icon-button-size-sm;
+	@apply icon-button-base icon-button-size-sm icon-button-variant-tonal;
+}
+
+@utility icon-button-ghost-sm {
+	@apply icon-button-base icon-button-size-sm icon-button-variant-ghost;
 }

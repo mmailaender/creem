@@ -16,7 +16,9 @@
   } from "./subscriptionContext.js";
   import { pendingCheckout } from "../../core/pendingCheckout.js";
 
-  import type { UIPlanEntry, RecurringCycle } from "../../core/types.js";
+  import type { UIPlanEntry, RecurringCycle, UpdateBehavior } from "../../core/types.js";
+  import { buildUpdateSummary } from "../../core/subscriptionUpdate.js";
+  import { formatPriceWithInterval, formatSeatPrice } from "../primitives/shared.js";
   import type {
     BillingPermissions,
     CheckoutIntent,
@@ -33,10 +35,7 @@
     units?: number;
     showSeatPicker?: boolean;
     twoColumnLayout?: boolean;
-    updateBehavior?:
-      | "proration-charge-immediately"
-      | "proration-charge"
-      | "proration-none";
+    updateBehavior?: UpdateBehavior;
     onBeforeCheckout?: (intent: CheckoutIntent) => Promise<boolean> | boolean;
     children?: import("svelte").Snippet;
   }
@@ -57,7 +56,6 @@
   const canChange = $derived(permissions?.canChangeSubscription !== false);
   const canCancel = $derived(permissions?.canCancelSubscription !== false);
   const canResume = $derived(permissions?.canResumeSubscription !== false);
-  const canUpdateSeats = $derived(permissions?.canUpdateSeats !== false);
 
   const client = useConvexClient();
 
@@ -77,12 +75,12 @@
   let selectedCycle = $state<RecurringCycle>("every-month");
   let isActionLoading = $state(false);
   let actionError = $state<string | null>(null);
-  let switchPlanDialogOpen = $state(false);
-  let pendingSwitchPlan = $state<{
-    plan: UIPlanEntry;
-    productId: string;
-    units?: number;
-  } | null>(null);
+  let updateDialogOpen = $state(false);
+  let pendingUpdate = $state<
+    | { kind: "plan-switch"; plan: UIPlanEntry; productId: string; units?: number }
+    | { kind: "seat-update"; units: number }
+    | null
+  >(null);
   let registeredPlans = $state<SubscriptionPlanRegistration[]>([]);
   let cancelDialogOpen = $state(false);
 
@@ -111,6 +109,11 @@
     !model?.user && onBeforeCheckout != null
       ? true
       : permissions?.canCheckout !== false,
+  );
+  const canUpdateSeats = $derived(
+    !model?.user && onBeforeCheckout != null
+      ? true
+      : permissions?.canUpdateSeats !== false,
   );
   const snapshot = $derived(model?.billingSnapshot ?? null);
 
@@ -292,86 +295,128 @@
     productId: string;
     units?: number;
   }) => {
-    pendingSwitchPlan = payload;
-    switchPlanDialogOpen = true;
+    pendingUpdate = { kind: "plan-switch", ...payload };
+    updateDialogOpen = true;
   };
 
-  const confirmSwitchPlan = async () => {
-    if (!updateRef || !pendingSwitchPlan) return;
-    const payload = pendingSwitchPlan;
+  const confirmUpdate = async () => {
+    if (!updateRef || !pendingUpdate) return;
+    const update = pendingUpdate;
     const subId = matchedSubscription?.id;
-    switchPlanDialogOpen = false;
-    pendingSwitchPlan = null;
+    updateDialogOpen = false;
+    pendingUpdate = null;
     actionError = null;
     try {
-      await client.mutation(
-        updateRef,
-        {
-          productId: payload.productId,
-          ...(subId ? { subscriptionId: subId } : {}),
-        },
-        {
-          optimisticUpdate: (store) => {
-            const current = store.getQuery(billingUiModelRef, {});
-            if (current) {
-              const m = current as ConnectedBillingModel;
-              store.setQuery(
-                billingUiModelRef,
-                {},
-                {
-                  ...m,
-                  activeSubscriptions: (m.activeSubscriptions ?? []).map((s) =>
-                    ownProductIds.has(s.productId)
-                      ? { ...s, productId: payload.productId }
-                      : s,
-                  ),
-                },
-              );
-            }
+      if (update.kind === "plan-switch") {
+        await client.mutation(
+          updateRef,
+          {
+            productId: update.productId,
+            ...(subId ? { subscriptionId: subId } : {}),
+            updateBehavior,
           },
-        },
-      );
+          {
+            optimisticUpdate: (store) => {
+              const current = store.getQuery(billingUiModelRef, {});
+              if (current) {
+                const m = current as ConnectedBillingModel;
+                store.setQuery(
+                  billingUiModelRef,
+                  {},
+                  {
+                    ...m,
+                    activeSubscriptions: (m.activeSubscriptions ?? []).map((s) =>
+                      ownProductIds.has(s.productId)
+                        ? { ...s, productId: update.productId }
+                        : s,
+                    ),
+                  },
+                );
+              }
+            },
+          },
+        );
+      } else {
+        await client.mutation(
+          updateRef,
+          {
+            units: update.units,
+            ...(subId ? { subscriptionId: subId } : {}),
+            updateBehavior,
+          },
+          {
+            optimisticUpdate: (store) => {
+              const current = store.getQuery(billingUiModelRef, {});
+              if (current) {
+                const m = current as ConnectedBillingModel;
+                store.setQuery(
+                  billingUiModelRef,
+                  {},
+                  {
+                    ...m,
+                    activeSubscriptions: (m.activeSubscriptions ?? []).map((s) =>
+                      s.id === subId ? { ...s, seats: update.units } : s,
+                    ),
+                  },
+                );
+              }
+            },
+          },
+        );
+      }
     } catch (error) {
-      actionError = error instanceof Error ? error.message : "Switch failed";
+      actionError = error instanceof Error
+        ? error.message
+        : update.kind === "plan-switch"
+          ? "Switch failed"
+          : "Seat update failed";
     }
   };
 
-  const handleUpdateSeats = async (payload: { units: number }) => {
-    if (!updateRef) return;
-    const subId = matchedSubscription?.id;
-    actionError = null;
-    try {
-      await client.mutation(
-        updateRef,
-        {
-          units: payload.units,
-          ...(subId ? { subscriptionId: subId } : {}),
-          updateBehavior,
-        },
-        {
-          optimisticUpdate: (store) => {
-            const current = store.getQuery(billingUiModelRef, {});
-            if (current) {
-              const m = current as ConnectedBillingModel;
-              store.setQuery(
-                billingUiModelRef,
-                {},
-                {
-                  ...m,
-                  activeSubscriptions: (m.activeSubscriptions ?? []).map((s) =>
-                    s.id === subId ? { ...s, seats: payload.units } : s,
-                  ),
-                },
-              );
-            }
-          },
-        },
-      );
-    } catch (error) {
-      actionError =
-        error instanceof Error ? error.message : "Seat update failed";
-    }
+  const handleUpdateSeats = (payload: { units: number }) => {
+    pendingUpdate = { kind: "seat-update", units: payload.units };
+    updateDialogOpen = true;
   };
+
+  const updateSummary = $derived.by(() => {
+    if (!pendingUpdate) return null;
+
+    if (pendingUpdate.kind === "plan-switch") {
+      const currentPlan = plans.find((p) => {
+        const pids = p.creemProductIds ? Object.values(p.creemProductIds) : [];
+        return localSubscriptionProductId != null && pids.includes(localSubscriptionProductId);
+      });
+      const currentTitle = currentPlan?.title ?? "Current plan";
+      const currentPrice = formatPriceWithInterval(localSubscriptionProductId ?? undefined, allProducts);
+      const newPrice = formatPriceWithInterval(pendingUpdate.productId, allProducts);
+
+      return buildUpdateSummary({
+        kind: "plan-switch",
+        updateBehavior,
+        currentLabel: currentPrice ? `${currentTitle} \u00b7 ${currentPrice}` : currentTitle,
+        newLabel: newPrice
+          ? `${pendingUpdate.plan.title ?? "New plan"} \u00b7 ${newPrice}`
+          : (pendingUpdate.plan.title ?? "New plan"),
+        currentPeriodEnd: matchedSubscription?.currentPeriodEnd,
+        isTrialing: matchedSubscription?.status === "trialing",
+        trialEnd: matchedSubscription?.trialEnd,
+      });
+    }
+
+    const currentSeats = localSubscribedSeats ?? 1;
+    const currentPrice = formatSeatPrice(localSubscriptionProductId ?? undefined, allProducts, currentSeats);
+    const newPrice = formatSeatPrice(localSubscriptionProductId ?? undefined, allProducts, pendingUpdate.units);
+
+    return buildUpdateSummary({
+      kind: "seat-update",
+      updateBehavior,
+      currentLabel: currentPrice ?? `${currentSeats} seat${currentSeats !== 1 ? "s" : ""}`,
+      newLabel: newPrice ?? `${pendingUpdate.units} seat${pendingUpdate.units !== 1 ? "s" : ""}`,
+      currentPeriodEnd: matchedSubscription?.currentPeriodEnd,
+      isTrialing: matchedSubscription?.status === "trialing",
+      trialEnd: matchedSubscription?.trialEnd,
+    });
+  });
 
   const confirmCancelSubscription = async () => {
     if (!cancelRef) return;
@@ -531,6 +576,25 @@
         <Dialog.Backdrop class="dialog-backdrop" />
         <Dialog.Positioner class="dialog-positioner">
           <Dialog.Content class="dialog-content">
+            <Dialog.CloseTrigger
+              class="icon-button-ghost-sm absolute right-2 top-2"
+              aria-label="Close dialog"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                class="h-4 w-4"
+              >
+                <path
+                  d="M18 6L6 18M6 6L18 18"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </Dialog.CloseTrigger>
             <Dialog.Title class="dialog-title">
               Cancel subscription?
             </Dialog.Title>
@@ -540,9 +604,6 @@
               period.
             </Dialog.Description>
             <div class="dialog-actions">
-              <Dialog.CloseTrigger class="button-outline">
-                Keep subscription
-              </Dialog.CloseTrigger>
               <button
                 type="button"
                 class="dialog-action-danger"
@@ -550,6 +611,9 @@
               >
                 Yes, cancel
               </button>
+              <Dialog.CloseTrigger class="button-faded h-8 w-full">
+                Keep subscription
+              </Dialog.CloseTrigger>
             </div>
           </Dialog.Content>
         </Dialog.Positioner>
@@ -557,39 +621,66 @@
     </Dialog.Root>
 
     <Dialog.Root
-      open={switchPlanDialogOpen}
+      open={updateDialogOpen}
       onOpenChange={(details: { open: boolean }) => {
-        switchPlanDialogOpen = details.open;
-        if (!details.open) pendingSwitchPlan = null;
+        updateDialogOpen = details.open;
+        if (!details.open) pendingUpdate = null;
       }}
     >
       <Portal>
         <Dialog.Backdrop class="dialog-backdrop" />
         <Dialog.Positioner class="dialog-positioner">
           <Dialog.Content class="dialog-content">
-            <Dialog.Title class="dialog-title">Switch plan?</Dialog.Title>
-            <Dialog.Description class="dialog-description">
-              {#if pendingSwitchPlan?.plan?.title}
-                You are about to switch to the <strong
-                  >{pendingSwitchPlan.plan.title}</strong
-                > plan. The price difference will be prorated and charged to your
-                payment method.
-              {:else}
-                You are about to switch your plan. The price difference will be
-                prorated and charged to your payment method.
-              {/if}
-            </Dialog.Description>
+            <Dialog.CloseTrigger
+              class="icon-button-ghost-sm absolute right-2 top-2"
+              aria-label="Close dialog"
+            >
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                fill="none"
+                class="h-4 w-4"
+              >
+                <path
+                  d="M18 6L6 18M6 6L18 18"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </Dialog.CloseTrigger>
+            <Dialog.Title class="dialog-title">
+              {updateSummary?.title}
+            </Dialog.Title>
+            {#if updateSummary}
+              <div class="my-3 flex flex-col gap-1 rounded-lg bg-surface-subtle px-3 py-2.5">
+                <span class="label-m text-foreground-muted">
+                  {updateSummary.currentLabel}
+                </span>
+                <span class="body-s text-foreground-placeholder">→</span>
+                <span class="label-m text-foreground-default">
+                  {updateSummary.newLabel}
+                </span>
+              </div>
+              <Dialog.Description class="dialog-description">
+                {updateSummary.description}
+                {#if updateSummary.dateNote}
+                  {` ${updateSummary.dateNote}`}
+                {/if}
+              </Dialog.Description>
+            {/if}
             <div class="dialog-actions">
-              <Dialog.CloseTrigger class="button-outline">
-                Cancel
-              </Dialog.CloseTrigger>
               <button
                 type="button"
-                class="button-filled"
-                onclick={() => confirmSwitchPlan()}
+                class="button-filled h-8 w-full"
+                onclick={() => confirmUpdate()}
               >
-                Confirm switch
+                {updateSummary?.confirmLabel ?? "Confirm"}
               </button>
+              <Dialog.CloseTrigger class="button-faded h-8 w-full">
+                Cancel
+              </Dialog.CloseTrigger>
             </div>
           </Dialog.Content>
         </Dialog.Positioner>

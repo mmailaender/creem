@@ -11,7 +11,6 @@
   import { api } from "../../convex/_generated/api.js";
   import creemLogoUrl from "./assets/creem-grey.svg";
   import convexLogoUrl from "./assets/convex-grey.svg";
-  import svelteLogoUrl from "./assets/svelte-grey.svg";
 
   const convexUrl = import.meta.env.VITE_CONVEX_URL as string | undefined;
   if (!convexUrl) {
@@ -49,7 +48,7 @@
 
 <main class="w-full py-10 lg:pt-16">
   <header class="border-b border-border-subtle pb-16 lg:pb-[104px]">
-    <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-2">
+    <div class="mx-auto w-full max-w-[1280px] px-6 lg:px-16 grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-2">
       <div class="lg:col-span-7 space-y-6">
         <h1 class="display-m max-w-[720px] text-foreground-default">
           Connected Billing Widgets
@@ -60,14 +59,11 @@
           model.
         </p>
         <div class="flex items-center gap-4 pt-8 text-foreground-placeholder">
-          <span class="inline-flex h-8 items-center justify-center opacity-70">
-            <img src={creemLogoUrl} alt="Creem" class="h-7 w-auto" />
+          <span class="inline-flex h-10 items-center justify-center">
+            <img src={creemLogoUrl} alt="Creem" class="h-9 w-9" />
           </span>
-          <span class="inline-flex h-8 w-8 items-center justify-center opacity-70">
-            <img src={convexLogoUrl} alt="Convex" class="h-7 w-7" />
-          </span>
-          <span class="inline-flex h-8 w-8 items-center justify-center opacity-70">
-            <img src={svelteLogoUrl} alt="Svelte" class="h-7 w-7" />
+          <span class="inline-flex h-10 w-10 items-center justify-center">
+            <img src={convexLogoUrl} alt="Convex" class="h-9 w-9" />
           </span>
         </div>
       </div>
@@ -126,12 +122,12 @@
     class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[104px]"
   >
     <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[104px]">
-      <div class="mx-auto max-w-[620px] text-center">
-        <h2 class="heading-l text-foreground-default">
+      <div class="mx-auto grid grid-cols-12">
+        <h2 class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
           <span class="text-foreground-placeholder">Subscription</span><br />
           With Trial (4 Cycles)
         </h2>
-        <p class="subtitle-m mt-3 text-foreground-muted">
+        <p class="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
           All four billing cycles are available. The toggle derives from the registered plans automatically.
         </p>
       </div>
@@ -213,12 +209,12 @@
     class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
   >
     <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
-      <div class="mx-auto max-w-[620px] text-center">
-        <h2 class="heading-l text-foreground-default">
+      <div class="mx-auto grid grid-cols-12">
+        <h2 class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
           <span class="text-foreground-placeholder">Subscription</span><br />
           Seat-Based (User-Selectable)
         </h2>
-        <p class="subtitle-m mt-3 text-foreground-muted">
+        <p class="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
           Seat-based plans with a quantity picker. The user selects how many seats before checkout.
         </p>
       </div>
@@ -270,12 +266,12 @@
     class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
   >
     <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
-      <div class="mx-auto max-w-[620px] text-center">
-        <h2 class="heading-l text-foreground-default">
+      <div class="mx-auto grid grid-cols-12">
+        <h2 class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
           <span class="text-foreground-placeholder">Subscription</span><br />
            Seat-Based (User-Selectable)
         </h2>
-        <p class="subtitle-m mt-3 text-foreground-muted">
+        <p class="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
           Only monthly products registered. The billing toggle should not appear.
         </p>
       </div>
@@ -309,12 +305,12 @@
     class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
   >
     <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
-      <div class="mx-auto max-w-[620px] text-center">
-        <h2 class="heading-l text-foreground-default">
+      <div class="mx-auto grid grid-cols-12">
+        <h2 class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
           <span class="text-foreground-placeholder">Subscription</span><br />
           Seat-Based (Auto-Derived)
         </h2>
-        <p class="subtitle-m mt-3 text-foreground-muted">
+        <p class="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
           Same seat-based products but with a fixed unit count (e.g. derived from organization member count). No picker shown — hardcoded to 5 seats.
         </p>
       </div>
@@ -344,12 +340,12 @@
     class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
   >
     <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
-      <div class="mx-auto max-w-[620px] text-center">
-        <h2 class="heading-l text-foreground-default">
+      <div class="mx-auto grid grid-cols-12">
+        <h2 class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
           <span class="text-foreground-placeholder">One Time Purchase</span><br />
           Single One-Time Product
         </h2>
-        <p class="subtitle-m mt-3 text-foreground-muted">
+        <p class="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
           A standalone product purchased once. Shows "Owned" after purchase.
         </p>
       </div>
@@ -372,12 +368,12 @@
     class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
   >
     <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
-      <div class="mx-auto max-w-[620px] text-center">
-        <h2 class="heading-l text-foreground-default">
+      <div class="mx-auto grid grid-cols-12">
+        <h2 class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
           <span class="text-foreground-placeholder">One Time Purchase</span><br />
           Mutually Exclusive Product Group
         </h2>
-        <p class="subtitle-m mt-3 text-foreground-muted">
+        <p class="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
           Transition graph decides available upgrade paths. Upgrading from Basic to Premium uses a dedicated delta product. Buy first the Basic Product and then upgrade to Premium.
         </p>
       </div>
@@ -397,12 +393,12 @@
     class="relative left-1/2 -translate-x-1/2 w-screen border-b border-border-subtle pb-[6.5rem]"
   >
     <div class="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
-      <div class="mx-auto max-w-[620px] text-center">
-        <h2 class="heading-l text-foreground-default">
+      <div class="mx-auto grid grid-cols-12">
+        <h2 class="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
           <span class="text-foreground-placeholder">One Time Purchase</span><br />
           Repeating Product (Consumable)
         </h2>
-        <p class="subtitle-m mt-3 text-foreground-muted">
+        <p class="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
           Can be purchased multiple times. No "Owned" badge — always shows the purchase button.
         </p>
       </div>

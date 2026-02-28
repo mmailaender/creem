@@ -4,9 +4,9 @@
   position: fixed;
   inset: 0;
   z-index: 40;
-  background: color-mix(
+  background-color: color-mix(
     in oklab,
-    var(--et-color-foreground-default) 40%,
+    var(--et-color-surface-backdrop) 80%,
     transparent
   );
   backdrop-filter: blur(4px);
@@ -20,9 +20,9 @@
   }
 
   @variant dark {
-    background: color-mix(
+    background-color: color-mix(
       in oklab,
-      var(--et-color-foreground-default-dark) 50%,
+      var(--et-color-surface-backdrop-dark) 80%,
       transparent
     );
   }
@@ -39,19 +39,12 @@
 }
 
 @utility dialog-content {
+  position: relative;
   width: 100%;
-  max-width: 28rem;
-  border-radius: var(--et-radius-l);
-  border-width: 1px;
-  border-style: solid;
-  border-color: var(--et-color-border-subtle);
+  max-width: 24rem;
+  border-radius: var(--et-radius-xl);
   background-color: var(--et-color-surface-base);
   padding: 1.5rem;
-  box-shadow:
-    0 10px 15px -3px
-      color-mix(in oklab, var(--et-color-foreground-default) 10%, transparent),
-    0 4px 6px -4px
-      color-mix(in oklab, var(--et-color-foreground-default) 10%, transparent);
 
   &[data-state="open"] {
     animation: dialog-scale-in 150ms ease-out;
@@ -62,21 +55,7 @@
   }
 
   @variant dark {
-    border-color: var(--et-color-border-subtle-dark);
     background-color: var(--et-color-surface-base-dark);
-    box-shadow:
-      0 10px 15px -3px
-        color-mix(
-          in oklab,
-          var(--et-color-foreground-default-dark) 6%,
-          transparent
-        ),
-      0 4px 6px -4px
-        color-mix(
-          in oklab,
-          var(--et-color-foreground-default-dark) 6%,
-          transparent
-        );
   }
 }
 
@@ -94,7 +73,7 @@
 }
 
 @utility dialog-description {
-  margin-top: 0.5rem;
+  margin-top: 1.5rem;
   font-family: var(--et-typeface-plain);
   font-weight: var(--et-type-body-m-font-weight);
   font-size: var(--et-type-body-m-size-desktop);
@@ -109,9 +88,10 @@
 
 @utility dialog-actions {
   display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 1.5rem;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  padding-top: 2rem;
 }
 
 @utility dialog-action-danger {
@@ -134,8 +114,9 @@
   cursor: pointer;
   user-select: none;
 
-  background-color: var(--et-color-error-surface-filled);
-  color: var(--et-color-error-foreground-on-filled);
+  width: 100%;
+  background-color: var(--et-color-surface-filled);
+  color: var(--et-color-foreground-on-filled);
 
   &::after {
     content: "";
@@ -143,7 +124,7 @@
     inset: 0;
     background: color-mix(
       in oklab,
-      var(--et-color-error-foreground-on-filled) 0%,
+      var(--et-color-foreground-default) 0%,
       transparent
     );
     transition: background-color 120ms ease;
@@ -153,7 +134,7 @@
   &:hover::after {
     background: color-mix(
       in oklab,
-      var(--et-color-error-foreground-on-filled) 8%,
+      var(--et-color-foreground-default) 8%,
       transparent
     );
   }
@@ -161,19 +142,19 @@
   &:active::after {
     background: color-mix(
       in oklab,
-      var(--et-color-error-foreground-on-filled) 10%,
+      var(--et-color-foreground-default) 10%,
       transparent
     );
   }
 
   @variant dark {
-    background-color: var(--et-color-error-surface-filled-dark);
-    color: var(--et-color-error-foreground-on-filled-dark);
+    background-color: var(--et-color-surface-filled-dark);
+    color: var(--et-color-foreground-on-filled-dark);
 
     &::after {
       background: color-mix(
         in oklab,
-        var(--et-color-error-foreground-on-filled-dark) 0%,
+        var(--et-color-foreground-default-dark) 0%,
         transparent
       );
     }
@@ -181,7 +162,7 @@
     &:hover::after {
       background: color-mix(
         in oklab,
-        var(--et-color-error-foreground-on-filled-dark) 8%,
+        var(--et-color-foreground-default-dark) 8%,
         transparent
       );
     }
@@ -189,7 +170,7 @@
     &:active::after {
       background: color-mix(
         in oklab,
-        var(--et-color-error-foreground-on-filled-dark) 10%,
+        var(--et-color-foreground-default-dark) 10%,
         transparent
       );
     }

@@ -12,21 +12,21 @@ Add subscriptions, one-time purchases, and billing to your Convex app with
   - [1. Install](#1-install)
   - [2. Register component](#2-register-component)
   - [3. Set environment variables](#3-set-environment-variables)
-  - [5. Configure billing](#4-configure-billing)
-  - [4. Register webhooks](#5-register-webhooks)
+  - [4. Configure billing](#4-configure-billing)
+  - [5. Register webhooks](#5-register-webhooks)
   - [6. Sync products](#6-sync-products)
 - [Quick Start — Frontend (UI Widgets)](#quick-start--frontend-ui-widgets)
-  - [7. Install Tailwind CSS](#7-install-tailwind-css)
-  - [8. Import styles](#8-import-styles)
+  - [7. Install Tailwind CSS](#7-Install-UI-primitives)
+  - [7. Install Tailwind CSS](#8-install-tailwind-css)
+  - [8. Import styles](#9-import-styles)
 - [Entity Model](#entity-model)
-- [Scenarios — Svelte](#scenarios--svelte)
+- [Scenarios](#scenarios)
   - [Wire the billing API](#wire-the-billing-api)
   - [1. Subscriptions](#1-subscriptions)
   - [2. Products](#2-products)
   - [3. Billing Portal](#3-billing-portal)
   - [4. Feature Gating](#4-feature-gating)
   - [5. Checkout Success](#5-checkout-success)
-- [Scenarios — React](#scenarios--react)
 - [Advanced](#advanced)
   - [Webhook event middleware](#webhook-event-middleware)
   - [Security & Access Control](#security--access-control)
@@ -37,10 +37,9 @@ Add subscriptions, one-time purchases, and billing to your Convex app with
   - [`creem.api({ resolve })` — convenience exports](#creemapi-resolve---convenience-exports)
   - [Infrastructure](#infrastructure)
   - [Direct API access — `creem.sdk.*`](#direct-api-access--creemsdk)
-- [Component Reference — Svelte](#component-reference--svelte)
+- [Component Reference](#component-reference)
   - [Widgets](#widgets)
   - [Presentational components](#presentational-components)
-- [Component Reference — React](#component-reference--react)
 - [Troubleshooting](#troubleshooting)
 
 ---
@@ -172,15 +171,32 @@ skip ahead to the [API Reference](#api-reference).
 
 The component ships pre-built Svelte and React widgets that handle checkout,
 plan switching, cancellation, seat management, and billing state — all connected
-to Convex. Complete these two extra steps to use them.
+to Convex. Complete these three extra steps to use them.
 
-### 7. Install Tailwind CSS
+### 7. Install UI primitives
+
+The widgets are built on [Ark UI](https://ark-ui.com) headless primitives.
+Install the adapter for your framework:
+
+**React**
+
+```sh
+npm install @ark-ui/react
+```
+
+**Svelte**
+
+```sh
+npm install @ark-ui/svelte
+```
+
+### 8. Install Tailwind CSS
 
 The widgets use [Tailwind CSS v4](https://tailwindcss.com/docs/installation). If
 your project doesn't have Tailwind yet, install it following the
 [official guide](https://tailwindcss.com/docs/installation).
 
-### 8. Import styles
+### 9. Import styles
 
 Add the component's design system import to your CSS entry point, **after** the
 Tailwind import:
@@ -227,20 +243,26 @@ For access control details, see
 
 ---
 
-## Scenarios — Svelte
+## Scenarios
 
-All scenarios below use the Svelte widgets. They query Convex directly and
-handle checkout, plan switching, and billing state out of the box.
+Both Svelte and React widgets share **identical props and APIs** — only the
+import path and framework boilerplate differ.
+
+> **Convention:** Where the markup is identical in both frameworks, examples are
+> shown once. The only recurring difference is `class=` (Svelte) vs `className=`
+> (React) when passing CSS classes. Where Svelte and React syntax diverges
+> (e.g. children rendering), both versions are shown.
 
 ### Wire the billing API
 
 Every widget needs a `ConnectedBillingApi` object. Create it once in your layout
 or page component:
 
+**Svelte**
+
 ```svelte
 <script lang="ts">
   import { setupConvex } from "convex-svelte";
-  // Import only the widgets you need — e.g. just Subscription for subscription-only apps.
   import {
     Subscription, Product, BillingPortal,
     type ConnectedBillingApi,
@@ -261,6 +283,32 @@ or page component:
   };
 </script>
 ```
+
+**React**
+
+```tsx
+import {
+  Subscription, Product, BillingPortal,
+  type ConnectedBillingApi,
+} from "@mmailaender/convex-creem/react";
+import { api } from "../convex/_generated/api";
+
+const billingApi: ConnectedBillingApi = {
+  uiModel: api.billing.uiModel,
+  checkouts: { create: api.billing.checkoutsCreate },
+  subscriptions: {
+    update: api.billing.subscriptionsUpdate,
+    cancel: api.billing.subscriptionsCancel,
+    resume: api.billing.subscriptionsResume,
+  },
+  customers: { portalUrl: api.billing.customersPortalUrl },
+};
+```
+
+> The `ConnectedBillingApi` object is the same shape in both frameworks. Only the
+> Convex client setup differs: `setupConvex()` in Svelte vs `<ConvexProvider>`
+> in React (see [convex-svelte](https://github.com/get-convex/convex-svelte) and
+> [convex/react](https://docs.convex.dev/client/react) docs).
 
 ### 1. Subscriptions
 
@@ -305,7 +353,7 @@ billing toggle auto-derives from the cycles present in registered plans.
 - Billing cycle toggle (monthly/yearly) — hidden when all plans share a single
   cycle
 - "Current plan" badge on the active subscription
-- Plan switching
+- Plan switching with confirmation dialog
 - Trial countdown badge
 - Cancel / resume subscription (with confirmation dialog)
 - Scheduled cancellation banner with "Undo" button
@@ -332,11 +380,6 @@ Two workflows for seat-based pricing:
 **Auto-derived seats** — pass a fixed count (e.g. org member count) to checkout:
 
 ```svelte
-<script lang="ts">
-  // Derive seat count from your data
-  const orgMemberCount = $derived(members.length);
-</script>
-
 <Subscription.Root api={billingApi} units={orgMemberCount}>
   <Subscription.Item
     type="seat-based"
@@ -424,11 +467,9 @@ Pass `permissions` to control who can access the portal (e.g. only admins):
 
 Use `BillingGate` to conditionally render UI based on available billing actions:
 
-```svelte
-<script lang="ts">
-  import { BillingGate } from "@mmailaender/convex-creem/svelte";
-</script>
+**Svelte**
 
+```svelte
 <BillingGate snapshot={billingSnapshot} requiredActions="portal">
   {#snippet children()}
     <p>You have portal access.</p>
@@ -436,6 +477,18 @@ Use `BillingGate` to conditionally render UI based on available billing actions:
   {#snippet fallback()}
     <p>Upgrade to access the billing portal.</p>
   {/snippet}
+</BillingGate>
+```
+
+**React**
+
+```tsx
+<BillingGate
+  snapshot={billingSnapshot}
+  requiredActions="portal"
+  fallback={<p>Upgrade to access the billing portal.</p>}
+>
+  <p>You have portal access.</p>
 </BillingGate>
 ```
 
@@ -448,44 +501,8 @@ Show a confirmation banner when the user returns from checkout. The component
 parses Creem's query parameters automatically:
 
 ```svelte
-<script lang="ts">
-  import { CheckoutSuccessSummary } from "@mmailaender/convex-creem/svelte";
-</script>
-
 <CheckoutSuccessSummary />
 ```
-
----
-
-## Scenarios — React
-
-The React export provides presentational components for building custom billing
-UIs. Full widgets (equivalent to the Svelte `Subscription.Root` / `Product.Root`
-pattern) are coming soon.
-
-```tsx
-import {
-  CheckoutLink,
-  CheckoutButton,
-  OneTimeCheckoutLink,
-  OneTimeCheckoutButton,
-  CustomerPortalLink,
-  CustomerPortalButton,
-  BillingToggle,
-  PricingCard,
-  PricingSection,
-  BillingGate,
-  TrialLimitBanner,
-  ScheduledChangeBanner,
-  PaymentWarningBanner,
-  CheckoutSuccessSummary,
-  OneTimePaymentStatusBadge,
-  useCheckoutSuccessParams,
-} from "@mmailaender/convex-creem/react";
-```
-
-See the [React example](example-react) for a complete integration with
-`convex/react` hooks.
 
 ---
 
@@ -868,12 +885,17 @@ export const createDiscount = action({
 
 ---
 
-## Component Reference — Svelte
+## Component Reference
 
-All Svelte components use Svelte 5 runes and snippet rendering
-(`{@render ...}`).
+All components share **identical props** across Svelte and React.
 
-Import from `@mmailaender/convex-creem/svelte`.
+- **Import:** `@mmailaender/convex-creem/svelte` or `@mmailaender/convex-creem/react`
+- **CSS class prop:** `class` in Svelte, `className` in React
+- **Children:** Svelte `Snippet` / React `ReactNode`
+- **Svelte** components use Svelte 5 runes and snippet rendering (`{@render ...}`)
+
+See the [Svelte example](example-svelte) and [React example](example-react) for
+complete integrations.
 
 ### Widgets
 
@@ -888,12 +910,22 @@ plan switching, cancellation, and seat management.
 | ------------------ | --------------------------------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `api`              | `ConnectedBillingApi`                                     | —                                            | **Required.** Backend function references                                                                                                                 |
 | `permissions`      | `BillingPermissions`                                      | all enabled                                  | Disable actions based on user role                                                                                                                        |
-| `class`            | `string`                                                  | `""`                                         | Wrapper CSS class                                                                                                                                         |
+| `class`/`className`| `string`                                                  | `""`                                         | Wrapper CSS class                                                                                                                                         |
 | `successUrl`       | `string`                                                  | product's `defaultSuccessUrl` → current page | Override redirect after checkout. When omitted, uses the product's `defaultSuccessUrl` from Creem; if that is also unset, falls back to the current page. |
 | `units`            | `number`                                                  | —                                            | Auto-derived seat count for seat-based plans                                                                                                              |
 | `showSeatPicker`   | `boolean`                                                 | `false`                                      | Show quantity picker on seat-based cards                                                                                                                  |
+| `twoColumnLayout`  | `boolean`                                                 | `false`                                      | Use two-column card layout                                                                                                                                |
+| `updateBehavior`   | `UpdateBehavior`                                          | `"proration-charge-immediately"`             | How plan switches and seat updates are billed. See below.                                                                                                 |
 | `onBeforeCheckout` | `(intent: CheckoutIntent) => Promise<boolean> \| boolean` | —                                            | Gate checkout (auth, terms, etc.). Return `false` to abort.                                                                                               |
-| `children`         | `Snippet`                                                 | —                                            | `<Subscription.Item>` children                                                                                                                            |
+| `children`         | `Snippet` / `ReactNode`                                   | —                                            | `<Subscription.Item>` children                                                                                                                            |
+
+**`UpdateBehavior`** controls how the Creem API handles plan switches and seat
+changes:
+
+- `"proration-charge-immediately"` — prorate and charge the difference now
+  (default)
+- `"proration-charge"` — prorate, charge on next invoice
+- `"proration-none"` — no proration, change takes effect on next billing cycle
 
 #### `<Subscription.Item>`
 
@@ -926,10 +958,14 @@ upgrade transitions, and checkout.
 | `api`              | `ConnectedBillingApi`                                     | —                                            | **Required.** Backend function references                                                                                                                 |
 | `permissions`      | `BillingPermissions`                                      | all enabled                                  | Disable actions based on user role                                                                                                                        |
 | `transition`       | `Transition[]`                                            | `[]`                                         | Upgrade path rules between products                                                                                                                       |
-| `class`            | `string`                                                  | `""`                                         | Wrapper CSS class                                                                                                                                         |
+| `class`/`className`| `string`                                                  | `""`                                         | Wrapper CSS class                                                                                                                                         |
+| `layout`           | `"default" \| "single"`                                   | `"default"`                                  | Card layout mode                                                                                                                                          |
+| `styleVariant`     | `"legacy" \| "pricing"`                                   | `"legacy"`                                   | Visual style variant                                                                                                                                      |
+| `showImages`       | `boolean`                                                 | `false`                                      | Show product images on cards                                                                                                                              |
+| `pricingCtaVariant`| `"filled" \| "faded"`                                     | `"faded"`                                    | Call-to-action button style                                                                                                                               |
 | `successUrl`       | `string`                                                  | product's `defaultSuccessUrl` → current page | Override redirect after checkout. When omitted, uses the product's `defaultSuccessUrl` from Creem; if that is also unset, falls back to the current page. |
 | `onBeforeCheckout` | `(intent: CheckoutIntent) => Promise<boolean> \| boolean` | —                                            | Gate checkout (auth, terms, etc.). Return `false` to abort.                                                                                               |
-| `children`         | `Snippet`                                                 | —                                            | `<Product.Item>` children                                                                                                                                 |
+| `children`         | `Snippet` / `ReactNode`                                   | —                                            | `<Product.Item>` children                                                                                                                                 |
 
 **Transition types:**
 
@@ -957,12 +993,12 @@ Registers a product inside `<Product.Root>`.
 Button that opens the Creem customer billing portal. Auto-hides when the billing
 entity has no Creem customer record, or when `canAccessPortal` is `false`.
 
-| Prop          | Type                  | Default            | Description                                               |
-| ------------- | --------------------- | ------------------ | --------------------------------------------------------- |
-| `api`         | `ConnectedBillingApi` | —                  | **Required.** Backend function references                 |
-| `permissions` | `BillingPermissions`  | all enabled        | Control portal access (e.g. `{ canAccessPortal: false }`) |
-| `class`       | `string`              | `""`               | Button CSS class                                          |
-| `children`    | `Snippet`             | `"Manage billing"` | Custom button label                                       |
+| Prop               | Type                  | Default            | Description                                               |
+| ------------------ | --------------------- | ------------------ | --------------------------------------------------------- |
+| `api`              | `ConnectedBillingApi` | —                  | **Required.** Backend function references                 |
+| `permissions`      | `BillingPermissions`  | all enabled        | Control portal access (e.g. `{ canAccessPortal: false }`) |
+| `class`/`className`| `string`              | `""`               | Button CSS class                                          |
+| `children`         | `Snippet` / `ReactNode` | `"Manage billing"` | Custom button label                                    |
 
 ### Presentational components
 
@@ -1021,7 +1057,7 @@ modes.
 | `disabled`   | `boolean`           | Disable button                     |
 | `className`  | `string`            | CSS class                          |
 | `onCheckout` | `(payload) => void` | Callback mode: `{ productId }`     |
-| `children`   | `Snippet`           | Button label (default: "Checkout") |
+| `children`   | `Snippet` / `ReactNode` | Button label (default: "Checkout") |
 
 #### `<OneTimeCheckoutButton>`
 
@@ -1037,7 +1073,7 @@ Styled button for opening the customer billing portal.
 | `disabled`     | `boolean`    | Disable button                           |
 | `className`    | `string`     | CSS class                                |
 | `onOpenPortal` | `() => void` | Callback mode                            |
-| `children`     | `Snippet`    | Button label (default: "Manage billing") |
+| `children`     | `Snippet` / `ReactNode` | Button label (default: "Manage billing") |
 
 #### `<BillingGate>`
 
@@ -1047,8 +1083,8 @@ Conditionally renders children based on available billing actions.
 | ----------------- | -------------------------------------- | --------------------------------------- |
 | `snapshot`        | `BillingSnapshot \| null`              | Current billing state                   |
 | `requiredActions` | `AvailableAction \| AvailableAction[]` | Actions that must be available          |
-| `children`        | `Snippet`                              | Rendered when all actions are available |
-| `fallback`        | `Snippet`                              | Rendered otherwise                      |
+| `children`        | `Snippet` / `ReactNode`               | Rendered when all actions are available |
+| `fallback`        | `Snippet` / `ReactNode`               | Rendered otherwise                      |
 
 #### `<CheckoutSuccessSummary>`
 
@@ -1060,6 +1096,9 @@ automatically.
 | `params`    | `CheckoutSuccessParams` | Manual params (overrides URL parsing)                        |
 | `search`    | `string`                | Query string to parse (defaults to `window.location.search`) |
 | `className` | `string`                | CSS class                                                    |
+
+React also exports a `useCheckoutSuccessParams()` hook that returns the parsed
+params directly.
 
 #### `<TrialLimitBanner>`
 
@@ -1100,45 +1139,6 @@ Inline status badge for one-time payments.
 | ----------- | ----------------------------------------------------------- | -------------- |
 | `status`    | `"pending" \| "paid" \| "refunded" \| "partially_refunded"` | Payment status |
 | `className` | `string`                                                    | CSS class      |
-
-#### `<CancelConfirmDialog>`
-
-Modal confirmation dialog for subscription cancellation. Uses Ark UI Dialog.
-
-| Prop           | Type             | Description                  |
-| -------------- | ---------------- | ---------------------------- |
-| `open`         | `boolean`        | Dialog open state            |
-| `isLoading`    | `boolean`        | Loading state                |
-| `onOpenChange` | `(open) => void` | Open state change handler    |
-| `onConfirm`    | `() => void`     | Confirm cancellation handler |
-
----
-
-## Component Reference — React
-
-React components are presentational building blocks. Import from
-`@mmailaender/convex-creem/react`.
-
-| Component                   | Description                                 |
-| --------------------------- | ------------------------------------------- |
-| `CheckoutLink`              | Anchor-based checkout link                  |
-| `CheckoutButton`            | Button-based checkout with loading state    |
-| `OneTimeCheckoutLink`       | One-time purchase link                      |
-| `OneTimeCheckoutButton`     | One-time purchase button                    |
-| `CustomerPortalLink`        | Anchor-based portal link                    |
-| `CustomerPortalButton`      | Button-based portal link with loading state |
-| `BillingToggle`             | Billing cycle segment control               |
-| `PricingCard`               | Single plan pricing card                    |
-| `PricingSection`            | Grid of pricing cards with toggle           |
-| `BillingGate`               | Conditional render based on billing actions |
-| `TrialLimitBanner`          | Trial expiration notice                     |
-| `ScheduledChangeBanner`     | Cancellation-scheduled notice               |
-| `PaymentWarningBanner`      | Payment warning banner                      |
-| `CheckoutSuccessSummary`    | Post-checkout success banner                |
-| `OneTimePaymentStatusBadge` | Payment status badge                        |
-| `useCheckoutSuccessParams`  | Hook: parse checkout success query params   |
-
-See the [React example](example-react) for usage with `convex/react` hooks.
 
 ---
 
