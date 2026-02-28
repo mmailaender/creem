@@ -664,16 +664,63 @@ export const SubscriptionRoot = ({
                     </Dialog.Title>
                     {updateSummary && (
                       <>
-                        <div className="my-3 flex flex-col gap-1 rounded-lg bg-surface-subtle px-3 py-2.5">
-                          <span className="label-m text-foreground-muted">
-                            {updateSummary.currentLabel}
-                          </span>
-                          <span className="body-s text-foreground-placeholder">
-                            {"\u2192"}
-                          </span>
-                          <span className="label-m text-foreground-default">
-                            {updateSummary.newLabel}
-                          </span>
+                        <div className="my-3 overflow-hidden rounded-lg border border-default bg-surface-subtle">
+                          <div className="flex items-center gap-2 px-3 py-2.5">
+                            <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center text-foreground-muted">
+                              <svg
+                                aria-hidden="true"
+                                viewBox="0 0 256 256"
+                                fill="none"
+                                className="h-4 w-4"
+                              >
+                                <circle
+                                  cx="128"
+                                  cy="128"
+                                  r="96"
+                                  stroke="currentColor"
+                                  strokeWidth="16"
+                                />
+                                <path
+                                  d="M128 88v80m0 0l-32-32m32 32l32-32"
+                                  stroke="currentColor"
+                                  strokeWidth="16"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </span>
+                            <span className="label-m text-foreground-muted">
+                              {updateSummary.currentLabel}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 border-t border-default px-3 py-2.5">
+                            <span className="inline-flex h-4 w-4 shrink-0 items-center justify-center text-foreground-default">
+                              <svg
+                                aria-hidden="true"
+                                viewBox="0 0 256 256"
+                                fill="none"
+                                className="h-4 w-4"
+                              >
+                                <circle
+                                  cx="128"
+                                  cy="128"
+                                  r="96"
+                                  stroke="currentColor"
+                                  strokeWidth="16"
+                                />
+                                <path
+                                  d="m88 132 28 28 52-52"
+                                  stroke="currentColor"
+                                  strokeWidth="16"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                />
+                              </svg>
+                            </span>
+                            <span className="label-m text-foreground-default">
+                              {updateSummary.newLabel}
+                            </span>
+                          </div>
                         </div>
                         <Dialog.Description className="dialog-description">
                           {updateSummary.description}
