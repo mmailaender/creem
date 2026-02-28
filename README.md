@@ -16,8 +16,9 @@ Add subscriptions, one-time purchases, and billing to your Convex app with
   - [5. Register webhooks](#5-register-webhooks)
   - [6. Sync products](#6-sync-products)
 - [Quick Start — Frontend (UI Widgets)](#quick-start--frontend-ui-widgets)
-  - [7. Install Tailwind CSS](#7-install-tailwind-css)
-  - [8. Import styles](#8-import-styles)
+  - [7. Install Tailwind CSS](#7-Install-UI-primitives)
+  - [7. Install Tailwind CSS](#8-install-tailwind-css)
+  - [8. Import styles](#9-import-styles)
 - [Entity Model](#entity-model)
 - [Scenarios](#scenarios)
   - [Wire the billing API](#wire-the-billing-api)
@@ -170,15 +171,32 @@ skip ahead to the [API Reference](#api-reference).
 
 The component ships pre-built Svelte and React widgets that handle checkout,
 plan switching, cancellation, seat management, and billing state — all connected
-to Convex. Complete these two extra steps to use them.
+to Convex. Complete these three extra steps to use them.
 
-### 7. Install Tailwind CSS
+### 7. Install UI primitives
+
+The widgets are built on [Ark UI](https://ark-ui.com) headless primitives.
+Install the adapter for your framework:
+
+**React**
+
+```sh
+npm install @ark-ui/react
+```
+
+**Svelte**
+
+```sh
+npm install @ark-ui/svelte
+```
+
+### 8. Install Tailwind CSS
 
 The widgets use [Tailwind CSS v4](https://tailwindcss.com/docs/installation). If
 your project doesn't have Tailwind yet, install it following the
 [official guide](https://tailwindcss.com/docs/installation).
 
-### 8. Import styles
+### 9. Import styles
 
 Add the component's design system import to your CSS entry point, **after** the
 Tailwind import:
@@ -228,8 +246,12 @@ For access control details, see
 ## Scenarios
 
 Both Svelte and React widgets share **identical props and APIs** — only the
-import path and framework boilerplate differ. The examples below show both
-frameworks side-by-side.
+import path and framework boilerplate differ.
+
+> **Convention:** Where the markup is identical in both frameworks, examples are
+> shown once. The only recurring difference is `class=` (Svelte) vs `className=`
+> (React) when passing CSS classes. Where Svelte and React syntax diverges
+> (e.g. children rendering), both versions are shown.
 
 ### Wire the billing API
 
@@ -295,8 +317,6 @@ const billingApi: ConnectedBillingApi = {
 A typical pricing page with Free / Basic / Premium / Enterprise tiers. The
 billing toggle auto-derives from the cycles present in registered plans.
 
-**Svelte**
-
 ```svelte
 <Subscription.Root api={billingApi}>
   <Subscription.Item type="free" title="Free" description="Up to 3 users" />
@@ -325,41 +345,6 @@ billing toggle auto-derives from the cycles present in registered plans.
 </Subscription.Root>
 <BillingPortal api={billingApi} />
 ```
-
-**React**
-
-```tsx
-<Subscription.Root api={billingApi}>
-  <Subscription.Item type="free" title="Free" description="Up to 3 users" />
-  <Subscription.Item
-    planId="basic"
-    type="single"
-    productIds={{
-      "every-month": "prod_basic_monthly",
-      "every-year": "prod_basic_yearly",
-    }}
-  />
-  <Subscription.Item
-    planId="premium"
-    type="single"
-    recommended
-    productIds={{
-      "every-month": "prod_premium_monthly",
-      "every-year": "prod_premium_yearly",
-    }}
-  />
-  <Subscription.Item
-    type="enterprise"
-    title="Enterprise"
-    contactUrl="https://example.com/sales"
-  />
-</Subscription.Root>
-<BillingPortal api={billingApi} />
-```
-
-> The JSX is identical in both frameworks. The only difference throughout the
-> scenarios is `class=` (Svelte) vs `className=` (React) when passing CSS
-> classes.
 
 **What you get:**
 
@@ -402,9 +387,6 @@ Two workflows for seat-based pricing:
   />
 </Subscription.Root>
 ```
-
-> In React, the JSX is the same. For auto-derived seats, compute
-> `orgMemberCount` with a hook (e.g. `useQuery`) instead of `$derived`.
 
 When `subscriptions.update` is provided in the API, active seat-based plans show
 a "Change seats" control.
@@ -456,8 +438,6 @@ user owns a lower-tier product, only valid upgrade paths are shown:
   <Product.Item type="one-time" productId="prod_premium_license" />
 </Product.Root>
 ```
-
-> Product scenarios use the same JSX in both Svelte and React.
 
 **Transition kinds:**
 
@@ -520,21 +500,7 @@ Available actions: `checkout`, `portal`, `cancel`, `reactivate`,
 Show a confirmation banner when the user returns from checkout. The component
 parses Creem's query parameters automatically:
 
-**Svelte**
-
 ```svelte
-<script lang="ts">
-  import { CheckoutSuccessSummary } from "@mmailaender/convex-creem/svelte";
-</script>
-
-<CheckoutSuccessSummary />
-```
-
-**React**
-
-```tsx
-import { CheckoutSuccessSummary } from "@mmailaender/convex-creem/react";
-
 <CheckoutSuccessSummary />
 ```
 
