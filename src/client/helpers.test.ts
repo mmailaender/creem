@@ -103,7 +103,8 @@ describe("constantTimeEqual", () => {
   });
 
   it("handles long hex strings (typical HMAC comparison)", () => {
-    const sig = "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2";
+    const sig =
+      "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4e5f6a1b2";
     expect(constantTimeEqual(sig, sig)).toBe(true);
     const tampered = sig.slice(0, -1) + "0";
     expect(constantTimeEqual(sig, tampered)).toBe(false);

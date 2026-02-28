@@ -157,7 +157,7 @@ export type SubscriptionPlanRegistration = {
 export type ProductType = "one-time" | "recurring";
 
 /**
- * Upgrade path rule for `<Product.Root transition={[...]}>`. 
+ * Upgrade path rule for `<Product.Root transition={[...]}>`.
  * - `"direct"` — checkout uses the target product directly
  * - `"via_product"` — checkout uses a dedicated upgrade product (delta pricing)
  */

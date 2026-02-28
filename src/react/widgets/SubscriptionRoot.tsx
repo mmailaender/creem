@@ -17,7 +17,11 @@ import { ScheduledChangeBanner } from "../primitives/ScheduledChangeBanner.js";
 import { SubscriptionContext } from "./subscriptionContext.js";
 import { pendingCheckout } from "../../core/pendingCheckout.js";
 
-import type { UIPlanEntry, RecurringCycle, UpdateBehavior } from "../../core/types.js";
+import type {
+  UIPlanEntry,
+  RecurringCycle,
+  UpdateBehavior,
+} from "../../core/types.js";
 import { buildUpdateSummary } from "../../core/subscriptionUpdate.js";
 import { formatPriceWithInterval, formatSeatPrice } from "../shared.js";
 import type {
@@ -72,7 +76,12 @@ export const SubscriptionRoot = ({
   const [actionError, setActionError] = useState<string | null>(null);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [pendingUpdate, setPendingUpdate] = useState<
-    | { kind: "plan-switch"; plan: UIPlanEntry; productId: string; units?: number }
+    | {
+        kind: "plan-switch";
+        plan: UIPlanEntry;
+        productId: string;
+        units?: number;
+      }
     | { kind: "seat-update"; units: number }
     | null
   >(null);
@@ -98,7 +107,10 @@ export const SubscriptionRoot = ({
     [],
   );
 
-  const allProducts = useMemo(() => model?.allProducts ?? [], [model?.allProducts]);
+  const allProducts = useMemo(
+    () => model?.allProducts ?? [],
+    [model?.allProducts],
+  );
 
   const plans = useMemo<UIPlanEntry[]>(() => {
     return registeredPlans.map((plan) => {
@@ -129,8 +141,7 @@ export const SubscriptionRoot = ({
           plan.title ??
           firstProduct?.name ??
           plan.planId.charAt(0).toUpperCase() + plan.planId.slice(1),
-        description:
-          plan.description ?? firstProduct?.description ?? undefined,
+        description: plan.description ?? firstProduct?.description ?? undefined,
         contactUrl: plan.contactUrl,
         recommended: plan.recommended,
         creemProductIds:
@@ -166,12 +177,10 @@ export const SubscriptionRoot = ({
   }, [model?.activeSubscriptions, ownProductIds]);
 
   const ownsActiveSubscription = matchedSubscription != null;
-  const localSubscriptionProductId =
-    matchedSubscription?.productId ?? null;
+  const localSubscriptionProductId = matchedSubscription?.productId ?? null;
   const localCancelAtPeriodEnd =
     matchedSubscription?.cancelAtPeriodEnd ?? false;
-  const localCurrentPeriodEnd =
-    matchedSubscription?.currentPeriodEnd ?? null;
+  const localCurrentPeriodEnd = matchedSubscription?.currentPeriodEnd ?? null;
   const localSubscriptionState = matchedSubscription?.status ?? null;
   const localSubscribedSeats = matchedSubscription?.seats ?? null;
 
@@ -288,11 +297,7 @@ export const SubscriptionRoot = ({
   );
 
   const requestSwitchPlan = useCallback(
-    (payload: {
-      plan: UIPlanEntry;
-      productId: string;
-      units?: number;
-    }) => {
+    (payload: { plan: UIPlanEntry; productId: string; units?: number }) => {
       setPendingUpdate({ kind: "plan-switch", ...payload });
       setUpdateDialogOpen(true);
     },
@@ -320,15 +325,19 @@ export const SubscriptionRoot = ({
               const current = store.getQuery(billingUiModelRef, {});
               if (current) {
                 const m = current as ConnectedBillingModel;
-                store.setQuery(billingUiModelRef, {}, {
-                  ...m,
-                  activeSubscriptions: (m.activeSubscriptions ?? []).map(
-                    (s) =>
-                      ownProductIds.has(s.productId)
-                        ? { ...s, productId: update.productId }
-                        : s,
-                  ),
-                });
+                store.setQuery(
+                  billingUiModelRef,
+                  {},
+                  {
+                    ...m,
+                    activeSubscriptions: (m.activeSubscriptions ?? []).map(
+                      (s) =>
+                        ownProductIds.has(s.productId)
+                          ? { ...s, productId: update.productId }
+                          : s,
+                    ),
+                  },
+                );
               }
             },
           },
@@ -346,13 +355,17 @@ export const SubscriptionRoot = ({
               const current = store.getQuery(billingUiModelRef, {});
               if (current) {
                 const m = current as ConnectedBillingModel;
-                store.setQuery(billingUiModelRef, {}, {
-                  ...m,
-                  activeSubscriptions: (m.activeSubscriptions ?? []).map(
-                    (s) =>
-                      s.id === subId ? { ...s, seats: update.units } : s,
-                  ),
-                });
+                store.setQuery(
+                  billingUiModelRef,
+                  {},
+                  {
+                    ...m,
+                    activeSubscriptions: (m.activeSubscriptions ?? []).map(
+                      (s) =>
+                        s.id === subId ? { ...s, seats: update.units } : s,
+                    ),
+                  },
+                );
               }
             },
           },
@@ -367,15 +380,20 @@ export const SubscriptionRoot = ({
             : "Seat update failed",
       );
     }
-  }, [updateRef, pendingUpdate, matchedSubscription, client, billingUiModelRef, ownProductIds, updateBehavior]);
+  }, [
+    updateRef,
+    pendingUpdate,
+    matchedSubscription,
+    client,
+    billingUiModelRef,
+    ownProductIds,
+    updateBehavior,
+  ]);
 
-  const handleUpdateSeats = useCallback(
-    (payload: { units: number }) => {
-      setPendingUpdate({ kind: "seat-update", units: payload.units });
-      setUpdateDialogOpen(true);
-    },
-    [],
-  );
+  const handleUpdateSeats = useCallback((payload: { units: number }) => {
+    setPendingUpdate({ kind: "seat-update", units: payload.units });
+    setUpdateDialogOpen(true);
+  }, []);
 
   const updateSummary = useMemo(() => {
     if (!pendingUpdate) return null;
@@ -383,16 +401,27 @@ export const SubscriptionRoot = ({
     if (pendingUpdate.kind === "plan-switch") {
       const currentPlan = plans.find((p) => {
         const pids = p.creemProductIds ? Object.values(p.creemProductIds) : [];
-        return localSubscriptionProductId != null && pids.includes(localSubscriptionProductId);
+        return (
+          localSubscriptionProductId != null &&
+          pids.includes(localSubscriptionProductId)
+        );
       });
       const currentTitle = currentPlan?.title ?? "Current plan";
-      const currentPrice = formatPriceWithInterval(localSubscriptionProductId ?? undefined, allProducts);
-      const newPrice = formatPriceWithInterval(pendingUpdate.productId, allProducts);
+      const currentPrice = formatPriceWithInterval(
+        localSubscriptionProductId ?? undefined,
+        allProducts,
+      );
+      const newPrice = formatPriceWithInterval(
+        pendingUpdate.productId,
+        allProducts,
+      );
 
       return buildUpdateSummary({
         kind: "plan-switch",
         updateBehavior,
-        currentLabel: currentPrice ? `${currentTitle} \u00b7 ${currentPrice}` : currentTitle,
+        currentLabel: currentPrice
+          ? `${currentTitle} \u00b7 ${currentPrice}`
+          : currentTitle,
         newLabel: newPrice
           ? `${pendingUpdate.plan.title ?? "New plan"} \u00b7 ${newPrice}`
           : (pendingUpdate.plan.title ?? "New plan"),
@@ -403,19 +432,38 @@ export const SubscriptionRoot = ({
     }
 
     const currentSeats = localSubscribedSeats ?? 1;
-    const currentPrice = formatSeatPrice(localSubscriptionProductId ?? undefined, allProducts, currentSeats);
-    const newPrice = formatSeatPrice(localSubscriptionProductId ?? undefined, allProducts, pendingUpdate.units);
+    const currentPrice = formatSeatPrice(
+      localSubscriptionProductId ?? undefined,
+      allProducts,
+      currentSeats,
+    );
+    const newPrice = formatSeatPrice(
+      localSubscriptionProductId ?? undefined,
+      allProducts,
+      pendingUpdate.units,
+    );
 
     return buildUpdateSummary({
       kind: "seat-update",
       updateBehavior,
-      currentLabel: currentPrice ?? `${currentSeats} seat${currentSeats !== 1 ? "s" : ""}`,
-      newLabel: newPrice ?? `${pendingUpdate.units} seat${pendingUpdate.units !== 1 ? "s" : ""}`,
+      currentLabel:
+        currentPrice ?? `${currentSeats} seat${currentSeats !== 1 ? "s" : ""}`,
+      newLabel:
+        newPrice ??
+        `${pendingUpdate.units} seat${pendingUpdate.units !== 1 ? "s" : ""}`,
       currentPeriodEnd: matchedSubscription?.currentPeriodEnd,
       isTrialing: matchedSubscription?.status === "trialing",
       trialEnd: matchedSubscription?.trialEnd,
     });
-  }, [pendingUpdate, plans, localSubscriptionProductId, allProducts, localSubscribedSeats, updateBehavior, matchedSubscription]);
+  }, [
+    pendingUpdate,
+    plans,
+    localSubscriptionProductId,
+    allProducts,
+    localSubscribedSeats,
+    updateBehavior,
+    matchedSubscription,
+  ]);
 
   const confirmCancelSubscription = useCallback(async () => {
     if (!cancelRef) return;
@@ -433,25 +481,32 @@ export const SubscriptionRoot = ({
             const current = store.getQuery(billingUiModelRef, {});
             if (current) {
               const m = current as ConnectedBillingModel;
-              store.setQuery(billingUiModelRef, {}, {
-                ...m,
-                activeSubscriptions: (m.activeSubscriptions ?? []).map(
-                  (s) =>
+              store.setQuery(
+                billingUiModelRef,
+                {},
+                {
+                  ...m,
+                  activeSubscriptions: (m.activeSubscriptions ?? []).map((s) =>
                     ownProductIds.has(s.productId)
                       ? { ...s, cancelAtPeriodEnd: true }
                       : s,
-                ),
-              });
+                  ),
+                },
+              );
             }
           },
         },
       );
     } catch (error) {
-      setActionError(
-        error instanceof Error ? error.message : "Cancel failed",
-      );
+      setActionError(error instanceof Error ? error.message : "Cancel failed");
     }
-  }, [cancelRef, matchedSubscription, client, billingUiModelRef, ownProductIds]);
+  }, [
+    cancelRef,
+    matchedSubscription,
+    client,
+    billingUiModelRef,
+    ownProductIds,
+  ]);
 
   const resumeSubscription = useCallback(async () => {
     if (!resumeRef) return;
@@ -468,25 +523,32 @@ export const SubscriptionRoot = ({
             const current = store.getQuery(billingUiModelRef, {});
             if (current) {
               const m = current as ConnectedBillingModel;
-              store.setQuery(billingUiModelRef, {}, {
-                ...m,
-                activeSubscriptions: (m.activeSubscriptions ?? []).map(
-                  (s) =>
+              store.setQuery(
+                billingUiModelRef,
+                {},
+                {
+                  ...m,
+                  activeSubscriptions: (m.activeSubscriptions ?? []).map((s) =>
                     ownProductIds.has(s.productId)
                       ? { ...s, cancelAtPeriodEnd: false, status: "active" }
                       : s,
-                ),
-              });
+                  ),
+                },
+              );
             }
           },
         },
       );
     } catch (error) {
-      setActionError(
-        error instanceof Error ? error.message : "Resume failed",
-      );
+      setActionError(error instanceof Error ? error.message : "Resume failed");
     }
-  }, [resumeRef, matchedSubscription, client, billingUiModelRef, ownProductIds]);
+  }, [
+    resumeRef,
+    matchedSubscription,
+    client,
+    billingUiModelRef,
+    ownProductIds,
+  ]);
 
   const openCancelDialog = useCallback(() => {
     setCancelDialogOpen(true);
@@ -529,16 +591,12 @@ export const SubscriptionRoot = ({
 
             <PricingSection
               plans={plans}
-              snapshot={
-                snapshot ? { ...snapshot, activePlanId } : null
-              }
+              snapshot={snapshot ? { ...snapshot, activePlanId } : null}
               selectedCycle={selectedCycle}
               products={allProducts}
               subscriptionProductId={localSubscriptionProductId}
               subscriptionStatus={localSubscriptionState}
-              subscriptionTrialEnd={
-                matchedSubscription?.trialEnd ?? null
-              }
+              subscriptionTrialEnd={matchedSubscription?.trialEnd ?? null}
               units={units}
               showSeatPicker={showSeatPicker}
               twoColumnLayout={twoColumnLayout}
@@ -548,16 +606,12 @@ export const SubscriptionRoot = ({
               disableCheckout={!canCheckout}
               disableSwitch={!canChange}
               disableSeats={!canUpdateSeats}
-              onCheckout={
-                canCheckout ? handlePricingCheckout : undefined
-              }
+              onCheckout={canCheckout ? handlePricingCheckout : undefined}
               onSwitchPlan={
                 updateRef && canChange ? requestSwitchPlan : undefined
               }
               onUpdateSeats={
-                updateRef && canUpdateSeats
-                  ? handleUpdateSeats
-                  : undefined
+                updateRef && canUpdateSeats ? handleUpdateSeats : undefined
               }
               onCancelSubscription={
                 cancelRef &&
@@ -569,9 +623,7 @@ export const SubscriptionRoot = ({
               }
             />
 
-            <div className="flex flex-wrap items-center gap-3">
-              {children}
-            </div>
+            <div className="flex flex-wrap items-center gap-3">{children}</div>
 
             {/* Cancel Dialog */}
             <Dialog.Root
@@ -607,9 +659,9 @@ export const SubscriptionRoot = ({
                       Cancel subscription?
                     </Dialog.Title>
                     <Dialog.Description className="dialog-description">
-                      Are you sure you want to cancel your subscription?
-                      You will continue to have access until the end of
-                      your current billing period.
+                      Are you sure you want to cancel your subscription? You
+                      will continue to have access until the end of your current
+                      billing period.
                     </Dialog.Description>
                     <div className="dialog-actions">
                       <button

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { buildUpdateSummary, type UpdateSummaryInput } from "./subscriptionUpdate.js";
+import {
+  buildUpdateSummary,
+  type UpdateSummaryInput,
+} from "./subscriptionUpdate.js";
 
 const base: UpdateSummaryInput = {
   kind: "plan-switch",
@@ -26,7 +29,9 @@ describe("buildUpdateSummary", () => {
         ...base,
         updateBehavior: "proration-charge",
       });
-      expect(result.description).toContain("prorated and applied to your next invoice");
+      expect(result.description).toContain(
+        "prorated and applied to your next invoice",
+      );
     });
 
     it("describes proration-none", () => {

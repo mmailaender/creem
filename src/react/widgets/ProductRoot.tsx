@@ -83,8 +83,14 @@ export const ProductRoot = ({
     !model?.user && onBeforeCheckout != null
       ? true
       : permissions?.canCheckout !== false;
-  const allProducts = useMemo(() => model?.allProducts ?? [], [model?.allProducts]);
-  const rawOwnedProductIds = useMemo(() => model?.ownedProductIds ?? [], [model?.ownedProductIds]);
+  const allProducts = useMemo(
+    () => model?.allProducts ?? [],
+    [model?.allProducts],
+  );
+  const rawOwnedProductIds = useMemo(
+    () => model?.ownedProductIds ?? [],
+    [model?.ownedProductIds],
+  );
 
   // Pending checkout resume after auth
   const pendingCheckoutHandled = useRef(false);
@@ -228,16 +234,12 @@ export const ProductRoot = ({
           }
         >
           {registeredItems.map((item) => {
-            const isOwned = effectiveOwnedProductIds.includes(
-              item.productId,
-            );
+            const isOwned = effectiveOwnedProductIds.includes(item.productId);
             const isIncluded =
               !isOwned &&
               activeOwnedProductId != null &&
               isLowerTierThan(item.productId, activeOwnedProductId);
-            const checkoutProductId = resolveCheckoutProductId(
-              item.productId,
-            );
+            const checkoutProductId = resolveCheckoutProductId(item.productId);
             const matchedProduct = allProducts.find(
               (p) => p.id === item.productId,
             );
@@ -255,9 +257,7 @@ export const ProductRoot = ({
               .split(/\r?\n/)
               .map((line) => line.trim())
               .filter(Boolean)
-              .map((line) =>
-                line.replace(/^(?:[-*]\s+|[✔✓]\s*)/, "").trim(),
-              )
+              .map((line) => line.replace(/^(?:[-*]\s+|[✔✓]\s*)/, "").trim())
               .filter(Boolean);
 
             if (styleVariant === "pricing") {
@@ -312,9 +312,7 @@ export const ProductRoot = ({
                         <CheckoutButton
                           productId={checkoutProductId}
                           disabled={isLoading || !canCheckout}
-                          onCheckout={() =>
-                            startCheckout(checkoutProductId)
-                          }
+                          onCheckout={() => startCheckout(checkoutProductId)}
                           className={`${pricingCtaVariant === "filled" ? "button-filled" : "button-faded"} w-full`}
                         >
                           {activeOwnedProductId ? "Upgrade" : "Buy now"}
@@ -323,9 +321,7 @@ export const ProductRoot = ({
                         <CheckoutButton
                           productId={item.productId}
                           disabled={isLoading || !canCheckout}
-                          onCheckout={() =>
-                            startCheckout(item.productId)
-                          }
+                          onCheckout={() => startCheckout(item.productId)}
                           className={`${pricingCtaVariant === "filled" ? "button-filled" : "button-faded"} w-full`}
                         >
                           Buy now
@@ -412,9 +408,7 @@ export const ProductRoot = ({
                     <CheckoutButton
                       productId={checkoutProductId}
                       disabled={isLoading || !canCheckout}
-                      onCheckout={() =>
-                        startCheckout(checkoutProductId)
-                      }
+                      onCheckout={() => startCheckout(checkoutProductId)}
                     >
                       {activeOwnedProductId ? "Upgrade" : "Buy now"}
                     </CheckoutButton>
@@ -422,9 +416,7 @@ export const ProductRoot = ({
                     <CheckoutButton
                       productId={item.productId}
                       disabled={isLoading || !canCheckout}
-                      onCheckout={() =>
-                        startCheckout(item.productId)
-                      }
+                      onCheckout={() => startCheckout(item.productId)}
                     >
                       Buy now
                     </CheckoutButton>

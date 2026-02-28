@@ -129,10 +129,7 @@ describe("normalizePlanCatalog", () => {
     // Unknown values normalize to "custom"
     expect(catalog!.plans[1].category).toBe("custom");
     expect(catalog!.plans[1].billingType).toBe("custom");
-    expect(catalog!.plans[1].billingCycles).toEqual([
-      "every-month",
-      "custom",
-    ]);
+    expect(catalog!.plans[1].billingCycles).toEqual(["every-month", "custom"]);
   });
 
   it("filters out null cycles from normalization", () => {
@@ -183,7 +180,10 @@ describe("findPlanByProductId", () => {
       {
         planId: "pro",
         category: "paid" as const,
-        creemProductIds: { "every-month": "prod_1", "every-year": "prod_2" } as Record<string, string>,
+        creemProductIds: {
+          "every-month": "prod_1",
+          "every-year": "prod_2",
+        } as Record<string, string>,
       },
       {
         planId: "basic",

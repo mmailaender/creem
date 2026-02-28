@@ -1,17 +1,17 @@
 /* Components: Icon Buttons */
 
 @utility icon-button-base {
-	position: relative;
-	display: inline-flex;
-	align-items: center;
-	justify-content: center;
-	border-radius: var(--et-radius-m);
-	cursor: pointer;
-	user-select: none;
-	overflow: hidden;
-	text-decoration: none;
-	color: inherit;
-	background-color: transparent;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--et-radius-m);
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  background-color: transparent;
 
   &::after {
     content: "";
@@ -82,34 +82,34 @@
 }
 
 @utility icon-button-size-sm {
-	inline-size: 1.5rem;
-	block-size: 1.5rem;
+  inline-size: 1.5rem;
+  block-size: 1.5rem;
 }
 
 @utility icon-button-variant-tonal {
-	color: var(--et-color-foreground-on-tonal);
-	background-color: var(--et-color-surface-tonal);
+  color: var(--et-color-foreground-on-tonal);
+  background-color: var(--et-color-surface-tonal);
 
-	@variant dark {
-		color: var(--et-color-foreground-on-tonal-dark);
-		background-color: var(--et-color-surface-tonal-dark);
-	}
+  @variant dark {
+    color: var(--et-color-foreground-on-tonal-dark);
+    background-color: var(--et-color-surface-tonal-dark);
+  }
 }
 
 @utility icon-button-variant-ghost {
-	color: var(--et-color-foreground-muted);
-	background-color: transparent;
+  color: var(--et-color-foreground-muted);
+  background-color: transparent;
 
-	@variant dark {
-		color: var(--et-color-foreground-muted-dark);
-	}
+  @variant dark {
+    color: var(--et-color-foreground-muted-dark);
+  }
 }
 
 /* Precomposed classes for direct markup usage. */
 @utility icon-button-sm {
-	@apply icon-button-base icon-button-size-sm icon-button-variant-tonal;
+  @apply icon-button-base icon-button-size-sm icon-button-variant-tonal;
 }
 
 @utility icon-button-ghost-sm {
-	@apply icon-button-base icon-button-size-sm icon-button-variant-ghost;
+  @apply icon-button-base icon-button-size-sm icon-button-variant-ghost;
 }

@@ -802,9 +802,7 @@ describe("verifyWebhook (HMAC path)", () => {
 
     // Missing webhook secret throws ConvexError, not WebhookVerificationError
     // The handler should still return or throw
-    await expect(
-      routeCapture.handler!(mockCtx, mockRequest),
-    ).rejects.toThrow();
+    await expect(routeCapture.handler!(mockCtx, mockRequest)).rejects.toThrow();
   });
 });
 
@@ -883,7 +881,65 @@ describe("registerRoutes", () => {
     const ctx = createMockCtx();
 
     // Use real Creem test webhook payload
-    const body = JSON.stringify({"eventType":"checkout.completed","created_at":1772265126979,"object":{"id":"ch_6u5rCq19LEsXpltlDGtc9Y","object":"checkout","request_id":"6e75be93-e116-4f30-9d83-c6a5a0021f90","order":{"object":"order","id":"ord_7ZKxZkpnNcs0d1TxbBPcr0","customer":"cust_6aVJrSJi8h9r7cGzWPVBF0","product":"prod_35PR89LmiAjsR8JJwO7uM7","amount":2999,"currency":"USD","sub_total":2999,"tax_amount":500,"amount_due":2999,"amount_paid":2999,"status":"paid","type":"onetime","transaction":"tran_78fYacdKnQu3Bw3wOwtG60","created_at":"2026-02-28T07:52:06.979Z","updated_at":"2026-02-28T07:52:06.979Z","mode":"test"},"product":{"id":"prod_35PR89LmiAjsR8JJwO7uM7","object":"product","name":"Test Product","description":"A test product","price":2999,"currency":"USD","billing_type":"onetime","billing_period":"once","status":"active","tax_mode":"exclusive","tax_category":"saas","default_success_url":null,"created_at":"2026-02-28T07:52:06.979Z","updated_at":"2026-02-28T07:52:06.979Z","mode":"test"},"units":1,"success_url":"https://example.com/success","customer":{"id":"cust_6aVJrSJi8h9r7cGzWPVBF0","object":"customer","email":"test-customer@creem.io","name":"Test Customer","country":"US","created_at":"2026-02-28T07:52:06.979Z","updated_at":"2026-02-28T07:52:06.979Z","mode":"test"},"status":"completed","mode":"test","metadata":{"convexUserId":"user_1"}}});
+    const body = JSON.stringify({
+      eventType: "checkout.completed",
+      created_at: 1772265126979,
+      object: {
+        id: "ch_6u5rCq19LEsXpltlDGtc9Y",
+        object: "checkout",
+        request_id: "6e75be93-e116-4f30-9d83-c6a5a0021f90",
+        order: {
+          object: "order",
+          id: "ord_7ZKxZkpnNcs0d1TxbBPcr0",
+          customer: "cust_6aVJrSJi8h9r7cGzWPVBF0",
+          product: "prod_35PR89LmiAjsR8JJwO7uM7",
+          amount: 2999,
+          currency: "USD",
+          sub_total: 2999,
+          tax_amount: 500,
+          amount_due: 2999,
+          amount_paid: 2999,
+          status: "paid",
+          type: "onetime",
+          transaction: "tran_78fYacdKnQu3Bw3wOwtG60",
+          created_at: "2026-02-28T07:52:06.979Z",
+          updated_at: "2026-02-28T07:52:06.979Z",
+          mode: "test",
+        },
+        product: {
+          id: "prod_35PR89LmiAjsR8JJwO7uM7",
+          object: "product",
+          name: "Test Product",
+          description: "A test product",
+          price: 2999,
+          currency: "USD",
+          billing_type: "onetime",
+          billing_period: "once",
+          status: "active",
+          tax_mode: "exclusive",
+          tax_category: "saas",
+          default_success_url: null,
+          created_at: "2026-02-28T07:52:06.979Z",
+          updated_at: "2026-02-28T07:52:06.979Z",
+          mode: "test",
+        },
+        units: 1,
+        success_url: "https://example.com/success",
+        customer: {
+          id: "cust_6aVJrSJi8h9r7cGzWPVBF0",
+          object: "customer",
+          email: "test-customer@creem.io",
+          name: "Test Customer",
+          country: "US",
+          created_at: "2026-02-28T07:52:06.979Z",
+          updated_at: "2026-02-28T07:52:06.979Z",
+          mode: "test",
+        },
+        status: "completed",
+        mode: "test",
+        metadata: { convexUserId: "user_1" },
+      },
+    });
 
     const response = await signAndSend(handler!, ctx, body, SECRET);
     expect(response.status).toBe(202);
@@ -900,7 +956,50 @@ describe("registerRoutes", () => {
     const ctx = createMockCtx();
 
     // Use real Creem test webhook payload
-    const body = JSON.stringify({"eventType":"subscription.active","created_at":1772265324184,"object":{"id":"sub_35c5ooVUuIUtru83zXjrjC","object":"subscription","product":{"id":"prod_3prhYLElQzQaZMq7pePQqf","object":"product","name":"Test Subscription Product","description":"A test product for webhook simulation","price":2999,"currency":"USD","billing_type":"recurring","billing_period":"once","status":"active","tax_mode":"exclusive","tax_category":"saas","default_success_url":null,"created_at":"2026-02-28T07:55:24.184Z","updated_at":"2026-02-28T07:55:24.184Z","mode":"test"},"customer":{"id":"cust_50fklVtISQkWoAydmZ1LJb","object":"customer","email":"test-customer@creem.io","name":"Test Customer","country":"US","created_at":"2026-02-28T07:55:24.184Z","updated_at":"2026-02-28T07:55:24.184Z","mode":"test"},"collection_method":"charge_automatically","status":"active","current_period_start_date":"2026-02-28T07:55:24.184Z","current_period_end_date":"2026-03-30T07:55:24.184Z","canceled_at":null,"created_at":"2026-02-28T07:55:24.184Z","updated_at":"2026-02-28T07:55:24.184Z","mode":"test","metadata":{"convexUserId":"user_1"}}});
+    const body = JSON.stringify({
+      eventType: "subscription.active",
+      created_at: 1772265324184,
+      object: {
+        id: "sub_35c5ooVUuIUtru83zXjrjC",
+        object: "subscription",
+        product: {
+          id: "prod_3prhYLElQzQaZMq7pePQqf",
+          object: "product",
+          name: "Test Subscription Product",
+          description: "A test product for webhook simulation",
+          price: 2999,
+          currency: "USD",
+          billing_type: "recurring",
+          billing_period: "once",
+          status: "active",
+          tax_mode: "exclusive",
+          tax_category: "saas",
+          default_success_url: null,
+          created_at: "2026-02-28T07:55:24.184Z",
+          updated_at: "2026-02-28T07:55:24.184Z",
+          mode: "test",
+        },
+        customer: {
+          id: "cust_50fklVtISQkWoAydmZ1LJb",
+          object: "customer",
+          email: "test-customer@creem.io",
+          name: "Test Customer",
+          country: "US",
+          created_at: "2026-02-28T07:55:24.184Z",
+          updated_at: "2026-02-28T07:55:24.184Z",
+          mode: "test",
+        },
+        collection_method: "charge_automatically",
+        status: "active",
+        current_period_start_date: "2026-02-28T07:55:24.184Z",
+        current_period_end_date: "2026-03-30T07:55:24.184Z",
+        canceled_at: null,
+        created_at: "2026-02-28T07:55:24.184Z",
+        updated_at: "2026-02-28T07:55:24.184Z",
+        mode: "test",
+        metadata: { convexUserId: "user_1" },
+      },
+    });
 
     const response = await signAndSend(handler!, ctx, body, SECRET);
     expect(response.status).toBe(202);
@@ -908,7 +1007,9 @@ describe("registerRoutes", () => {
     expect(ctx.runMutation).toHaveBeenCalledWith(
       REFS.updateSubscription,
       expect.objectContaining({
-        subscription: expect.objectContaining({ id: "sub_35c5ooVUuIUtru83zXjrjC" }),
+        subscription: expect.objectContaining({
+          id: "sub_35c5ooVUuIUtru83zXjrjC",
+        }),
       }),
     );
   });
@@ -922,7 +1023,50 @@ describe("registerRoutes", () => {
     const ctx = createMockCtx();
 
     // Use real-shaped payload with eventType=subscription.created
-    const body = JSON.stringify({"eventType":"subscription.created","created_at":1772265324184,"object":{"id":"sub_new_123","object":"subscription","product":{"id":"prod_3prhYLElQzQaZMq7pePQqf","object":"product","name":"Test Subscription Product","description":"A test product","price":2999,"currency":"USD","billing_type":"recurring","billing_period":"once","status":"active","tax_mode":"exclusive","tax_category":"saas","default_success_url":null,"created_at":"2026-02-28T07:55:24.184Z","updated_at":"2026-02-28T07:55:24.184Z","mode":"test"},"customer":{"id":"cust_50fklVtISQkWoAydmZ1LJb","object":"customer","email":"test-customer@creem.io","name":"Test Customer","country":"US","created_at":"2026-02-28T07:55:24.184Z","updated_at":"2026-02-28T07:55:24.184Z","mode":"test"},"collection_method":"charge_automatically","status":"active","current_period_start_date":"2026-02-28T07:55:24.184Z","current_period_end_date":"2026-03-30T07:55:24.184Z","canceled_at":null,"created_at":"2026-02-28T07:55:24.184Z","updated_at":"2026-02-28T07:55:24.184Z","mode":"test","metadata":{"convexUserId":"user_2"}}});
+    const body = JSON.stringify({
+      eventType: "subscription.created",
+      created_at: 1772265324184,
+      object: {
+        id: "sub_new_123",
+        object: "subscription",
+        product: {
+          id: "prod_3prhYLElQzQaZMq7pePQqf",
+          object: "product",
+          name: "Test Subscription Product",
+          description: "A test product",
+          price: 2999,
+          currency: "USD",
+          billing_type: "recurring",
+          billing_period: "once",
+          status: "active",
+          tax_mode: "exclusive",
+          tax_category: "saas",
+          default_success_url: null,
+          created_at: "2026-02-28T07:55:24.184Z",
+          updated_at: "2026-02-28T07:55:24.184Z",
+          mode: "test",
+        },
+        customer: {
+          id: "cust_50fklVtISQkWoAydmZ1LJb",
+          object: "customer",
+          email: "test-customer@creem.io",
+          name: "Test Customer",
+          country: "US",
+          created_at: "2026-02-28T07:55:24.184Z",
+          updated_at: "2026-02-28T07:55:24.184Z",
+          mode: "test",
+        },
+        collection_method: "charge_automatically",
+        status: "active",
+        current_period_start_date: "2026-02-28T07:55:24.184Z",
+        current_period_end_date: "2026-03-30T07:55:24.184Z",
+        canceled_at: null,
+        created_at: "2026-02-28T07:55:24.184Z",
+        updated_at: "2026-02-28T07:55:24.184Z",
+        mode: "test",
+        metadata: { convexUserId: "user_2" },
+      },
+    });
 
     const response = await signAndSend(handler!, ctx, body, SECRET);
     expect(response.status).toBe(202);
@@ -945,7 +1089,26 @@ describe("registerRoutes", () => {
     // product.* events have the product directly in object
     // But parseProduct may fail on simplified data — the handler logs warning and skips
     // Use real product shape from the checkout payload
-    const body = JSON.stringify({"eventType":"product.created","object":{"id":"prod_35PR89LmiAjsR8JJwO7uM7","object":"product","name":"Test Product","description":"A test product for webhook simulation","price":2999,"currency":"USD","billing_type":"onetime","billing_period":"once","status":"active","tax_mode":"exclusive","tax_category":"saas","default_success_url":null,"created_at":"2026-02-28T07:52:06.979Z","updated_at":"2026-02-28T07:52:06.979Z","mode":"test"}});
+    const body = JSON.stringify({
+      eventType: "product.created",
+      object: {
+        id: "prod_35PR89LmiAjsR8JJwO7uM7",
+        object: "product",
+        name: "Test Product",
+        description: "A test product for webhook simulation",
+        price: 2999,
+        currency: "USD",
+        billing_type: "onetime",
+        billing_period: "once",
+        status: "active",
+        tax_mode: "exclusive",
+        tax_category: "saas",
+        default_success_url: null,
+        created_at: "2026-02-28T07:52:06.979Z",
+        updated_at: "2026-02-28T07:52:06.979Z",
+        mode: "test",
+      },
+    });
 
     const response = await signAndSend(handler!, ctx, body, SECRET);
     expect(response.status).toBe(202);
@@ -965,7 +1128,26 @@ describe("registerRoutes", () => {
     const { handler } = setupWebhookHandler(creem);
     const ctx = createMockCtx();
 
-    const body = JSON.stringify({"eventType":"product.updated","object":{"id":"prod_35PR89LmiAjsR8JJwO7uM7","object":"product","name":"Updated Product","description":"Updated description","price":1999,"currency":"USD","billing_type":"onetime","billing_period":"once","status":"active","tax_mode":"exclusive","tax_category":"saas","default_success_url":null,"created_at":"2026-02-28T07:52:06.979Z","updated_at":"2026-02-28T08:00:00.000Z","mode":"test"}});
+    const body = JSON.stringify({
+      eventType: "product.updated",
+      object: {
+        id: "prod_35PR89LmiAjsR8JJwO7uM7",
+        object: "product",
+        name: "Updated Product",
+        description: "Updated description",
+        price: 1999,
+        currency: "USD",
+        billing_type: "onetime",
+        billing_period: "once",
+        status: "active",
+        tax_mode: "exclusive",
+        tax_category: "saas",
+        default_success_url: null,
+        created_at: "2026-02-28T07:52:06.979Z",
+        updated_at: "2026-02-28T08:00:00.000Z",
+        mode: "test",
+      },
+    });
 
     const response = await signAndSend(handler!, ctx, body, SECRET);
     expect(response.status).toBe(202);
@@ -1009,14 +1191,59 @@ describe("registerRoutes", () => {
     const { handler } = setupWebhookHandler(creem);
     const ctx = createMockCtx();
 
-    const body = JSON.stringify({"eventType":"subscription.canceled","created_at":1772265355057,"object":{"id":"sub_5PHyfaaDkDUmAsKdbH8mZZ","object":"subscription","product":{"id":"prod_3Hj6Hd2higtUp5f4gi50vR","object":"product","name":"Test Subscription Product","description":"A test product for webhook simulation","price":2999,"currency":"USD","billing_type":"recurring","billing_period":"once","status":"active","tax_mode":"exclusive","tax_category":"saas","default_success_url":null,"created_at":"2026-02-28T07:55:55.057Z","updated_at":"2026-02-28T07:55:55.057Z","mode":"test"},"customer":{"id":"cust_3TfrBYcWhn9oX22YP8B5Hc","object":"customer","email":"test-customer@creem.io","name":"Test Customer","country":"US","created_at":"2026-02-28T07:55:55.057Z","updated_at":"2026-02-28T07:55:55.057Z","mode":"test"},"collection_method":"charge_automatically","status":"canceled","canceled_at":"2026-02-28T07:55:55.057Z","current_period_start_date":"2026-02-28T07:55:55.057Z","current_period_end_date":"2026-03-30T07:55:55.057Z","created_at":"2026-02-28T07:55:55.057Z","updated_at":"2026-02-28T07:55:55.057Z","mode":"test","metadata":{"convexUserId":"user_1"}}});
+    const body = JSON.stringify({
+      eventType: "subscription.canceled",
+      created_at: 1772265355057,
+      object: {
+        id: "sub_5PHyfaaDkDUmAsKdbH8mZZ",
+        object: "subscription",
+        product: {
+          id: "prod_3Hj6Hd2higtUp5f4gi50vR",
+          object: "product",
+          name: "Test Subscription Product",
+          description: "A test product for webhook simulation",
+          price: 2999,
+          currency: "USD",
+          billing_type: "recurring",
+          billing_period: "once",
+          status: "active",
+          tax_mode: "exclusive",
+          tax_category: "saas",
+          default_success_url: null,
+          created_at: "2026-02-28T07:55:55.057Z",
+          updated_at: "2026-02-28T07:55:55.057Z",
+          mode: "test",
+        },
+        customer: {
+          id: "cust_3TfrBYcWhn9oX22YP8B5Hc",
+          object: "customer",
+          email: "test-customer@creem.io",
+          name: "Test Customer",
+          country: "US",
+          created_at: "2026-02-28T07:55:55.057Z",
+          updated_at: "2026-02-28T07:55:55.057Z",
+          mode: "test",
+        },
+        collection_method: "charge_automatically",
+        status: "canceled",
+        canceled_at: "2026-02-28T07:55:55.057Z",
+        current_period_start_date: "2026-02-28T07:55:55.057Z",
+        current_period_end_date: "2026-03-30T07:55:55.057Z",
+        created_at: "2026-02-28T07:55:55.057Z",
+        updated_at: "2026-02-28T07:55:55.057Z",
+        mode: "test",
+        metadata: { convexUserId: "user_1" },
+      },
+    });
 
     const response = await signAndSend(handler!, ctx, body, SECRET);
     expect(response.status).toBe(202);
     expect(ctx.runMutation).toHaveBeenCalledWith(
       REFS.updateSubscription,
       expect.objectContaining({
-        subscription: expect.objectContaining({ id: "sub_5PHyfaaDkDUmAsKdbH8mZZ" }),
+        subscription: expect.objectContaining({
+          id: "sub_5PHyfaaDkDUmAsKdbH8mZZ",
+        }),
       }),
     );
   });
@@ -1306,9 +1533,7 @@ describe("api() convenience exports", () => {
       const ctx = createMockCtx({
         [REFS.getCustomerByEntityId]: mockCustomer,
       });
-      const handler = extractHandler(
-        apiExports.customers.retrieve as never,
-      );
+      const handler = extractHandler(apiExports.customers.retrieve as never);
       const result = await handler(ctx, {});
       expect(result).toEqual(mockCustomer);
     });

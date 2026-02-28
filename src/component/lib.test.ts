@@ -1105,9 +1105,7 @@ describe("updateProducts mutation", () => {
       product: createTestProduct({ id: "prod_a", name: "Old Name" }),
     });
     await t.mutation(api.lib.updateProducts, {
-      products: [
-        createTestProduct({ id: "prod_a", name: "New Name" }),
-      ],
+      products: [createTestProduct({ id: "prod_a", name: "New Name" })],
     });
     const products = await t.query(api.lib.listProducts, {});
     expect(products).toHaveLength(1);
@@ -1306,20 +1304,26 @@ describe("insertCustomer mutation enrichment", () => {
   });
 
   it("enriches existing customer with new email and name", async () => {
-    await t.mutation(api.lib.insertCustomer, createTestCustomer({
-      id: "cust_1",
-      entityId: "user_1",
-    }));
+    await t.mutation(
+      api.lib.insertCustomer,
+      createTestCustomer({
+        id: "cust_1",
+        entityId: "user_1",
+      }),
+    );
     // Insert again with additional fields
-    await t.mutation(api.lib.insertCustomer, createTestCustomer({
-      id: "cust_1",
-      entityId: "user_1",
-      email: "test@example.com",
-      name: "Test User",
-      country: "US",
-      mode: "live",
-      updatedAt: "2025-02-01T00:00:00.000Z",
-    }));
+    await t.mutation(
+      api.lib.insertCustomer,
+      createTestCustomer({
+        id: "cust_1",
+        entityId: "user_1",
+        email: "test@example.com",
+        name: "Test User",
+        country: "US",
+        mode: "live",
+        updatedAt: "2025-02-01T00:00:00.000Z",
+      }),
+    );
     const customer = await t.query(api.lib.getCustomerByEntityId, {
       entityId: "user_1",
     });

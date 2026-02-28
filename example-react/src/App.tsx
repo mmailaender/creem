@@ -60,40 +60,75 @@ export default function App() {
 
           <nav className="lg:col-start-10 lg:col-span-3 space-y-10 lg:pt-2">
             <div className="space-y-4">
-              <p className="label-m text-foreground-placeholder">SUBSCRIPTIONS WIDGETS</p>
+              <p className="label-m text-foreground-placeholder">
+                SUBSCRIPTIONS WIDGETS
+              </p>
               <div className="space-y-1">
                 <div className="flex items-center gap-3">
-                  <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">01</span>
-                  <a href="#subscription-with-trial" className="link-inline">With Trial (4 Cycles)</a>
+                  <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">
+                    01
+                  </span>
+                  <a href="#subscription-with-trial" className="link-inline">
+                    With Trial (4 Cycles)
+                  </a>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">02</span>
-                  <a href="#subscription-without-trial" className="link-inline">Without Trial (Monthly Only)</a>
+                  <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">
+                    02
+                  </span>
+                  <a href="#subscription-without-trial" className="link-inline">
+                    Without Trial (Monthly Only)
+                  </a>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">03</span>
-                  <a href="#subscription-seat-selectable" className="link-inline">Seat-Based (User-Selectable)</a>
+                  <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">
+                    03
+                  </span>
+                  <a
+                    href="#subscription-seat-selectable"
+                    className="link-inline"
+                  >
+                    Seat-Based (User-Selectable)
+                  </a>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">04</span>
-                  <a href="#subscription-seat-auto" className="link-inline">Seat-Based (Auto-Derived)</a>
+                  <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">
+                    04
+                  </span>
+                  <a href="#subscription-seat-auto" className="link-inline">
+                    Seat-Based (Auto-Derived)
+                  </a>
                 </div>
               </div>
             </div>
             <div className="space-y-4">
-              <p className="label-m text-foreground-placeholder">ONE TIME PURCHASE WIDGETS</p>
+              <p className="label-m text-foreground-placeholder">
+                ONE TIME PURCHASE WIDGETS
+              </p>
               <div className="space-y-1">
                 <div className="flex items-center gap-3">
-                  <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">05</span>
-                  <a href="#onetime-single" className="link-inline">Single One-Time Product</a>
+                  <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">
+                    05
+                  </span>
+                  <a href="#onetime-single" className="link-inline">
+                    Single One-Time Product
+                  </a>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">06</span>
-                  <a href="#onetime-group" className="link-inline">Mutually Exclusive Product Group</a>
+                  <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">
+                    06
+                  </span>
+                  <a href="#onetime-group" className="link-inline">
+                    Mutually Exclusive Product Group
+                  </a>
                 </div>
                 <div className="flex items-center gap-3">
-                  <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">07</span>
-                  <a href="#onetime-repeat" className="link-inline">Repeating Product (Consumable)</a>
+                  <span className="label-m text-foreground-placeholder inline-block w-6 shrink-0">
+                    07
+                  </span>
+                  <a href="#onetime-repeat" className="link-inline">
+                    Repeating Product (Consumable)
+                  </a>
                 </div>
               </div>
             </div>
@@ -102,9 +137,7 @@ export default function App() {
       </header>
 
       <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 space-y-14 pt-14">
-        <CheckoutSuccessSummary
-          className="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900"
-        />
+        <CheckoutSuccessSummary className="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900" />
 
         {/* ─── Section 1: Subscriptions with trial (all 4 billing cycles) ─── */}
         <section
@@ -114,11 +147,15 @@ export default function App() {
           <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[104px]">
             <div className="mx-auto grid grid-cols-12">
               <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
-                <span className="text-foreground-placeholder">Subscription</span><br />
+                <span className="text-foreground-placeholder">
+                  Subscription
+                </span>
+                <br />
                 With Trial (4 Cycles)
               </h2>
               <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
-                All four billing cycles are available. The toggle derives from the registered plans automatically.
+                All four billing cycles are available. The toggle derives from
+                the registered plans automatically.
               </p>
             </div>
 
@@ -175,11 +212,15 @@ export default function App() {
           <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
             <div className="mx-auto grid grid-cols-12">
               <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
-                <span className="text-foreground-placeholder">Subscription</span><br />
+                <span className="text-foreground-placeholder">
+                  Subscription
+                </span>
+                <br />
                 Without Trial (Monthly Only)
               </h2>
               <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
-                Only monthly products registered. The billing toggle should not appear.
+                Only monthly products registered. The billing toggle should not
+                appear.
               </p>
             </div>
 
@@ -219,11 +260,15 @@ export default function App() {
           <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
             <div className="mx-auto grid grid-cols-12">
               <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
-                <span className="text-foreground-placeholder">Subscription</span><br />
+                <span className="text-foreground-placeholder">
+                  Subscription
+                </span>
+                <br />
                 Seat-Based (User-Selectable)
               </h2>
               <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
-                Seat-based plans with a quantity picker. The user selects how many seats before checkout.
+                Seat-based plans with a quantity picker. The user selects how
+                many seats before checkout.
               </p>
             </div>
 
@@ -258,11 +303,16 @@ export default function App() {
           <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
             <div className="mx-auto grid grid-cols-12">
               <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
-                <span className="text-foreground-placeholder">Subscription</span><br />
+                <span className="text-foreground-placeholder">
+                  Subscription
+                </span>
+                <br />
                 Seat-Based (Auto-Derived)
               </h2>
               <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
-                Same seat-based products but with a fixed unit count (e.g. derived from organization member count). No picker shown — hardcoded to 5 seats.
+                Same seat-based products but with a fixed unit count (e.g.
+                derived from organization member count). No picker shown —
+                hardcoded to 5 seats.
               </p>
             </div>
 
@@ -293,16 +343,24 @@ export default function App() {
           <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
             <div className="mx-auto grid grid-cols-12">
               <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
-                <span className="text-foreground-placeholder">One Time Purchase</span><br />
+                <span className="text-foreground-placeholder">
+                  One Time Purchase
+                </span>
+                <br />
                 Single One-Time Product
               </h2>
               <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
-                A standalone product purchased once. Shows &ldquo;Owned&rdquo; after purchase.
+                A standalone product purchased once. Shows &ldquo;Owned&rdquo;
+                after purchase.
               </p>
             </div>
 
             <div className="mt-[6.5rem]">
-              <Product.Root api={connectedApi} layout="single" styleVariant="pricing">
+              <Product.Root
+                api={connectedApi}
+                layout="single"
+                styleVariant="pricing"
+              >
                 <Product.Item
                   type="one-time"
                   title="One-time purchase"
@@ -321,18 +379,36 @@ export default function App() {
           <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
             <div className="mx-auto grid grid-cols-12">
               <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
-                <span className="text-foreground-placeholder">One Time Purchase</span><br />
+                <span className="text-foreground-placeholder">
+                  One Time Purchase
+                </span>
+                <br />
                 Mutually Exclusive Product Group
               </h2>
               <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
-                Transition graph decides available upgrade paths. Upgrading from Basic to Premium uses a dedicated delta product. Buy first the Basic Product and then upgrade to Premium.
+                Transition graph decides available upgrade paths. Upgrading from
+                Basic to Premium uses a dedicated delta product. Buy first the
+                Basic Product and then upgrade to Premium.
               </p>
             </div>
 
             <div className="mt-[6.5rem]">
-              <Product.Root api={connectedApi} transition={upgradeTransitions} styleVariant="pricing" showImages>
-                <Product.Item type="one-time" title="Basic" productId="prod_4Di7Lkhf3TXy4UOKsUrGw0" />
-                <Product.Item type="one-time" title="Premium" productId="prod_56sJIyL7piLCVv270n4KBz" />
+              <Product.Root
+                api={connectedApi}
+                transition={upgradeTransitions}
+                styleVariant="pricing"
+                showImages
+              >
+                <Product.Item
+                  type="one-time"
+                  title="Basic"
+                  productId="prod_4Di7Lkhf3TXy4UOKsUrGw0"
+                />
+                <Product.Item
+                  type="one-time"
+                  title="Premium"
+                  productId="prod_56sJIyL7piLCVv270n4KBz"
+                />
               </Product.Root>
             </div>
           </div>
@@ -346,16 +422,26 @@ export default function App() {
           <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 pt-[6.5rem]">
             <div className="mx-auto grid grid-cols-12">
               <h2 className="heading-l col-span-12 text-center text-foreground-default lg:col-start-4 lg:col-span-6">
-                <span className="text-foreground-placeholder">One Time Purchase</span><br />
+                <span className="text-foreground-placeholder">
+                  One Time Purchase
+                </span>
+                <br />
                 Repeating Product (Consumable)
               </h2>
               <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
-                Can be purchased multiple times. No &ldquo;Owned&rdquo; badge — always shows the purchase button.
+                Can be purchased multiple times. No &ldquo;Owned&rdquo; badge —
+                always shows the purchase button.
               </p>
             </div>
 
             <div className="mt-[6.5rem]">
-              <Product.Root api={connectedApi} layout="single" styleVariant="pricing" showImages pricingCtaVariant="filled">
+              <Product.Root
+                api={connectedApi}
+                layout="single"
+                styleVariant="pricing"
+                showImages
+                pricingCtaVariant="filled"
+              >
                 <Product.Item
                   type="recurring"
                   productId="prod_73CnZ794MaJ1DUn8MU0O5f"

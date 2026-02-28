@@ -44,8 +44,7 @@ export const SubscriptionItem = ({
 
   useEffect(() => {
     if (!rootContext) return;
-    const resolvedPlanId =
-      planId ?? Object.values(productIds ?? {})[0] ?? type;
+    const resolvedPlanId = planId ?? Object.values(productIds ?? {})[0] ?? type;
     const registration = {
       planId: resolvedPlanId,
       type,

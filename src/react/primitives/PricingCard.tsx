@@ -75,7 +75,8 @@ export const PricingCard = ({
   const [editingSeats, setEditingSeats] = useState(false);
 
   const [prevUnits, setPrevUnits] = useState(units);
-  const [prevSubscribedSeats, setPrevSubscribedSeats] = useState(subscribedSeats);
+  const [prevSubscribedSeats, setPrevSubscribedSeats] =
+    useState(subscribedSeats);
 
   if (units !== prevUnits) {
     setPrevUnits(units);
@@ -101,8 +102,7 @@ export const PricingCard = ({
     subscriptionProductId != null &&
     productId != null &&
     productId === subscriptionProductId;
-  const isTrialing =
-    isActiveProduct && subscriptionStatus === "trialing";
+  const isTrialing = isActiveProduct && subscriptionStatus === "trialing";
   const trialDaysLeft =
     isTrialing && subscriptionTrialEnd
       ? computeTrialDays(subscriptionTrialEnd)
@@ -200,13 +200,16 @@ export const PricingCard = ({
         <h3 className="title-s text-foreground-default">
           {plan.title ?? plan.planId}
         </h3>
-        {(isActiveProduct || isActiveFreePlan) ? (
+        {isActiveProduct || isActiveFreePlan ? (
           <span className="badge-faded-sm">
             {isTrialing ? (
               <>
                 Free trial
                 {trialDaysLeft != null && (
-                  <>&ensp;·&ensp;{trialDaysLeft} day{trialDaysLeft === 1 ? "" : "s"} left</>
+                  <>
+                    &ensp;·&ensp;{trialDaysLeft} day
+                    {trialDaysLeft === 1 ? "" : "s"} left
+                  </>
                 )}
               </>
             ) : (
@@ -269,10 +272,7 @@ export const PricingCard = ({
             reserveSeatActionHeight ? "min-h-[4.5rem]" : ""
           }`}
         >
-          {isActiveProduct &&
-          isSeatPlan &&
-          showSeatPicker &&
-          onUpdateSeats ? (
+          {isActiveProduct && isSeatPlan && showSeatPicker && onUpdateSeats ? (
             <div className="flex w-full flex-col gap-2">
               {editingSeats ? (
                 <>
@@ -342,10 +342,9 @@ export const PricingCard = ({
             >
               Cancel subscription
             </button>
-          ) : isActiveProduct || isActiveFreePlan ? (
-            /* Keep CTA row height but intentionally empty when current plan has no action */
-            null
-          ) : (isSiblingPlan || isActivePlanOtherCycle) && productId ? (
+          ) : isActiveProduct ||
+            isActiveFreePlan ? /* Keep CTA row height but intentionally empty when current plan has no action */
+          null : (isSiblingPlan || isActivePlanOtherCycle) && productId ? (
             <CheckoutButton
               productId={productId}
               disabled={disableSwitch}

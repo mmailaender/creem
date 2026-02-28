@@ -250,8 +250,8 @@ import path and framework boilerplate differ.
 
 > **Convention:** Where the markup is identical in both frameworks, examples are
 > shown once. The only recurring difference is `class=` (Svelte) vs `className=`
-> (React) when passing CSS classes. Where Svelte and React syntax diverges
-> (e.g. children rendering), both versions are shown.
+> (React) when passing CSS classes. Where Svelte and React syntax diverges (e.g.
+> children rendering), both versions are shown.
 
 ### Wire the billing API
 
@@ -288,7 +288,9 @@ or page component:
 
 ```tsx
 import {
-  Subscription, Product, BillingPortal,
+  Subscription,
+  Product,
+  BillingPortal,
   type ConnectedBillingApi,
 } from "@mmailaender/convex-creem/react";
 import { api } from "../convex/_generated/api";
@@ -305,9 +307,10 @@ const billingApi: ConnectedBillingApi = {
 };
 ```
 
-> The `ConnectedBillingApi` object is the same shape in both frameworks. Only the
-> Convex client setup differs: `setupConvex()` in Svelte vs `<ConvexProvider>`
-> in React (see [convex-svelte](https://github.com/get-convex/convex-svelte) and
+> The `ConnectedBillingApi` object is the same shape in both frameworks. Only
+> the Convex client setup differs: `setupConvex()` in Svelte vs
+> `<ConvexProvider>` in React (see
+> [convex-svelte](https://github.com/get-convex/convex-svelte) and
 > [convex/react](https://docs.convex.dev/client/react) docs).
 
 ### 1. Subscriptions
@@ -889,10 +892,12 @@ export const createDiscount = action({
 
 All components share **identical props** across Svelte and React.
 
-- **Import:** `@mmailaender/convex-creem/svelte` or `@mmailaender/convex-creem/react`
+- **Import:** `@mmailaender/convex-creem/svelte` or
+  `@mmailaender/convex-creem/react`
 - **CSS class prop:** `class` in Svelte, `className` in React
 - **Children:** Svelte `Snippet` / React `ReactNode`
-- **Svelte** components use Svelte 5 runes and snippet rendering (`{@render ...}`)
+- **Svelte** components use Svelte 5 runes and snippet rendering
+  (`{@render ...}`)
 
 See the [Svelte example](example-svelte) and [React example](example-react) for
 complete integrations.
@@ -906,18 +911,18 @@ These query Convex directly and manage billing state end-to-end.
 Container for subscription plan cards. Handles billing cycle toggle, checkout,
 plan switching, cancellation, and seat management.
 
-| Prop               | Type                                                      | Default                                      | Description                                                                                                                                               |
-| ------------------ | --------------------------------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `api`              | `ConnectedBillingApi`                                     | —                                            | **Required.** Backend function references                                                                                                                 |
-| `permissions`      | `BillingPermissions`                                      | all enabled                                  | Disable actions based on user role                                                                                                                        |
-| `class`/`className`| `string`                                                  | `""`                                         | Wrapper CSS class                                                                                                                                         |
-| `successUrl`       | `string`                                                  | product's `defaultSuccessUrl` → current page | Override redirect after checkout. When omitted, uses the product's `defaultSuccessUrl` from Creem; if that is also unset, falls back to the current page. |
-| `units`            | `number`                                                  | —                                            | Auto-derived seat count for seat-based plans                                                                                                              |
-| `showSeatPicker`   | `boolean`                                                 | `false`                                      | Show quantity picker on seat-based cards                                                                                                                  |
-| `twoColumnLayout`  | `boolean`                                                 | `false`                                      | Use two-column card layout                                                                                                                                |
-| `updateBehavior`   | `UpdateBehavior`                                          | `"proration-charge-immediately"`             | How plan switches and seat updates are billed. See below.                                                                                                 |
-| `onBeforeCheckout` | `(intent: CheckoutIntent) => Promise<boolean> \| boolean` | —                                            | Gate checkout (auth, terms, etc.). Return `false` to abort.                                                                                               |
-| `children`         | `Snippet` / `ReactNode`                                   | —                                            | `<Subscription.Item>` children                                                                                                                            |
+| Prop                | Type                                                      | Default                                      | Description                                                                                                                                               |
+| ------------------- | --------------------------------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `api`               | `ConnectedBillingApi`                                     | —                                            | **Required.** Backend function references                                                                                                                 |
+| `permissions`       | `BillingPermissions`                                      | all enabled                                  | Disable actions based on user role                                                                                                                        |
+| `class`/`className` | `string`                                                  | `""`                                         | Wrapper CSS class                                                                                                                                         |
+| `successUrl`        | `string`                                                  | product's `defaultSuccessUrl` → current page | Override redirect after checkout. When omitted, uses the product's `defaultSuccessUrl` from Creem; if that is also unset, falls back to the current page. |
+| `units`             | `number`                                                  | —                                            | Auto-derived seat count for seat-based plans                                                                                                              |
+| `showSeatPicker`    | `boolean`                                                 | `false`                                      | Show quantity picker on seat-based cards                                                                                                                  |
+| `twoColumnLayout`   | `boolean`                                                 | `false`                                      | Use two-column card layout                                                                                                                                |
+| `updateBehavior`    | `UpdateBehavior`                                          | `"proration-charge-immediately"`             | How plan switches and seat updates are billed. See below.                                                                                                 |
+| `onBeforeCheckout`  | `(intent: CheckoutIntent) => Promise<boolean> \| boolean` | —                                            | Gate checkout (auth, terms, etc.). Return `false` to abort.                                                                                               |
+| `children`          | `Snippet` / `ReactNode`                                   | —                                            | `<Subscription.Item>` children                                                                                                                            |
 
 **`UpdateBehavior`** controls how the Creem API handles plan switches and seat
 changes:
@@ -953,19 +958,19 @@ in your markup.
 Container for one-time or repeating product cards. Handles ownership tracking,
 upgrade transitions, and checkout.
 
-| Prop               | Type                                                      | Default                                      | Description                                                                                                                                               |
-| ------------------ | --------------------------------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `api`              | `ConnectedBillingApi`                                     | —                                            | **Required.** Backend function references                                                                                                                 |
-| `permissions`      | `BillingPermissions`                                      | all enabled                                  | Disable actions based on user role                                                                                                                        |
-| `transition`       | `Transition[]`                                            | `[]`                                         | Upgrade path rules between products                                                                                                                       |
-| `class`/`className`| `string`                                                  | `""`                                         | Wrapper CSS class                                                                                                                                         |
-| `layout`           | `"default" \| "single"`                                   | `"default"`                                  | Card layout mode                                                                                                                                          |
-| `styleVariant`     | `"legacy" \| "pricing"`                                   | `"legacy"`                                   | Visual style variant                                                                                                                                      |
-| `showImages`       | `boolean`                                                 | `false`                                      | Show product images on cards                                                                                                                              |
-| `pricingCtaVariant`| `"filled" \| "faded"`                                     | `"faded"`                                    | Call-to-action button style                                                                                                                               |
-| `successUrl`       | `string`                                                  | product's `defaultSuccessUrl` → current page | Override redirect after checkout. When omitted, uses the product's `defaultSuccessUrl` from Creem; if that is also unset, falls back to the current page. |
-| `onBeforeCheckout` | `(intent: CheckoutIntent) => Promise<boolean> \| boolean` | —                                            | Gate checkout (auth, terms, etc.). Return `false` to abort.                                                                                               |
-| `children`         | `Snippet` / `ReactNode`                                   | —                                            | `<Product.Item>` children                                                                                                                                 |
+| Prop                | Type                                                      | Default                                      | Description                                                                                                                                               |
+| ------------------- | --------------------------------------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `api`               | `ConnectedBillingApi`                                     | —                                            | **Required.** Backend function references                                                                                                                 |
+| `permissions`       | `BillingPermissions`                                      | all enabled                                  | Disable actions based on user role                                                                                                                        |
+| `transition`        | `Transition[]`                                            | `[]`                                         | Upgrade path rules between products                                                                                                                       |
+| `class`/`className` | `string`                                                  | `""`                                         | Wrapper CSS class                                                                                                                                         |
+| `layout`            | `"default" \| "single"`                                   | `"default"`                                  | Card layout mode                                                                                                                                          |
+| `styleVariant`      | `"legacy" \| "pricing"`                                   | `"legacy"`                                   | Visual style variant                                                                                                                                      |
+| `showImages`        | `boolean`                                                 | `false`                                      | Show product images on cards                                                                                                                              |
+| `pricingCtaVariant` | `"filled" \| "faded"`                                     | `"faded"`                                    | Call-to-action button style                                                                                                                               |
+| `successUrl`        | `string`                                                  | product's `defaultSuccessUrl` → current page | Override redirect after checkout. When omitted, uses the product's `defaultSuccessUrl` from Creem; if that is also unset, falls back to the current page. |
+| `onBeforeCheckout`  | `(intent: CheckoutIntent) => Promise<boolean> \| boolean` | —                                            | Gate checkout (auth, terms, etc.). Return `false` to abort.                                                                                               |
+| `children`          | `Snippet` / `ReactNode`                                   | —                                            | `<Product.Item>` children                                                                                                                                 |
 
 **Transition types:**
 
@@ -993,12 +998,12 @@ Registers a product inside `<Product.Root>`.
 Button that opens the Creem customer billing portal. Auto-hides when the billing
 entity has no Creem customer record, or when `canAccessPortal` is `false`.
 
-| Prop               | Type                  | Default            | Description                                               |
-| ------------------ | --------------------- | ------------------ | --------------------------------------------------------- |
-| `api`              | `ConnectedBillingApi` | —                  | **Required.** Backend function references                 |
-| `permissions`      | `BillingPermissions`  | all enabled        | Control portal access (e.g. `{ canAccessPortal: false }`) |
-| `class`/`className`| `string`              | `""`               | Button CSS class                                          |
-| `children`         | `Snippet` / `ReactNode` | `"Manage billing"` | Custom button label                                    |
+| Prop                | Type                    | Default            | Description                                               |
+| ------------------- | ----------------------- | ------------------ | --------------------------------------------------------- |
+| `api`               | `ConnectedBillingApi`   | —                  | **Required.** Backend function references                 |
+| `permissions`       | `BillingPermissions`    | all enabled        | Control portal access (e.g. `{ canAccessPortal: false }`) |
+| `class`/`className` | `string`                | `""`               | Button CSS class                                          |
+| `children`          | `Snippet` / `ReactNode` | `"Manage billing"` | Custom button label                                       |
 
 ### Presentational components
 
@@ -1050,13 +1055,13 @@ Billing cycle segment control (e.g. Monthly / Yearly).
 Styled checkout button. Supports both `onCheckout` callback and `href` link
 modes.
 
-| Prop         | Type                | Description                        |
-| ------------ | ------------------- | ---------------------------------- |
-| `productId`  | `string`            | Product ID                         |
-| `href`       | `string`            | Link mode: direct URL              |
-| `disabled`   | `boolean`           | Disable button                     |
-| `className`  | `string`            | CSS class                          |
-| `onCheckout` | `(payload) => void` | Callback mode: `{ productId }`     |
+| Prop         | Type                    | Description                        |
+| ------------ | ----------------------- | ---------------------------------- |
+| `productId`  | `string`                | Product ID                         |
+| `href`       | `string`                | Link mode: direct URL              |
+| `disabled`   | `boolean`               | Disable button                     |
+| `className`  | `string`                | CSS class                          |
+| `onCheckout` | `(payload) => void`     | Callback mode: `{ productId }`     |
 | `children`   | `Snippet` / `ReactNode` | Button label (default: "Checkout") |
 
 #### `<OneTimeCheckoutButton>`
@@ -1067,12 +1072,12 @@ Same as `<CheckoutButton>` with default label "Buy now".
 
 Styled button for opening the customer billing portal.
 
-| Prop           | Type         | Description                              |
-| -------------- | ------------ | ---------------------------------------- |
-| `href`         | `string`     | Link mode: direct URL                    |
-| `disabled`     | `boolean`    | Disable button                           |
-| `className`    | `string`     | CSS class                                |
-| `onOpenPortal` | `() => void` | Callback mode                            |
+| Prop           | Type                    | Description                              |
+| -------------- | ----------------------- | ---------------------------------------- |
+| `href`         | `string`                | Link mode: direct URL                    |
+| `disabled`     | `boolean`               | Disable button                           |
+| `className`    | `string`                | CSS class                                |
+| `onOpenPortal` | `() => void`            | Callback mode                            |
 | `children`     | `Snippet` / `ReactNode` | Button label (default: "Manage billing") |
 
 #### `<BillingGate>`
@@ -1083,8 +1088,8 @@ Conditionally renders children based on available billing actions.
 | ----------------- | -------------------------------------- | --------------------------------------- |
 | `snapshot`        | `BillingSnapshot \| null`              | Current billing state                   |
 | `requiredActions` | `AvailableAction \| AvailableAction[]` | Actions that must be available          |
-| `children`        | `Snippet` / `ReactNode`               | Rendered when all actions are available |
-| `fallback`        | `Snippet` / `ReactNode`               | Rendered otherwise                      |
+| `children`        | `Snippet` / `ReactNode`                | Rendered when all actions are available |
+| `fallback`        | `Snippet` / `ReactNode`                | Rendered otherwise                      |
 
 #### `<CheckoutSuccessSummary>`
 

@@ -22,9 +22,7 @@ export const BillingToggle = ({
         label: formatRecurringCycle(cycle),
       }))}
       value={value}
-      onValueChange={(segment) =>
-        onValueChange?.(segment as RecurringCycle)
-      }
+      onValueChange={(segment) => onValueChange?.(segment as RecurringCycle)}
       className={className}
     />
   );
