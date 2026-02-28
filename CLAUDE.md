@@ -287,7 +287,7 @@ Special scope: `*:*` grants full access to all resources.
 
 Use Mintlify's built-in components in MDX:
 
-```mdx
+````mdx
 <Note>Important information the reader should know.</Note>
 <Warning>Critical warning about potential issues.</Warning>
 <Tip>Helpful suggestion or best practice.</Tip>
@@ -328,7 +328,7 @@ Use Mintlify's built-in components in MDX:
 <Accordion title="Expandable Section">
   Hidden content revealed on click.
 </Accordion>
-```
+````
 
 ---
 
