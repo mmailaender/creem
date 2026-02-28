@@ -4,9 +4,9 @@
   position: fixed;
   inset: 0;
   z-index: 40;
-  background: color-mix(
+  background-color: color-mix(
     in oklab,
-    var(--et-color-foreground-default) 40%,
+    var(--et-color-surface-backdrop) 80%,
     transparent
   );
   backdrop-filter: blur(4px);
@@ -20,9 +20,9 @@
   }
 
   @variant dark {
-    background: color-mix(
+    background-color: color-mix(
       in oklab,
-      var(--et-color-foreground-default-dark) 50%,
+      var(--et-color-surface-backdrop-dark) 80%,
       transparent
     );
   }
@@ -45,11 +45,6 @@
   border-radius: var(--et-radius-xl);
   background-color: var(--et-color-surface-base);
   padding: 1.5rem;
-  box-shadow:
-    0 10px 15px -3px
-      color-mix(in oklab, var(--et-color-foreground-default) 10%, transparent),
-    0 4px 6px -4px
-      color-mix(in oklab, var(--et-color-foreground-default) 10%, transparent);
 
   &[data-state="open"] {
     animation: dialog-scale-in 150ms ease-out;
@@ -61,19 +56,6 @@
 
   @variant dark {
     background-color: var(--et-color-surface-base-dark);
-    box-shadow:
-      0 10px 15px -3px
-        color-mix(
-          in oklab,
-          var(--et-color-foreground-default-dark) 6%,
-          transparent
-        ),
-      0 4px 6px -4px
-        color-mix(
-          in oklab,
-          var(--et-color-foreground-default-dark) 6%,
-          transparent
-        );
   }
 }
 
