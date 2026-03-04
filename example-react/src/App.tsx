@@ -7,8 +7,9 @@ import {
   type Transition,
 } from "@mmailaender/convex-creem/react";
 import { api } from "../../convex/_generated/api";
-import creemLogoUrl from "./assets/creem-grey.svg";
-import convexLogoUrl from "./assets/convex-grey.svg";
+import creemLogoUrl from "./assets/creem.svg";
+import convexLogoUrl from "./assets/convex.svg";
+import { GithubIcon } from "lucide-react";
 
 const connectedApi: ConnectedBillingApi = {
   uiModel: api.billing.uiModel,
@@ -41,20 +42,22 @@ export default function App() {
         <div className="mx-auto w-full max-w-[1280px] px-6 lg:px-16 grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-2">
           <div className="lg:col-span-7 space-y-6">
             <h1 className="display-m max-w-[720px] text-foreground-default">
-              Connected Billing Widgets
+              Drop-in Billing for Convex Apps
             </h1>
             <p className="subtitle-m max-w-[720px] text-foreground-default">
-              These widgets query Convex directly through the Creem wrapper API
-              using convex/react, with backend-derived billing state in the UI
-              model.
+              Subscriptions, one-time purchases, seat-based pricing, and a
+              customer portal — all powered by Creem and wired to your Convex
+              backend. Available for React and Svelte.
             </p>
-            <div className="flex items-center gap-4 pt-8 text-foreground-placeholder">
-              <span className="inline-flex h-10 items-center justify-center">
-                <img src={creemLogoUrl} alt="Creem" className="h-9 w-9" />
-              </span>
-              <span className="inline-flex h-10 w-10 items-center justify-center">
-                <img src={convexLogoUrl} alt="Convex" className="h-9 w-9" />
-              </span>
+            <div className="pt-8 text-foreground-placeholder">
+              <div className="flex items-center gap-4">
+                <span className="inline-flex h-8 items-center justify-center opacity-70">
+                  <img src={creemLogoUrl} alt="Creem" className="h-7 w-auto" />
+                </span>
+                <span className="inline-flex h-8 w-8 items-center justify-center opacity-70">
+                  <img src={convexLogoUrl} alt="Convex" className="h-7 w-7" />
+                </span>
+              </div>
             </div>
           </div>
 
@@ -132,12 +135,32 @@ export default function App() {
                 </div>
               </div>
             </div>
+            <a
+              href="https://github.com/mmailaender/convex-creem"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="button-outline inline-flex items-center justify-center gap-2"
+            >
+              <GithubIcon className="size-4" />
+              <span>Github</span>
+            </a>
           </nav>
         </div>
       </header>
 
       <div className="mx-auto w-full max-w-[1280px] px-4 lg:px-16 space-y-14 pt-14">
         <CheckoutSuccessSummary className="rounded-lg border border-emerald-300 bg-emerald-50 p-4 text-sm text-emerald-900" />
+
+        {/* Test card info */}
+        <div className="rounded-lg border border-surface-300-700 bg-surface-100-900 px-4 py-3 text-sm text-foreground-muted">
+          <span className="font-medium text-foreground-default">Test card:</span>
+          <code className="ml-1 rounded bg-surface-200-800 px-1.5 py-0.5 font-mono text-xs">
+            4242 4242 4242 4242
+          </code>
+          <span className="ml-2 text-foreground-placeholder">
+            — any future expiry, any CVC, any cardholder name
+          </span>
+        </div>
 
         {/* ─── Section 1: Subscriptions with trial (all 4 billing cycles) ─── */}
         <section
@@ -154,8 +177,9 @@ export default function App() {
                 With Trial (4 Cycles)
               </h2>
               <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
-                All four billing cycles are available. The toggle derives from
-                the registered plans automatically.
+                Subscription plans with a free trial. Monthly, quarterly,
+                semi-annual, and annual billing cycles — the cycle toggle appears
+                automatically from the registered plans.
               </p>
             </div>
 
@@ -164,7 +188,7 @@ export default function App() {
                 <Subscription.Item
                   type="free"
                   title="Free"
-                  description={`✔️ Up to 3 users\n\n✔️ Basic task management\n\n✔️ Drag & drop builder\n\n✔️ Task deadlines & reminders\n\n✔️ Mobile access\n\n✔️ Priority support\n\n✔️ 1-1 calls\n`}
+                  description={`✔️ Up to 3 projects\n✔️ Basic task boards\n✔️ 500 MB storage\n✔️ Community support`}
                 />
                 <Subscription.Item
                   planId="basic"
@@ -192,7 +216,7 @@ export default function App() {
                 <Subscription.Item
                   type="enterprise"
                   title="Enterprise"
-                  description={`✔️ Up to 3 users\n\n✔️ Basic task management\n\n✔️ Drag & drop builder\n\n✔️ Task deadlines & reminders\n\n✔️ Mobile access\n\n✔️ Priority support\n\n✔️ 1-1 calls\n`}
+                  description={`✔️ Everything in Premium\n✔️ Unlimited storage\n✔️ SSO & SAML\n✔️ Dedicated account manager\n✔️ Custom integrations\n✔️ 99.9% SLA`}
                   contactUrl="https://creem.io"
                 />
               </Subscription.Root>
@@ -219,8 +243,8 @@ export default function App() {
                 Without Trial (Monthly Only)
               </h2>
               <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
-                Only monthly products registered. The billing toggle should not
-                appear.
+                Monthly-only plans with no trial period. Since only one billing
+                cycle is registered, the cycle toggle is hidden automatically.
               </p>
             </div>
 
@@ -229,7 +253,7 @@ export default function App() {
                 <Subscription.Item
                   type="free"
                   title="Free"
-                  description={`✔️ Up to 3 users\n\n✔️ Basic task management\n\n✔️ Drag & drop builder\n\n✔️ Task deadlines & reminders\n\n✔️ Mobile access\n\n✔️ Priority support\n\n✔️ 1-1 calls\n`}
+                  description={`✔️ 1 user included\n✔️ Basic email support\n✔️ 1 GB storage\n✔️ Standard templates`}
                 />
                 <Subscription.Item
                   planId="basic-monthly"
@@ -267,8 +291,8 @@ export default function App() {
                 Seat-Based (User-Selectable)
               </h2>
               <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
-                Seat-based plans with a quantity picker. The user selects how
-                many seats before checkout.
+                Per-seat pricing where the customer picks how many seats before
+                checkout. The seat picker lets users choose their team size.
               </p>
             </div>
 
@@ -310,9 +334,9 @@ export default function App() {
                 Seat-Based (Auto-Derived)
               </h2>
               <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
-                Same seat-based products but with a fixed unit count (e.g.
-                derived from organization member count). No picker shown —
-                hardcoded to 5 seats.
+                Per-seat pricing with a fixed seat count derived from your app
+                (e.g. team member count). No picker is shown — the unit count is
+                set programmatically. Hardcoded to 5 in this demo.
               </p>
             </div>
 
@@ -350,8 +374,9 @@ export default function App() {
                 Single One-Time Product
               </h2>
               <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
-                A standalone product purchased once. Shows &ldquo;Owned&rdquo;
-                after purchase.
+                A single product that can be purchased once. After purchase, the
+                card displays an &ldquo;Owned&rdquo; badge instead of a buy
+                button.
               </p>
             </div>
 
@@ -386,9 +411,13 @@ export default function App() {
                 Mutually Exclusive Product Group
               </h2>
               <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
-                Transition graph decides available upgrade paths. Upgrading from
-                Basic to Premium uses a dedicated delta product. Buy first the
-                Basic Product and then upgrade to Premium.
+                A group of products where owning one affects available actions on
+                others. Upgrade paths are defined via a transition graph —
+                upgrading from Basic to Premium uses a dedicated delta product.
+                Product images are synced from Creem.
+              </p>
+              <p className="body-l col-span-12 mt-2 text-center font-medium text-foreground-default lg:col-start-4 lg:col-span-6">
+                Try it: Buy the Basic product first, then upgrade to Premium.
               </p>
             </div>
 
@@ -429,8 +458,10 @@ export default function App() {
                 Repeating Product (Consumable)
               </h2>
               <p className="body-l col-span-12 mt-6 text-center text-foreground-muted lg:col-start-4 lg:col-span-6">
-                Can be purchased multiple times. No &ldquo;Owned&rdquo; badge —
-                always shows the purchase button.
+                A consumable product that can be purchased repeatedly (e.g.
+                credits, tokens). The buy button stays active after every
+                purchase — no &ldquo;Owned&rdquo; badge is shown. Product image
+                is synced from Creem.
               </p>
             </div>
 
@@ -444,6 +475,7 @@ export default function App() {
               >
                 <Product.Item
                   type="recurring"
+                  title="100 AI Credits"
                   productId="prod_73CnZ794MaJ1DUn8MU0O5f"
                 />
               </Product.Root>
