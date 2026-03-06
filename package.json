@@ -1,6 +1,6 @@
 {
   "name": "@creem_io/better-auth",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "packageManager": "pnpm@10.16.0",
   "description": "Creem official Better-Auth plugin",
   "main": "./dist/cjs/index.js",
