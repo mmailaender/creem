@@ -44,7 +44,7 @@ jobs:
         run: pnpm run build
 
       - name: Verify package contents
-        run: pnpm pack --dry-run
+        run: pnpm pack && ls -lh *.tgz && rm *.tgz
 
       - name: Release
         run: pnpm exec semantic-release
