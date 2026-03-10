@@ -57,70 +57,68 @@ export interface SearchTransactionsInput {
  * A single transaction object from Creem.
  */
 export interface TransactionData {
-  /**
-   * Unique transaction identifier
-   */
+  /** Unique transaction identifier */
   id: string;
-
-  /**
-   * Transaction type
-   * @example "payment", "refund"
-   */
-  type: string;
-
-  /**
-   * Transaction status
-   * @example "succeeded", "failed", "pending"
-   */
-  status: string;
-
-  /**
-   * Transaction amount
-   */
+  /** Environment mode */
+  mode: "test" | "prod" | "sandbox";
+  /** String representing the object's type */
+  object: "transaction";
+  /** The transaction amount in cents. 1000 = $10.00 */
   amount: number;
-
-  /**
-   * Currency code
-   * @example "USD", "EUR"
-   */
+  /** The amount the customer paid in cents. 1000 = $10.00 */
+  amountPaid?: number;
+  /** The discount amount in cents. 1000 = $10.00 */
+  discountAmount?: number;
+  /** Three-letter ISO currency code, in uppercase */
   currency: string;
+  /** The type of transaction: payment (one time) or invoice (subscription) */
+  type: "payment" | "invoice";
+  /** The ISO alpha-2 country code where tax is collected */
+  taxCountry?: string;
+  /** The sale tax amount in cents. 1000 = $10.00 */
+  taxAmount?: number;
+  /** Status of the transaction */
+  status:
+    | "pending"
+    | "paid"
+    | "refunded"
+    | "partialRefund"
+    | "chargedBack"
+    | "uncollectible"
+    | "declined"
+    | "void";
+  /** The amount that has been refunded in cents. 1000 = $10.00 */
+  refundedAmount?: number | null;
+  /** The order ID associated with the transaction */
+  order?: string;
+  /** The subscription ID associated with the transaction */
+  subscription?: string;
+  /** The customer ID associated with the transaction */
+  customer?: string;
+  /** The description of the transaction */
+  description?: string;
+  /** Start period for the invoice as timestamp */
+  periodStart?: number;
+  /** End period for the invoice as timestamp */
+  periodEnd?: number;
+  /** Creation date of the transaction as timestamp */
+  createdAt: number;
+}
 
-  /**
-   * Customer information
-   */
-  customer: {
-    id: string;
-    email: string;
-    name?: string;
-  };
-
-  /**
-   * Product information (if applicable)
-   */
-  product?: {
-    id: string;
-    name: string;
-  };
-
-  /**
-   * Order ID associated with this transaction
-   */
-  order_id?: string;
-
-  /**
-   * Transaction creation date (Unix timestamp)
-   */
-  created_at: number;
-
-  /**
-   * Custom metadata stored with the transaction
-   */
-  metadata?: Record<string, unknown>;
-
-  /**
-   * Additional transaction properties from Creem API
-   */
-  [key: string]: unknown;
+/**
+ * Pagination details from Creem API.
+ */
+export interface TransactionPagination {
+  /** Total number of records matching the query */
+  totalRecords: number;
+  /** Total number of pages available */
+  totalPages: number;
+  /** The current page number */
+  currentPage: number;
+  /** The next page number, or null if there is no next page */
+  nextPage: number | null;
+  /** The previous page number, or null if there is no previous page */
+  prevPage: number | null;
 }
 
 /**
@@ -130,20 +128,10 @@ export interface SearchTransactionsResponse {
   /**
    * Array of transaction objects
    */
-  transactions: TransactionData[];
+  items: TransactionData[];
 
   /**
-   * Total number of transactions matching the query
+   * Pagination details
    */
-  total?: number;
-
-  /**
-   * Current page number
-   */
-  page?: number;
-
-  /**
-   * Additional pagination or response data from Creem API
-   */
-  [key: string]: unknown;
+  pagination: TransactionPagination;
 }

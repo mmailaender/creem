@@ -37,7 +37,8 @@ export interface CreemClient {
    * - `customer` - Customer info (defaults to session user)
    * - `metadata` - Additional metadata
    * - `requestId` - Idempotency key
-   * - `customField` - Up to 3 custom fields
+   * - `customFields` - Up to 3 custom fields for collecting additional info
+   * - `customField` - *(deprecated)* Use `customFields` instead
    *
    * @example
    * ```typescript
@@ -159,8 +160,8 @@ export interface CreemClient {
    *   pageSize: 50
    * });
    *
-   * if (data?.transactions) {
-   *   data.transactions.forEach(tx => {
+   * if (data?.items) {
+   *   data.items.forEach(tx => {
    *     console.log(`${tx.type}: ${tx.amount} ${tx.currency}`);
    *   });
    * }

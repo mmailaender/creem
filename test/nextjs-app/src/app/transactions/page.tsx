@@ -28,8 +28,8 @@ export default function Transactions() {
           pageSize: 20,
         });
 
-        if (result.data?.transactions) {
-          setTransactions(result.data.transactions);
+        if (result.data?.items) {
+          setTransactions(result.data.items);
         }
       } catch (error) {
         console.error("Error fetching transactions:", error);

@@ -10,7 +10,9 @@ import {
   isRefundEntity,
   isDisputeEntity,
   isTransactionEntity,
+  isDiscountEntity,
 } from "../webhook-types.js";
+import type { ProductEntity, DiscountEntity, DiscountStatus } from "../webhook-types.js";
 import {
   mockCustomer,
   mockProduct,
@@ -20,6 +22,7 @@ import {
   mockDispute,
   mockTransaction,
   mockCheckout,
+  mockDiscount,
 } from "./fixtures.js";
 
 describe("isWebhookEntity", () => {
@@ -32,6 +35,7 @@ describe("isWebhookEntity", () => {
     expect(isWebhookEntity(mockDispute)).toBe(true);
     expect(isWebhookEntity(mockTransaction)).toBe(true);
     expect(isWebhookEntity(mockCheckout)).toBe(true);
+    expect(isWebhookEntity(mockDiscount)).toBe(true);
   });
 
   it("returns false for null", () => {
@@ -159,5 +163,91 @@ describe("individual type guards", () => {
     expect(isTransactionEntity(mockTransaction)).toBe(true);
     expect(isTransactionEntity(mockCustomer)).toBe(false);
     expect(isTransactionEntity(null)).toBe(false);
+  });
+
+  it("isDiscountEntity", () => {
+    expect(isDiscountEntity(mockDiscount)).toBe(true);
+    expect(isDiscountEntity(mockCustomer)).toBe(false);
+    expect(isDiscountEntity(null)).toBe(false);
+    expect(isDiscountEntity("string")).toBe(false);
+  });
+});
+
+describe("ProductEntity with custom_fields", () => {
+  it("accepts a product with custom_fields", () => {
+    const product: ProductEntity = {
+      ...mockProduct,
+      custom_fields: [
+        {
+          type: "text",
+          key: "company_name",
+          label: "Company Name",
+          optional: false,
+          text: { max_length: 100 },
+        },
+        {
+          type: "checkbox",
+          key: "agree_tos",
+          label: "I agree to TOS",
+          checkbox: { label: "Accept terms", value: true },
+        },
+      ],
+    };
+    expect(product.custom_fields).toHaveLength(2);
+    expect(product.custom_fields![0].key).toBe("company_name");
+  });
+
+  it("accepts a product with null custom_fields", () => {
+    const product: ProductEntity = {
+      ...mockProduct,
+      custom_fields: null,
+    };
+    expect(product.custom_fields).toBeNull();
+  });
+
+  it("accepts a product without custom_fields", () => {
+    const product: ProductEntity = { ...mockProduct };
+    expect(product.custom_fields).toBeUndefined();
+  });
+});
+
+describe("DiscountEntity", () => {
+  it("accepts all valid statuses", () => {
+    const statuses: DiscountStatus[] = ["deleted", "active", "draft", "expired", "scheduled"];
+    for (const status of statuses) {
+      const discount: DiscountEntity = { ...mockDiscount, status };
+      expect(discount.status).toBe(status);
+    }
+  });
+
+  it("accepts a percentage discount", () => {
+    const discount: DiscountEntity = {
+      ...mockDiscount,
+      type: "percentage",
+      percentage: 25,
+    };
+    expect(discount.type).toBe("percentage");
+    expect(discount.percentage).toBe(25);
+  });
+
+  it("accepts a fixed discount", () => {
+    const discount: DiscountEntity = {
+      ...mockDiscount,
+      type: "fixed",
+      amount: 500,
+      currency: "USD",
+    };
+    expect(discount.type).toBe("fixed");
+    expect(discount.amount).toBe(500);
+  });
+
+  it("accepts all duration values", () => {
+    const discount: DiscountEntity = {
+      ...mockDiscount,
+      duration: "repeating",
+      duration_in_months: 3,
+    };
+    expect(discount.duration).toBe("repeating");
+    expect(discount.duration_in_months).toBe(3);
   });
 });

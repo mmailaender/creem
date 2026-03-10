@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       creem:
-        specifier: ^1.3.6
-        version: 1.3.6
+        specifier: ^1.4.1
+        version: 1.4.1
     devDependencies:
       '@better-auth/core':
         specifier: ^1.5.4
@@ -1732,6 +1732,10 @@ packages:
 
   creem@1.3.6:
     resolution: {integrity: sha512-kkfKDRGEBHb+DAOhw9ihGu+pjyi2tLam37W5ASycxVjmZ50viO9GZYFacQJLAUJZq9cOLoh0weMC+OyMFy6VTQ==}
+    hasBin: true
+
+  creem@1.4.1:
+    resolution: {integrity: sha512-P+QihyM2YBBvsTke+59TZeH5euE85F5lNj41BlyxqrIlgzFums3HLjlZHhzigGe63ftz7+tVPO6gT72YI5yDRg==}
     hasBin: true
 
   cross-spawn@7.0.6:
@@ -5872,6 +5876,14 @@ snapshots:
       typescript: 5.9.3
 
   creem@1.3.6:
+    dependencies:
+      '@modelcontextprotocol/sdk': 1.27.1(zod@3.25.76)
+      zod: 3.25.76
+    transitivePeerDependencies:
+      - '@cfworker/json-schema'
+      - supports-color
+
+  creem@1.4.1:
     dependencies:
       '@modelcontextprotocol/sdk': 1.27.1(zod@3.25.76)
       zod: 3.25.76
