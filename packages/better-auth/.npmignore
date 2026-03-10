@@ -1,0 +1,49 @@
+# Source files (we ship compiled dist/ instead)
+*.ts
+!*.d.ts
+
+# Test files and directories
+test/
+*.test.ts
+*.spec.ts
+
+# Development files
+tsconfig.json
+.eslintrc*
+.prettierrc*
+.editorconfig
+
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# CI/CD files
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Node modules
+node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Keep these
+!README.md
+!dist/**/*
+
