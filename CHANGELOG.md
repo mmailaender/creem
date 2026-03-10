@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/armitage-labs/creem-betterauth/compare/v1.0.2...v1.1.0) (2026-03-10)
+
+
+### Features
+
+* Added support of new creem SDK version ([#19](https://github.com/armitage-labs/creem-betterauth/issues/19)) ([fa0661f](https://github.com/armitage-labs/creem-betterauth/commit/fa0661f6b241ddbac186927fdf94dc29a3c99194))
+
 ## [1.0.2](https://github.com/armitage-labs/creem-betterauth/compare/v1.0.1...v1.0.2) (2026-03-06)
 
 
