@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/armitage-labs/creem_io/compare/v1.0.0...v1.1.0) (2026-03-10)
+
+
+### Features
+
+* Align with core package types ([#8](https://github.com/armitage-labs/creem_io/issues/8)) ([930cde8](https://github.com/armitage-labs/creem_io/commit/930cde82271c3f2437a6082074fd0ce3975906b0))
+
 # 1.0.0 (2026-03-09)
 
 ### Bug Fixes

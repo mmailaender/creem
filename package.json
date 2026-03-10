@@ -1,6 +1,6 @@
 {
   "name": "creem_io",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Official Creem SDK for JavaScript & TypeScript - Universal payment integration for any framework",
   "packageManager": "pnpm@10.16.0",
   "publishConfig": {
