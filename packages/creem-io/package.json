@@ -1,0 +1,75 @@
+{
+  "name": "creem_io",
+  "version": "1.0.0",
+  "description": "Official Creem SDK for JavaScript & TypeScript - Universal payment integration for any framework",
+  "packageManager": "pnpm@10.16.0",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "prepublishOnly": "pnpm run build",
+    "typecheck": "tsc --noEmit",
+    "lint": "prettier --check .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "keywords": [
+    "creem",
+    "payments",
+    "subscriptions",
+    "sdk",
+    "api",
+    "typescript",
+    "javascript",
+    "checkout",
+    "webhooks",
+    "licenses",
+    "billing",
+    "saas"
+  ],
+  "author": "Creem",
+  "license": "MIT",
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "@types/node": "^20.0.0",
+    "prettier": "^3.5.3",
+    "semantic-release": "^24.2.5",
+    "tsup": "^8.5.1",
+    "typescript": "^5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/armitage-labs/creem_io"
+  },
+  "homepage": "https://creem.io",
+  "bugs": {
+    "url": "https://github.com/armitage-labs/creem_io/issues"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}
