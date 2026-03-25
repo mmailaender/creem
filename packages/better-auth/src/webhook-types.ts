@@ -88,7 +88,7 @@ export interface FeatureEntity {
   /** Unique identifier for the feature */
   id: string;
   /** The feature type */
-  type: "custom" | "github-repo" | "discord" | "file" | "link" | "licence-key";
+  type: "custom" | "file" | "licenseKey";
   /** A brief description of the feature */
   description: string;
 }
@@ -108,8 +108,8 @@ export interface ProductEntity extends BaseEntity {
   price: number;
   /** Three-letter ISO currency code, in uppercase */
   currency: string;
-  /** Billing method: recurring or one-time */
-  billing_type: "recurring" | "one-time";
+  /** Billing method: recurring or onetime */
+  billing_type: "recurring" | "onetime";
   /** Billing period */
   billing_period: "every-month" | "every-three-months" | "every-six-months" | "every-year" | "once";
   /** Status of the product */
@@ -122,6 +122,8 @@ export interface ProductEntity extends BaseEntity {
   product_url?: string;
   /** The URL to redirect after successful payment */
   default_success_url?: string;
+  /** Custom fields configured for the product */
+  custom_fields?: CustomField[] | null;
   /** Creation date of the product */
   created_at: Date;
   /** Last updated date of the product */
@@ -168,7 +170,7 @@ export interface TransactionEntity extends BaseEntity {
   /** The customer ID associated with the transaction */
   customer?: string;
   /** The description of the transaction */
-  description: string;
+  description?: string;
   /** Start period for the invoice as timestamp */
   period_start?: number;
   /** End period for the invoice as timestamp */
@@ -225,6 +227,45 @@ export interface OrderEntity extends BaseEntity {
 }
 
 // ============================================================================
+// Discount Entity
+// ============================================================================
+
+export type DiscountStatus = "deleted" | "active" | "draft" | "expired" | "scheduled";
+export type DiscountType = "percentage" | "fixed";
+export type DiscountDuration = "forever" | "once" | "repeating";
+
+export interface DiscountEntity extends BaseEntity {
+  /** String representing the object's type */
+  object: "discount";
+  /** The current status of the discount */
+  status: DiscountStatus;
+  /** The name of the discount */
+  name: string;
+  /** The discount code */
+  code: string;
+  /** The type of discount */
+  type: DiscountType;
+  /** The fixed discount amount in cents (for fixed type) */
+  amount?: number;
+  /** Three-letter ISO currency code (for fixed type) */
+  currency?: string;
+  /** The percentage off (for percentage type) */
+  percentage?: number;
+  /** The expiry date of the discount */
+  expiry_date?: Date;
+  /** Maximum number of times this discount can be redeemed */
+  max_redemptions?: number;
+  /** How long the discount applies */
+  duration?: DiscountDuration;
+  /** Number of months the discount applies (for repeating duration) */
+  duration_in_months?: number;
+  /** Product IDs this discount applies to */
+  applies_to_products?: string[];
+  /** Number of times this discount has been redeemed */
+  redeem_count?: number;
+}
+
+// ============================================================================
 // License Entities
 // ============================================================================
 
@@ -259,8 +300,24 @@ export interface LicenseEntity extends BaseEntity {
 }
 
 export interface ProductFeatureEntity {
+  /** Unique identifier for the feature */
+  id?: string | null;
+  /** A brief description of the feature */
+  description?: string | null;
+  /** The feature type */
+  type?: "custom" | "file" | "licenseKey" | null;
+  /** Private note from the seller, visible to customer after purchase */
+  private_note?: string | null;
+  /** File feature data containing downloadable files */
+  file?: {
+    files: { id: string; file_name: string; url: string; type: string; size: number }[];
+  } | null;
   /** License key issued for the order */
-  license?: LicenseEntity;
+  license_key?: LicenseEntity | null;
+  /**
+   * @deprecated Use `license_key` instead
+   */
+  license?: LicenseEntity | null;
 }
 
 // ============================================================================
@@ -271,15 +328,11 @@ export interface SubscriptionItemEntity extends BaseEntity {
   /** String representing the object's type */
   object: "subscription_item";
   /** The product ID associated with the subscription item */
-  product_id: string;
+  product_id?: string;
   /** The price ID associated with the subscription item */
-  price_id: string;
+  price_id?: string;
   /** The number of units for the subscription item */
   units?: number;
-  /** The creation date of the subscription item */
-  created_at: Date;
-  /** The last updated date of the subscription item */
-  updated_at: Date;
 }
 
 export type SubscriptionStatus =
@@ -289,7 +342,8 @@ export type SubscriptionStatus =
   | "past_due"
   | "unpaid"
   | "paused"
-  | "trialing";
+  | "trialing"
+  | "scheduled_cancel";
 
 export interface SubscriptionEntity extends BaseEntity {
   /** String representing the object's type */
@@ -338,7 +392,7 @@ export interface CheckoutEntity extends BaseEntity {
   /** Status of the checkout */
   status: CheckoutStatus;
   /** Request ID to identify and track each checkout request */
-  request_id: string;
+  request_id?: string;
   /** The product associated with the checkout session */
   product: ProductEntity | string;
   /** The number of units for the product */
@@ -356,7 +410,7 @@ export interface CheckoutEntity extends BaseEntity {
   /** The URL to redirect after checkout is completed */
   success_url?: string;
   /** Features issued for the order */
-  feature?: ProductFeatureEntity;
+  feature?: ProductFeatureEntity[];
   /** Metadata for the checkout */
   metadata?: Metadata;
 }
@@ -434,7 +488,8 @@ export type WebhookEventType =
   | "subscription.unpaid"
   | "subscription.update"
   | "subscription.past_due"
-  | "subscription.paused";
+  | "subscription.paused"
+  | "subscription.scheduled_cancel";
 
 /**
  * Main webhook event structure (generic)
@@ -583,6 +638,16 @@ export interface SubscriptionPausedEvent {
 }
 
 /**
+ * Subscription scheduled cancel event - contains a SubscriptionEntity
+ */
+export interface SubscriptionScheduledCancelEvent {
+  eventType: "subscription.scheduled_cancel";
+  id: string;
+  created_at: number;
+  object: SubscriptionEntity;
+}
+
+/**
  * Discriminated union of all webhook events
  * Use this type for type-safe webhook handling with automatic type narrowing in switch statements
  */
@@ -598,7 +663,8 @@ export type WebhookEvent =
   | SubscriptionUnpaidEvent
   | SubscriptionUpdateEvent
   | SubscriptionPastDueEvent
-  | SubscriptionPausedEvent;
+  | SubscriptionPausedEvent
+  | SubscriptionScheduledCancelEvent;
 
 // ============================================================================
 // Normalized/Expanded Types for Webhook Events (Developer-Friendly)
@@ -811,6 +877,17 @@ export interface NormalizedSubscriptionPausedEvent {
 }
 
 /**
+ * Subscription scheduled cancel event with normalized/expanded objects.
+ * Product and customer are always full objects.
+ */
+export interface NormalizedSubscriptionScheduledCancelEvent {
+  eventType: "subscription.scheduled_cancel";
+  id: string;
+  created_at: number;
+  object: NormalizedSubscriptionEntity;
+}
+
+/**
  * Discriminated union of all normalized webhook events.
  * Use this type in your better-auth plugin options for clean, type-safe webhook handlers.
  *
@@ -829,7 +906,8 @@ export type NormalizedWebhookEvent =
   | NormalizedSubscriptionUnpaidEvent
   | NormalizedSubscriptionUpdateEvent
   | NormalizedSubscriptionPastDueEvent
-  | NormalizedSubscriptionPausedEvent;
+  | NormalizedSubscriptionPausedEvent
+  | NormalizedSubscriptionScheduledCancelEvent;
 
 // ============================================================================
 // Type Guards (Helper functions to determine object types)
@@ -846,7 +924,8 @@ export type WebhookEntity =
   | SubscriptionEntity
   | RefundEntity
   | DisputeEntity
-  | TransactionEntity;
+  | TransactionEntity
+  | DiscountEntity;
 
 /**
  * Type guard to check if an object is a valid webhook entity
@@ -865,6 +944,7 @@ export function isWebhookEntity(obj: unknown): obj is WebhookEntity {
       "refund",
       "dispute",
       "transaction",
+      "discount",
     ].includes(entity.object)
   );
 }
@@ -916,4 +996,8 @@ export function isDisputeEntity(obj: unknown): obj is DisputeEntity {
 
 export function isTransactionEntity(obj: unknown): obj is TransactionEntity {
   return obj !== null && typeof obj === "object" && "object" in obj && obj.object === "transaction";
+}
+
+export function isDiscountEntity(obj: unknown): obj is DiscountEntity {
+  return obj !== null && typeof obj === "object" && "object" in obj && obj.object === "discount";
 }

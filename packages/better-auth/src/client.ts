@@ -47,6 +47,9 @@ export type {
   CreateCheckoutInput,
   CreateCheckoutResponse,
   CheckoutCustomer,
+  CustomFieldInput,
+  TextFieldConfig,
+  CheckboxFieldConfig,
 } from "./checkout-types.js";
 
 export type { CreatePortalInput, CreatePortalResponse } from "./portal-types.js";

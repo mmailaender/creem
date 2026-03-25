@@ -28,6 +28,9 @@ export type {
   CreateCheckoutInput,
   CreateCheckoutResponse,
   CheckoutCustomer,
+  CustomFieldInput,
+  TextFieldConfig,
+  CheckboxFieldConfig,
 } from "./checkout-types.js";
 
 // Export portal types
@@ -47,6 +50,14 @@ export type {
   SearchTransactionsResponse,
   TransactionData,
 } from "./search-transactions-types.js";
+
+// Export discount types
+export type {
+  DiscountEntity,
+  DiscountStatus,
+  DiscountType,
+  DiscountDuration,
+} from "./webhook-types.js";
 
 // Export access check types
 export type { HasAccessGrantedResponse } from "./has-active-subscription-types.js";

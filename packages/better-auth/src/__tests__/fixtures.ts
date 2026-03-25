@@ -19,6 +19,7 @@ import type {
   RefundEntity,
   DisputeEntity,
   TransactionEntity,
+  DiscountEntity,
 } from "../webhook-types.js";
 
 // ============================================================================
@@ -165,6 +166,22 @@ export const mockDispute: DisputeEntity = {
   currency: "USD",
   transaction: mockTransaction,
   created_at: Date.now() / 1000,
+};
+
+// ============================================================================
+// Mock Discount
+// ============================================================================
+export const mockDiscount: DiscountEntity = {
+  id: "disc_test_606",
+  object: "discount",
+  mode: "test",
+  status: "active",
+  name: "Summer Sale",
+  code: "SUMMER20",
+  type: "percentage",
+  percentage: 20,
+  duration: "once",
+  redeem_count: 5,
 };
 
 // ============================================================================

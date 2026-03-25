@@ -8,6 +8,54 @@ export interface CheckoutCustomer {
 }
 
 /**
+ * Configuration for a text custom field.
+ */
+export interface TextFieldConfig {
+  /** Maximum character length */
+  maxLength?: number;
+  /** Minimum character length */
+  minLength?: number;
+}
+
+/**
+ * Configuration for a checkbox custom field.
+ */
+export interface CheckboxFieldConfig {
+  /** Label displayed next to the checkbox */
+  label?: string;
+}
+
+/**
+ * A custom field to display on the checkout page.
+ * Up to 3 custom fields can be added per checkout.
+ *
+ * @example
+ * ```typescript
+ * const field: CustomFieldInput = {
+ *   type: "text",
+ *   key: "company_name",
+ *   label: "Company Name",
+ *   optional: false,
+ *   text: { maxLength: 100 }
+ * };
+ * ```
+ */
+export interface CustomFieldInput {
+  /** Field type */
+  type: "text" | "checkbox";
+  /** Unique key for the field (max 200 chars) */
+  key: string;
+  /** Display label (max 50 chars) */
+  label: string;
+  /** Whether the field is optional */
+  optional?: boolean;
+  /** Text field configuration (only for type "text") */
+  text?: TextFieldConfig;
+  /** Checkbox field configuration (only for type "checkbox") */
+  checkbox?: CheckboxFieldConfig;
+}
+
+/**
  * Parameters for creating a Creem checkout session.
  *
  * @example
@@ -63,14 +111,23 @@ export interface CreateCheckoutInput {
   customer?: CheckoutCustomer;
 
   /**
-   * Custom fields to include with the checkout (max 3).
-   * Useful for storing additional information about the purchase.
+   * Custom fields to display on the checkout page (max 3).
+   * Collect additional information from customers during checkout.
    *
-   * Max 3 items.
-   *
-   * @example [{ custom_field_1: "value1" }, { custom_field_2: "value2" }]
+   * @example
+   * ```typescript
+   * customFields: [
+   *   { type: "text", key: "company", label: "Company Name", text: { maxLength: 100 } },
+   *   { type: "checkbox", key: "terms", label: "Accept Terms" }
+   * ]
+   * ```
    */
-  customField?: Array<Record<string, unknown>>;
+  customFields?: CustomFieldInput[];
+
+  /**
+   * @deprecated Use `customFields` instead.
+   */
+  customField?: CustomFieldInput[];
 
   /**
    * URL to redirect to after successful checkout.
