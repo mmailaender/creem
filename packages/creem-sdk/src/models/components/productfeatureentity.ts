@@ -57,7 +57,7 @@ export type ProductFeatureEntityStatus = ClosedEnum<
 /**
  * Associated license instances.
  */
-export type ProductFeatureEntityLicenseKeyInstance = {
+export type ProductFeatureEntityInstance = {
   /**
    * Unique identifier for the object.
    */
@@ -101,6 +101,10 @@ export type LicenseKey = {
    */
   object: string;
   /**
+   * The ID of the product this license belongs to.
+   */
+  productId: string;
+  /**
    * The current status of the license key.
    */
   status: LicenseStatus;
@@ -127,7 +131,7 @@ export type LicenseKey = {
   /**
    * Associated license instances.
    */
-  instance?: ProductFeatureEntityLicenseKeyInstance | null | undefined;
+  instance?: ProductFeatureEntityInstance | null | undefined;
 };
 
 /**
@@ -147,7 +151,7 @@ export type ProductFeatureEntityLicenseStatus = ClosedEnum<
 /**
  * Associated license instances.
  */
-export type ProductFeatureEntityInstance = {
+export type ProductFeatureEntityLicenseInstance = {
   /**
    * Unique identifier for the object.
    */
@@ -193,6 +197,10 @@ export type License = {
    */
   object: string;
   /**
+   * The ID of the product this license belongs to.
+   */
+  productId: string;
+  /**
    * The current status of the license key.
    */
   status: LicenseStatus;
@@ -219,7 +227,7 @@ export type License = {
   /**
    * Associated license instances.
    */
-  instance?: ProductFeatureEntityInstance | null | undefined;
+  instance?: ProductFeatureEntityLicenseInstance | null | undefined;
 };
 
 export type ProductFeatureEntity = {
@@ -297,8 +305,8 @@ export const ProductFeatureEntityStatus$outboundSchema: z.ZodNativeEnum<
 > = ProductFeatureEntityStatus$inboundSchema;
 
 /** @internal */
-export const ProductFeatureEntityLicenseKeyInstance$inboundSchema: z.ZodType<
-  ProductFeatureEntityLicenseKeyInstance,
+export const ProductFeatureEntityInstance$inboundSchema: z.ZodType<
+  ProductFeatureEntityInstance,
   z.ZodTypeDef,
   unknown
 > = z.object({
@@ -314,7 +322,7 @@ export const ProductFeatureEntityLicenseKeyInstance$inboundSchema: z.ZodType<
   });
 });
 /** @internal */
-export type ProductFeatureEntityLicenseKeyInstance$Outbound = {
+export type ProductFeatureEntityInstance$Outbound = {
   id: string;
   mode: string;
   object: string;
@@ -324,10 +332,10 @@ export type ProductFeatureEntityLicenseKeyInstance$Outbound = {
 };
 
 /** @internal */
-export const ProductFeatureEntityLicenseKeyInstance$outboundSchema: z.ZodType<
-  ProductFeatureEntityLicenseKeyInstance$Outbound,
+export const ProductFeatureEntityInstance$outboundSchema: z.ZodType<
+  ProductFeatureEntityInstance$Outbound,
   z.ZodTypeDef,
-  ProductFeatureEntityLicenseKeyInstance
+  ProductFeatureEntityInstance
 > = z.object({
   id: z.string(),
   mode: EnvironmentMode$outboundSchema,
@@ -341,24 +349,22 @@ export const ProductFeatureEntityLicenseKeyInstance$outboundSchema: z.ZodType<
   });
 });
 
-export function productFeatureEntityLicenseKeyInstanceToJSON(
-  productFeatureEntityLicenseKeyInstance:
-    ProductFeatureEntityLicenseKeyInstance,
+export function productFeatureEntityInstanceToJSON(
+  productFeatureEntityInstance: ProductFeatureEntityInstance,
 ): string {
   return JSON.stringify(
-    ProductFeatureEntityLicenseKeyInstance$outboundSchema.parse(
-      productFeatureEntityLicenseKeyInstance,
+    ProductFeatureEntityInstance$outboundSchema.parse(
+      productFeatureEntityInstance,
     ),
   );
 }
-export function productFeatureEntityLicenseKeyInstanceFromJSON(
+export function productFeatureEntityInstanceFromJSON(
   jsonString: string,
-): SafeParseResult<ProductFeatureEntityLicenseKeyInstance, SDKValidationError> {
+): SafeParseResult<ProductFeatureEntityInstance, SDKValidationError> {
   return safeParse(
     jsonString,
-    (x) =>
-      ProductFeatureEntityLicenseKeyInstance$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'ProductFeatureEntityLicenseKeyInstance' from JSON`,
+    (x) => ProductFeatureEntityInstance$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'ProductFeatureEntityInstance' from JSON`,
   );
 }
 
@@ -371,6 +377,7 @@ export const LicenseKey$inboundSchema: z.ZodType<
   id: z.string(),
   mode: EnvironmentMode$inboundSchema,
   object: z.string(),
+  product_id: z.string(),
   status: LicenseStatus$inboundSchema,
   key: z.string(),
   activation: z.number(),
@@ -379,11 +386,11 @@ export const LicenseKey$inboundSchema: z.ZodType<
     z.string().datetime({ offset: true }).transform(v => new Date(v)),
   ).optional(),
   created_at: z.string().datetime({ offset: true }).transform(v => new Date(v)),
-  instance: z.nullable(
-    z.lazy(() => ProductFeatureEntityLicenseKeyInstance$inboundSchema),
-  ).optional(),
+  instance: z.nullable(z.lazy(() => ProductFeatureEntityInstance$inboundSchema))
+    .optional(),
 }).transform((v) => {
   return remap$(v, {
+    "product_id": "productId",
     "activation_limit": "activationLimit",
     "expires_at": "expiresAt",
     "created_at": "createdAt",
@@ -394,13 +401,14 @@ export type LicenseKey$Outbound = {
   id: string;
   mode: string;
   object: string;
+  product_id: string;
   status: string;
   key: string;
   activation: number;
   activation_limit?: number | null | undefined;
   expires_at?: string | null | undefined;
   created_at: string;
-  instance?: ProductFeatureEntityLicenseKeyInstance$Outbound | null | undefined;
+  instance?: ProductFeatureEntityInstance$Outbound | null | undefined;
 };
 
 /** @internal */
@@ -412,6 +420,7 @@ export const LicenseKey$outboundSchema: z.ZodType<
   id: z.string(),
   mode: EnvironmentMode$outboundSchema,
   object: z.string(),
+  productId: z.string(),
   status: LicenseStatus$outboundSchema,
   key: z.string(),
   activation: z.number(),
@@ -419,10 +428,11 @@ export const LicenseKey$outboundSchema: z.ZodType<
   expiresAt: z.nullable(z.date().transform(v => v.toISOString())).optional(),
   createdAt: z.date().transform(v => v.toISOString()),
   instance: z.nullable(
-    z.lazy(() => ProductFeatureEntityLicenseKeyInstance$outboundSchema),
+    z.lazy(() => ProductFeatureEntityInstance$outboundSchema),
   ).optional(),
 }).transform((v) => {
   return remap$(v, {
+    productId: "product_id",
     activationLimit: "activation_limit",
     expiresAt: "expires_at",
     createdAt: "created_at",
@@ -452,8 +462,8 @@ export const ProductFeatureEntityLicenseStatus$outboundSchema: z.ZodNativeEnum<
 > = ProductFeatureEntityLicenseStatus$inboundSchema;
 
 /** @internal */
-export const ProductFeatureEntityInstance$inboundSchema: z.ZodType<
-  ProductFeatureEntityInstance,
+export const ProductFeatureEntityLicenseInstance$inboundSchema: z.ZodType<
+  ProductFeatureEntityLicenseInstance,
   z.ZodTypeDef,
   unknown
 > = z.object({
@@ -469,7 +479,7 @@ export const ProductFeatureEntityInstance$inboundSchema: z.ZodType<
   });
 });
 /** @internal */
-export type ProductFeatureEntityInstance$Outbound = {
+export type ProductFeatureEntityLicenseInstance$Outbound = {
   id: string;
   mode: string;
   object: string;
@@ -479,10 +489,10 @@ export type ProductFeatureEntityInstance$Outbound = {
 };
 
 /** @internal */
-export const ProductFeatureEntityInstance$outboundSchema: z.ZodType<
-  ProductFeatureEntityInstance$Outbound,
+export const ProductFeatureEntityLicenseInstance$outboundSchema: z.ZodType<
+  ProductFeatureEntityLicenseInstance$Outbound,
   z.ZodTypeDef,
-  ProductFeatureEntityInstance
+  ProductFeatureEntityLicenseInstance
 > = z.object({
   id: z.string(),
   mode: EnvironmentMode$outboundSchema,
@@ -496,22 +506,23 @@ export const ProductFeatureEntityInstance$outboundSchema: z.ZodType<
   });
 });
 
-export function productFeatureEntityInstanceToJSON(
-  productFeatureEntityInstance: ProductFeatureEntityInstance,
+export function productFeatureEntityLicenseInstanceToJSON(
+  productFeatureEntityLicenseInstance: ProductFeatureEntityLicenseInstance,
 ): string {
   return JSON.stringify(
-    ProductFeatureEntityInstance$outboundSchema.parse(
-      productFeatureEntityInstance,
+    ProductFeatureEntityLicenseInstance$outboundSchema.parse(
+      productFeatureEntityLicenseInstance,
     ),
   );
 }
-export function productFeatureEntityInstanceFromJSON(
+export function productFeatureEntityLicenseInstanceFromJSON(
   jsonString: string,
-): SafeParseResult<ProductFeatureEntityInstance, SDKValidationError> {
+): SafeParseResult<ProductFeatureEntityLicenseInstance, SDKValidationError> {
   return safeParse(
     jsonString,
-    (x) => ProductFeatureEntityInstance$inboundSchema.parse(JSON.parse(x)),
-    `Failed to parse 'ProductFeatureEntityInstance' from JSON`,
+    (x) =>
+      ProductFeatureEntityLicenseInstance$inboundSchema.parse(JSON.parse(x)),
+    `Failed to parse 'ProductFeatureEntityLicenseInstance' from JSON`,
   );
 }
 
@@ -521,6 +532,7 @@ export const License$inboundSchema: z.ZodType<License, z.ZodTypeDef, unknown> =
     id: z.string(),
     mode: EnvironmentMode$inboundSchema,
     object: z.string(),
+    product_id: z.string(),
     status: LicenseStatus$inboundSchema,
     key: z.string(),
     activation: z.number(),
@@ -532,10 +544,11 @@ export const License$inboundSchema: z.ZodType<License, z.ZodTypeDef, unknown> =
       new Date(v)
     ),
     instance: z.nullable(
-      z.lazy(() => ProductFeatureEntityInstance$inboundSchema),
+      z.lazy(() => ProductFeatureEntityLicenseInstance$inboundSchema),
     ).optional(),
   }).transform((v) => {
     return remap$(v, {
+      "product_id": "productId",
       "activation_limit": "activationLimit",
       "expires_at": "expiresAt",
       "created_at": "createdAt",
@@ -546,13 +559,14 @@ export type License$Outbound = {
   id: string;
   mode: string;
   object: string;
+  product_id: string;
   status: string;
   key: string;
   activation: number;
   activation_limit?: number | null | undefined;
   expires_at?: string | null | undefined;
   created_at: string;
-  instance?: ProductFeatureEntityInstance$Outbound | null | undefined;
+  instance?: ProductFeatureEntityLicenseInstance$Outbound | null | undefined;
 };
 
 /** @internal */
@@ -564,6 +578,7 @@ export const License$outboundSchema: z.ZodType<
   id: z.string(),
   mode: EnvironmentMode$outboundSchema,
   object: z.string(),
+  productId: z.string(),
   status: LicenseStatus$outboundSchema,
   key: z.string(),
   activation: z.number(),
@@ -571,10 +586,11 @@ export const License$outboundSchema: z.ZodType<
   expiresAt: z.nullable(z.date().transform(v => v.toISOString())).optional(),
   createdAt: z.date().transform(v => v.toISOString()),
   instance: z.nullable(
-    z.lazy(() => ProductFeatureEntityInstance$outboundSchema),
+    z.lazy(() => ProductFeatureEntityLicenseInstance$outboundSchema),
   ).optional(),
 }).transform((v) => {
   return remap$(v, {
+    productId: "product_id",
     activationLimit: "activation_limit",
     expiresAt: "expires_at",
     createdAt: "created_at",

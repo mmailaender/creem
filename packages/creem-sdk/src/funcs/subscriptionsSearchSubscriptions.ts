@@ -3,7 +3,7 @@
  */
 
 import { CreemCore } from "../core.js";
-import { encodeSimple } from "../lib/encodings.js";
+import { encodeFormQuery } from "../lib/encodings.js";
 import * as M from "../lib/matchers.js";
 import { compactMap } from "../lib/primitives.js";
 import { safeParse } from "../lib/schemas.js";
@@ -26,18 +26,19 @@ import { APICall, APIPromise } from "../types/async.js";
 import { Result } from "../types/fp.js";
 
 /**
- * Resume a subscription.
+ * List all subscriptions
  *
  * @remarks
- * Resume a subscription. Subscription must be in paused or scheduled_cancel status.
+ * Search and retrieve a paginated list of subscriptions. View status, billing cycle, and customer info.
  */
-export function subscriptionsResume(
+export function subscriptionsSearchSubscriptions(
   client: CreemCore,
-  id: string,
+  pageNumber?: number | undefined,
+  pageSize?: number | undefined,
   options?: RequestOptions,
 ): APIPromise<
   Result<
-    components.SubscriptionEntity,
+    components.SubscriptionListEntity,
     | CreemError
     | ResponseValidationError
     | ConnectionError
@@ -50,19 +51,21 @@ export function subscriptionsResume(
 > {
   return new APIPromise($do(
     client,
-    id,
+    pageNumber,
+    pageSize,
     options,
   ));
 }
 
 async function $do(
   client: CreemCore,
-  id: string,
+  pageNumber?: number | undefined,
+  pageSize?: number | undefined,
   options?: RequestOptions,
 ): Promise<
   [
     Result<
-      components.SubscriptionEntity,
+      components.SubscriptionListEntity,
       | CreemError
       | ResponseValidationError
       | ConnectionError
@@ -75,13 +78,15 @@ async function $do(
     APICall,
   ]
 > {
-  const input: operations.ResumeSubscriptionRequest = {
-    id: id,
+  const input: operations.SearchSubscriptionsRequest = {
+    pageNumber: pageNumber,
+    pageSize: pageSize,
   };
 
   const parsed = safeParse(
     input,
-    (value) => operations.ResumeSubscriptionRequest$outboundSchema.parse(value),
+    (value) =>
+      operations.SearchSubscriptionsRequest$outboundSchema.parse(value),
     "Input validation failed",
   );
   if (!parsed.ok) {
@@ -90,14 +95,12 @@ async function $do(
   const payload = parsed.value;
   const body = null;
 
-  const pathParams = {
-    id: encodeSimple("id", payload.id, {
-      explode: false,
-      charEncoding: "percent",
-    }),
-  };
+  const path = pathToFunc("/v1/subscriptions/search")();
 
-  const path = pathToFunc("/v1/subscriptions/{id}/resume")(pathParams);
+  const query = encodeFormQuery({
+    "page_number": payload.page_number,
+    "page_size": payload.page_size,
+  });
 
   const headers = new Headers(compactMap({
     Accept: "application/json",
@@ -110,7 +113,7 @@ async function $do(
   const context = {
     options: client._options,
     baseURL: options?.serverURL ?? client._baseURL ?? "",
-    operationID: "resumeSubscription",
+    operationID: "searchSubscriptions",
     oAuth2Scopes: null,
 
     resolvedSecurity: requestSecurity,
@@ -124,10 +127,11 @@ async function $do(
 
   const requestRes = client._createRequest(context, {
     security: requestSecurity,
-    method: "POST",
+    method: "GET",
     baseURL: options?.serverURL,
     path: path,
     headers: headers,
+    query: query,
     body: body,
     userAgent: client._options.userAgent,
     timeoutMs: options?.timeoutMs || client._options.timeoutMs || -1,
@@ -149,7 +153,7 @@ async function $do(
   const response = doResult.value;
 
   const [result] = await M.match<
-    components.SubscriptionEntity,
+    components.SubscriptionListEntity,
     | CreemError
     | ResponseValidationError
     | ConnectionError
@@ -159,7 +163,7 @@ async function $do(
     | UnexpectedClientError
     | SDKValidationError
   >(
-    M.json(200, components.SubscriptionEntity$inboundSchema),
+    M.json(200, components.SubscriptionListEntity$inboundSchema),
     M.fail([400, 401, 404, "4XX"]),
     M.fail("5XX"),
   )(response, req);

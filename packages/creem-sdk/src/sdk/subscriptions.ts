@@ -6,6 +6,7 @@ import { subscriptionsCancel } from "../funcs/subscriptionsCancel.js";
 import { subscriptionsGet } from "../funcs/subscriptionsGet.js";
 import { subscriptionsPause } from "../funcs/subscriptionsPause.js";
 import { subscriptionsResume } from "../funcs/subscriptionsResume.js";
+import { subscriptionsSearchSubscriptions } from "../funcs/subscriptionsSearchSubscriptions.js";
 import { subscriptionsUpdate } from "../funcs/subscriptionsUpdate.js";
 import { subscriptionsUpgrade } from "../funcs/subscriptionsUpgrade.js";
 import { ClientSDK, RequestOptions } from "../lib/sdks.js";
@@ -106,10 +107,10 @@ export class Subscriptions extends ClientSDK {
   }
 
   /**
-   * Resume a paused subscription.
+   * Resume a subscription.
    *
    * @remarks
-   * Resume a previously paused subscription. Restart billing and restore access to the subscription.
+   * Resume a subscription. Subscription must be in paused or scheduled_cancel status.
    */
   async resume(
     id: string,
@@ -118,6 +119,25 @@ export class Subscriptions extends ClientSDK {
     return unwrapAsync(subscriptionsResume(
       this,
       id,
+      options,
+    ));
+  }
+
+  /**
+   * List all subscriptions
+   *
+   * @remarks
+   * Search and retrieve a paginated list of subscriptions. View status, billing cycle, and customer info.
+   */
+  async searchSubscriptions(
+    pageNumber?: number | undefined,
+    pageSize?: number | undefined,
+    options?: RequestOptions,
+  ): Promise<components.SubscriptionListEntity> {
+    return unwrapAsync(subscriptionsSearchSubscriptions(
+      this,
+      pageNumber,
+      pageSize,
       options,
     ));
   }
